@@ -526,6 +526,33 @@ body.gated .app,body.gated .botnav{filter:blur(3px);pointer-events:none;user-sel
 .tip .tclose{margin-left:auto;flex:0 0 auto;color:var(--fg-dim);font-size:15px;line-height:1}
 .tip .tclose:hover{color:var(--fg)}
 
+/* ── 5ter. ROBUSTESSE TACTILE ET CIBLES DE CLIC ────────────── */
+/* iOS ne propage pas le clic au document depuis un élément non interactif :
+   cursor:pointer suffit à le rendre cliquable. Tous les éléments soumis à la
+   délégation d'événements doivent donc le porter.                            */
+button,a,[role="button"],.cmd-it,.fc,.tile,.step,.vertpick,.gate-prof,.acc-h,
+.pill,.tab,.chk,.starbtn,.srsbtn,.modecard,.stat,.gitem .gt{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;   /* supprime le délai de 300 ms au tap */
+}
+/* Cible minimale de 44 px en tactile, recommandation d'accessibilité */
+@media (pointer:coarse){
+  .btn.sm{height:38px;padding:0 15px}
+  .pill{height:36px;padding:0 15px}
+  .azbar button{width:34px;height:34px}
+  .chk{width:26px;height:26px}
+  .starbtn{min-width:32px;min-height:32px;display:inline-grid;place-items:center}
+  .tclose{min-width:32px;min-height:32px;display:inline-grid;place-items:center}
+  .iconbtn{width:40px;height:40px}
+  .tab{padding:13px 16px}
+  .srsbtn{padding:15px 8px}
+}
+/* Les listes déroulantes natives doivent rester natives en tactile :
+   elles ouvrent le sélecteur du système, plus fiable qu'un menu maison. */
+select.field{-webkit-appearance:none;appearance:none;background-color:var(--bg-elev)}
+select.field:focus{outline:none;border-color:var(--accent)}
+
 /* ── 6. ANIMATIONS ─────────────────────────────────────────── */
 @keyframes pageIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -562,7 +589,9 @@ body.gated .app,body.gated .botnav{filter:blur(3px);pointer-events:none;user-sel
     background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);
   }
-  .botnav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px 8px;font-size:10px;color:var(--fg-dim);font-weight:500}
+  .botnav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 2px 9px;min-height:56px;justify-content:center;font-size:10px;color:var(--fg-dim);font-weight:500;transition:color .15s}
+.botnav a.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2.5px;border-radius:0 0 3px 3px;background:var(--accent)}
+.botnav a .nb{position:absolute;top:5px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:99px;background:var(--orange);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center;padding:0 4px;line-height:1}
   .botnav a.on{color:var(--fg)}
   .botnav a i{font-size:17px;font-style:normal}
   .fc{height:280px}
@@ -4071,7 +4100,9 @@ function srs(id){
 }
 /** grade : 0 à revoir, 1 difficile, 2 correct, 3 facile */
 function review(id,grade){
+  const etaitNeuve=isNew(id);
   const c=srs(id);
+  if(etaitNeuve && grade>0) today().newSeen=(today().newSeen||0)+1;  /* plafond quotidien */
   if(grade===0){ c.reps=0; c.iv=0; c.lapses++; c.ef=Math.max(1.3,c.ef-0.2); c.due=todayISO(); }
   else{
     const q=grade+2; // 3,4,5
@@ -4085,7 +4116,13 @@ function review(id,grade){
   }
   today().cards++; S.xp+=XP.card; save(); paintHeader();
 }
-const isDue = id => srs(id).due <= todayISO();
+/* Lecture pure : srs() crée l'entrée si absente, ce qui polluait l'état
+   dès qu'on comptait les fiches dues. On sépare lecture et écriture. */
+const srsGet = id => S.srs[id] || null;
+/** Fiche jamais étudiée : elle est « à apprendre », pas « à revoir ». */
+const isNew = id => { const c=srsGet(id); return !c || (c.reps||0)===0; };
+/** Fiche déjà étudiée dont l'échéance est atteinte. */
+const isDue = id => { const c=srsGet(id); return !!c && (c.reps||0)>0 && c.due<=todayISO(); };
 
 /* ── 5. Corpus de fiches ──────────────────────────────────── */
 const CARDS = [].concat(
@@ -4147,10 +4184,13 @@ function stats(){
   const doing= TASKS.filter(t=>meta(t.id).st==="doing").length;
   const fav  = TASKS.filter(t=>meta(t.id).fav).length;
   const min  = Math.round(Object.values(S.tasks).reduce((a,m)=>a+(m.time||0),0)/60);
-  const due  = (typeof dueCount==="function") ? dueCount() : CARDS.filter(c=>isDue(c.id)).length;
-  const seen = CARDS.filter(c=>S.srs[c.id]).length;
+  /* trois compteurs distincts, jamais un total global trompeur */
+  const due   = (typeof reviewLeft==="function") ? reviewLeft() : CARDS.filter(c=>isDue(c.id)).length;
+  const neufs = (typeof newLeftToday==="function") ? Math.min(newLeftToday(), CARDS.filter(c=>isNew(c.id)).length) : 0;
+  const restantes = (typeof newAvailable==="function") ? newAvailable().length : 0;
+  const seen = CARDS.filter(c=>!isNew(c.id)).length;   /* réellement étudiées */
   const mast = TASKS.reduce((a,t)=>a+meta(t.id).mastery,0);
-  return { done, doing, fav, min, due, seen, total:TASKS.length, pctDone:pct(done,TASKS.length), mastery:pct(mast,TASKS.length*3) };
+  return { done, doing, fav, min, due, neufs, restantes, seen, total:TASKS.length, pctDone:pct(done,TASKS.length), mastery:pct(mast,TASKS.length*3) };
 }
 const phaseStat = pid => {
   const ts=byPhase(pid), d=ts.filter(t=>meta(t.id).st==="done").length;
@@ -4171,7 +4211,9 @@ function lockScroll(on){
   scrollLocked=Math.max(0,scrollLocked+(on?1:-1));
   document.body.style.overflow = scrollLocked>0 ? "hidden" : "";
 }
-function modal(title, bodyHTML, footHTML, ftClass){
+let modalLocked=false;   /* une modale verrouillée n'est pas fermable par le fond */
+function modal(title, bodyHTML, footHTML, ftClass, locked){
+  modalLocked=!!locked;
   const box=$("#modalBox"); if(!box) return;
   box.innerHTML =
     (title!==""
@@ -4186,7 +4228,9 @@ function modal(title, bodyHTML, footHTML, ftClass){
   const first=box.querySelector("button:not([data-close]),input,select,textarea,a[href]");
   if(first && first.focus) setTimeout(()=>{ try{ first.focus(); }catch(e){} },40);
 }
-function closeModal(){
+function closeModal(force){
+  if(modalLocked && !force) return;      /* seule une action dédiée peut fermer */
+  modalLocked=false;
   const ovl=$("#modalOvl"); if(!ovl) return;
   if(ovl.classList.contains("on")) lockScroll(false);
   ovl.classList.remove("on");
@@ -4274,6 +4318,9 @@ const RANKS = ["Stagiaire","Analyste junior","Analyste","Analyste confirmé","Ch
                "Chargé d'affaires senior","Directeur de participations","Directeur associé",
                "Associé","Associé gérant"];
 const rankOf = xp => RANKS[Math.min(levelOf(xp)-1, RANKS.length-1)];
+/** Libellé affiché sous le nom : le rôle prime sur le rang de progression,
+    un administrateur ne doit jamais apparaître comme « Stagiaire ». */
+const rankLabel = () => (typeof isAdmin==="function" && isAdmin()) ? "Administrateur" : rankOf(S.xp);
 
 /* ── Objectif du jour ─────────────────────────────────────── */
 const GOAL = { cards:12, min:15 };
@@ -4633,7 +4680,7 @@ function bootAuth(){
    ═══════════════════════════════════════════════════════════ */
 
 const PLKEY="hubma:plan";
-const PLAN_DEFAULT={ quota:{cards:10,min:15,modules:1}, modules:{}, cards:{}, updated:null };
+const PLAN_DEFAULT={ quota:{cards:10,new:10,min:15,modules:1}, modules:{}, cards:{}, updated:null };
 let PLAN=loadPlan();
 
 function loadPlan(){
@@ -4666,15 +4713,49 @@ function plannedModules(){
 /* fiches forcées par le plan, échéance atteinte */
 const plannedCards = () => Object.keys(PLAN.cards).filter(id=>PLAN.cards[id]<=todayISO() && CARDS.some(c=>c.id===id));
 
-/* file de révision : plan + échéances naturelles, mélangée, plafonnée */
+/* ═══ COURBE D'APPRENTISSAGE : deux files distinctes ═══
+   Modèle éprouvé (Anki, Duolingo) : on introduit un petit nombre de fiches
+   NEUVES par jour, et on révise séparément celles déjà vues dont l'échéance
+   est atteinte. Confondre les deux produit un total global sans signification
+   (« 230 fiches à revoir » au premier jour) et décourage l'utilisateur.        */
+
+/** Plafond d'introduction quotidien. Dix par défaut, réglable par l'administrateur. */
+const newPerDay = () => clamp(PLAN.quota.new==null?10:PLAN.quota.new, 0, 50);
+/** Fiches jamais étudiées. Celles dont l'administrateur a forcé l'échéance
+    passent devant : sans cela, sa planification n'avait aucun effet sur une
+    fiche encore jamais vue, puisqu'elle n'entre pas dans la file de révision. */
+function newAvailable(){
+  const forced={}; plannedCards().forEach(id=>{ forced[id]=1; });
+  const neuves=CARDS.filter(c=>isNew(c.id));
+  const prio=neuves.filter(c=>forced[c.id]), reste=neuves.filter(c=>!forced[c.id]);
+  return prio.concat(reste);
+}
+/** Combien de nouvelles peuvent encore être introduites aujourd'hui. */
+const newLeftToday = () => Math.max(0, newPerDay() - ((today().newSeen)||0));
+/** File des nouvelles du jour : priorité au plan, puis tirage aléatoire dans le
+    reste du corpus, le volume restant borné par le quota quotidien. */
+function newQueue(){
+  const n=newLeftToday(); if(n<=0) return [];
+  const forced={}; plannedCards().forEach(id=>{ forced[id]=1; });
+  const neuves=CARDS.filter(c=>isNew(c.id));
+  /* tirage aléatoire à l'intérieur de chaque groupe : sans cela, un forçage
+     global rendrait la sélection identique d'une session à l'autre */
+  const prio=neuves.filter(c=>forced[c.id]).sort(()=>Math.random()-0.5);
+  const reste=neuves.filter(c=>!forced[c.id]).sort(()=>Math.random()-0.5);
+  return prio.concat(reste).slice(0,n);
+}
+
+/** File de révision : échéances forcées par le plan, puis échéances naturelles.
+    Les fiches neuves en sont exclues : elles ont leur propre file. */
 function reviewPool(){
-  const forced=plannedCards();
-  const due=CARDS.filter(c=>isDue(c.id)).map(c=>c.id);
   const seen={}, out=[];
-  forced.concat(due).forEach(id=>{ if(!seen[id]){ seen[id]=1; out.push(id); } });
+  plannedCards().filter(id=>!isNew(id)).forEach(id=>{ if(!seen[id]){ seen[id]=1; out.push(id); } });
+  CARDS.forEach(c=>{ if(!seen[c.id] && isDue(c.id)){ seen[c.id]=1; out.push(c.id); } });
   return out;
 }
-const dueCount = () => reviewPool().length;
+const reviewLeft = () => reviewPool().length;
+/** Conservé pour compatibilité : total réellement à traiter aujourd'hui. */
+const dueCount = () => reviewLeft() + newQueue().length;
 
 /* ── Console ──────────────────────────────────────────────── */
 function viewAdmin(){
@@ -4704,10 +4785,14 @@ function viewAdmin(){
 
    /* quotas */
    "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Volume quotidien</h2></div>"+
-     "<div class=\"grid g3\">"+
+     "<div class=\"grid g4\">"+
        "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqCards\">Fiches par session de révision</label>"+
          "<input class=\"field\" id=\"aqCards\" type=\"number\" min=\"3\" max=\"50\" value=\""+sessionSize()+"\">"+
          "<p class=\"dim mt8\" style=\"font-size:12px\">Valeur appliquée immédiatement à la révision du jour. Défaut : 10.</p></div>"+
+       "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqNew\">Nouvelles fiches par jour</label>"+
+         "<input class=\"field\" id=\"aqNew\" type=\"number\" min=\"0\" max=\"50\" value=\""+newPerDay()+"\">"+
+         "<p class=\"dim mt8\" style=\"font-size:12px\">Fiches jamais vues introduites chaque jour. Défaut : 10. "+
+         "Au-delà de 20, la rétention chute nettement.</p></div>"+
        "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqMin\">Objectif de minutes par jour</label>"+
          "<input class=\"field\" id=\"aqMin\" type=\"number\" min=\"5\" max=\"180\" value=\""+(PLAN.quota.min||15)+"\"></div>"+
        "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqMod\">Modules par jour visés</label>"+
@@ -4755,7 +4840,8 @@ function viewAdmin(){
        "<button class=\"btn primary\" data-adm=\"cards\">Rendre dues à cette date</button>"+
      "</div>"+
      "<p class=\"dim mt12\" style=\"font-size:12px\">Force la mise à disposition des fiches à la date choisie, en complément "+
-     "du calcul de répétition espacée. Utile pour caler une session sur un point précis avant un rendez-vous.</p>"+
+     "du calcul de répétition espacée. Les fiches encore jamais vues passent en tête de la file des nouvelles, "+
+     "dans la limite du quota quotidien réglé ci-dessus : relevez-le si vous voulez en servir davantage d'un coup.</p>"+
      (nCards?"<button class=\"btn danger sm mt12\" data-adm=\"clearcards\">Lever toutes les échéances forcées</button>":"")+
      "</div></div>"+
 
@@ -5179,7 +5265,7 @@ function resetTips(){
 
 const MAIN_NAV = [
   { h:"#/",            i:"◈", n:"Tableau de bord" },
-  { h:"#/revision",    i:"⟳", n:"Révision du jour", badge:()=>stats().due },
+  { h:"#/revision",    i:"⟳", n:"Révision du jour", badge:()=>reviewLeft() },
   { h:"#/parcours",    i:"◎", n:"Tous les modules" }
 ];
 const TOOL_NAV = [
@@ -5192,7 +5278,7 @@ const TOOL_NAV = [
 const BOT_NAV = [
   { h:"#/",            i:"◈", n:"Accueil" },
   { h:"#/parcours",    i:"◎", n:"Modules" },
-  { h:"#/revision",    i:"⟳", n:"Réviser" },
+  { h:"#/revision",    i:"⟳", n:"Réviser", badge:()=>reviewLeft() },
   { h:"#/cartes",      i:"▤", n:"Jeux" },
   { h:"#/referentiel", i:"§", n:"Termes" }
 ];
@@ -5265,7 +5351,10 @@ function paintNav(){
 
   $("#botnav").innerHTML = BOT_NAV.map(i=>{
     const on = cur===i.h || (i.h!=="#/" && cur.indexOf(i.h)===0);
-    return "<a href=\""+i.h+"\" class=\""+(on?"on":"")+"\"><i aria-hidden=\"true\">"+i.i+"</i><span>"+H(i.n)+"</span></a>";
+    const b = i.badge ? i.badge() : 0;
+    return "<a href=\""+i.h+"\" class=\""+(on?"on":"")+"\" aria-current=\""+(on?"page":"false")+"\">"+
+      "<i aria-hidden=\"true\">"+i.i+"</i><span>"+H(i.n)+"</span>"+
+      (b>0?"<span class=\"nb\">"+(b>99?"99+":b)+"</span>":"")+"</a>";
   }).join("");
 
   /* carte de profil */
@@ -5276,7 +5365,7 @@ function paintNav(){
       me.innerHTML="<span class=\"gate-av sm\">"+esc(initials(ME.nom))+"</span>"+
         "<span style=\"flex:1;min-width:0;text-align:left\">"+
           "<b style=\"font-size:12.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">"+T(ME.nom)+"</b>"+
-          "<span class=\"dim\" style=\"font-size:10.5px\">"+RANKS[Math.min(lp.level-1,RANKS.length-1)]+"</span></span>"+
+          "<span class=\"dim\" style=\"font-size:10.5px\">"+H(rankLabel())+"</span></span>"+
         "<span class=\"dim\" style=\"font-size:11px\">⋯</span>";
       me.style.display="";
     } else me.style.display="none";
@@ -5487,15 +5576,39 @@ function viewDashboard(){
       "<div class=\"dim mt8\" style=\"font-size:13px\">Entretenez vos acquis par la révision espacée.</div>"+
       "<div class=\"mt16\"><a class=\"btn sm\" href=\"#/revision\">Réviser →</a></div></div>";
   }
+  /* ── Révision du jour : ce qui est à REVOIR, hors nouvelles fiches ── */
   h += "<div class=\"card\">"+
-    "<div class=\"eyebrow\"" + (g.due>0?" style=\"color:var(--orange)\"":"") + ">Révision du jour</div>"+
-    "<div class=\"h4 mt8\">"+(g.due>0? g.due+" fiche"+(g.due>1?"s":"")+" à revoir" : "Aucune fiche due aujourd'hui")+"</div>"+
+    "<div class=\"eyebrow\""+(g.due>0?" style=\"color:var(--orange)\"":"")+">Révision du jour</div>"+
+    "<div class=\"h4 mt8\">"+(g.due>0
+      ? g.due+" fiche"+(g.due>1?"s":"")+" restante"+(g.due>1?"s":"")
+      : "À jour")+"</div>"+
     "<div class=\"dim mt8\" style=\"font-size:13px\">"+(g.due>0
-      ? "La répétition espacée programme chaque fiche au moment où vous alliez l'oublier."
-      : "Revenez demain, ou parcourez librement les "+CARDS.length+" fiches disponibles.")+"</div>"+
+      ? "Fiches déjà vues dont l'échéance est atteinte. Session de "+sessionSize()+" au maximum."
+      : "Aucune fiche déjà étudiée n'arrive à échéance aujourd'hui.")+"</div>"+
     "<div class=\"mt16\"><a class=\"btn sm"+(g.due>0?" primary":"")+"\" href=\""+(g.due>0?"#/revision":"#/cartes")+"\">"+
-      (g.due>0?"Commencer la session →":"Parcourir les fiches →")+"</a></div></div>";
+      (g.due>0?"Réviser "+Math.min(g.due,sessionSize())+" fiches →":"Parcourir les fiches →")+"</a></div></div>";
+
   h += "</div>";
+
+  /* ── Nouvelles fiches du jour : file distincte, plafonnée par la courbe ── */
+  h += "<div class=\"card mt16\">"+
+    "<div class=\"spread wrap\" style=\"gap:14px\">"+
+      "<div style=\"flex:1;min-width:220px\">"+
+        "<div class=\"eyebrow\""+(g.neufs>0?" style=\"color:var(--blue)\"":"")+">Nouvelles fiches du jour</div>"+
+        "<div class=\"h4 mt8\">"+(g.neufs>0
+          ? g.neufs+" fiche"+(g.neufs>1?"s":"")+" à apprendre"
+          : (g.restantes>0 ? "Quota du jour atteint" : "Corpus entièrement abordé"))+"</div>"+
+        "<div class=\"dim mt8\" style=\"font-size:13px\">"+(g.neufs>0
+          ? "Plafond de "+newPerDay()+" par jour : introduire peu et souvent retient mieux que tout d'un coup."
+          : (g.restantes>0
+             ? "Vous avez introduit vos "+newPerDay()+" fiches. Les "+g.restantes+" restantes vous attendent demain."
+             : "Les "+CARDS.length+" fiches ont été abordées au moins une fois."))+"</div>"+
+      "</div>"+
+      "<div class=\"row\" style=\"gap:10px;flex:0 0 auto\">"+
+        ring(pct(newPerDay()-g.neufs,newPerDay()),58,5,(newPerDay()-g.neufs),"vues")+
+        (g.neufs>0?"<a class=\"btn sm primary\" href=\"#/revision?m=neuf\">Apprendre →</a>":"")+
+      "</div>"+
+    "</div></div>";
 
   /* Objectif du jour et succès */
   const gd=goalToday(), lastB=BADGES.filter(b=>S.badges.indexOf(b.id)>=0).slice(-6);
@@ -6202,8 +6315,8 @@ function viewReglages(){
     (ME?"<div class=\"card mt24\"><div class=\"spread wrap\" style=\"gap:14px\">"+
       "<div class=\"row\" style=\"gap:13px\"><span class=\"gate-av\" style=\"margin:0\">"+esc(initials(ME.nom))+"</span>"+
       "<div><div class=\"h4\">"+T(ME.nom)+"</div>"+
-      "<div class=\"dim\" style=\"font-size:12.5px\">"+(ME.role==="admin"?"Administrateur · ":"Membre · ")+
-        rankOf(S.xp)+" · niveau "+lp.level+"</div></div></div>"+
+      "<div class=\"dim\" style=\"font-size:12.5px\">"+H(rankLabel())+" · niveau "+lp.level+
+        (ME.role==="admin"?"":" · membre")+"</div></div></div>"+
       "<div class=\"row wrap\" style=\"gap:8px\">"+
         "<button class=\"btn sm\" data-act=\"pin\">"+(ME.pin?"Modifier le code":"Ajouter un code")+"</button>"+
         (isAdmin()?"<a class=\"btn sm\" href=\"#/admin\">Administration</a>":"<button class=\"btn sm ghost\" data-act=\"askadmin\">Devenir administrateur</button>")+
@@ -6659,62 +6772,97 @@ function resultCard(title,ok,tot,sub,btnAttr){
 
 /* ── Session de répétition espacée ────────────────────────── */
 let rv={queue:[],i:0,flip:false,ok:0,ko:0,started:false,again:{},left:0};
-function viewRevision(){
+function viewRevision(params){
   crumbs([{n:"Révision du jour"}]);
-  const due=CARDS.filter(c=>isDue(c.id));
   if(rv.started) return paintRev();
+
+  /* démarrage direct depuis le tableau de bord : #/revision?m=neuf */
+  if(params && params.get("m")==="neuf" && newQueue().length){ return startRev(false,"neuf"); }
+
+  const nRev=reviewLeft(), nNeuf=newQueue().length, reste=newAvailable().length;
   const gl=goalToday();
+
   let h=tipHTML("revision")+"<div class=\"eyebrow\">Répétition espacée</div>"+
     "<h1 class=\"h2 mt8\">Révision du jour</h1>"+
-    "<p class=\"lead mt8\">Chaque fiche vous est représentée juste avant que vous ne l'oubliiez. Plus une fiche est facile, plus l'intervalle s'allonge.</p>"+
+    "<p class=\"lead mt8\">Deux files distinctes : les fiches déjà vues qui arrivent à échéance, "+
+    "et les nouvelles introduites au compte-gouttes. Mélanger les deux noie le travail réellement utile.</p>"+
     "<div class=\"statgrid mt24\">"+
-      "<div class=\"stat\"><b class=\""+(due.length?"c-orange":"c-green")+"\">"+due.length+"</b><span>à revoir aujourd'hui</span></div>"+
-      "<div class=\"stat\"><b>"+CARDS.filter(c=>S.srs[c.id]).length+"</b><span>fiches en mémoire</span></div>"+
-      "<div class=\"stat\"><b>"+CARDS.length+"</b><span>fiches au total</span></div>"+
-      "<div class=\"stat\"><b>"+today().cards+"</b><span>revues aujourd'hui</span></div>"+
+      "<div class=\"stat\"><b class=\""+(nRev?"c-orange":"c-green")+"\">"+nRev+"</b><span>à revoir</span></div>"+
+      "<div class=\"stat\"><b class=\""+(nNeuf?"c-blue":"dim")+"\">"+nNeuf+"</b><span>nouvelles du jour</span></div>"+
+      "<div class=\"stat\"><b>"+CARDS.filter(c=>!isNew(c.id)).length+"</b><span>en mémoire</span></div>"+
+      "<div class=\"stat\"><b>"+(today().cards||0)+"</b><span>traitées aujourd'hui</span></div>"+
     "</div>"+
     "<div class=\"card mt16 spread wrap\" style=\"gap:16px\">"+
       "<div><div class=\"eyebrow\">Objectif du jour</div>"+
-      "<div class=\"dim mt8\" style=\"font-size:13px\">"+gl.cards.done+" / "+gl.cards.target+" fiches · "+gl.min.done+" / "+gl.min.target+" minutes</div></div>"+
-      "<div class=\"row\" style=\"gap:12px\">"+ring(gl.cards.pct,58,5,gl.cards.done,"fiches")+ring(gl.min.pct,58,5,gl.min.done,"min")+"</div></div>";
-  if(due.length){
-    h+="<div class=\"card mt16\" style=\"text-align:center;padding:32px\">"+
-       "<div class=\"h3\">"+due.length+" fiche"+(due.length>1?"s":"")+" vous attend"+(due.length>1?"ent":"")+"</div>"+
-       "<p class=\"lead mt8\">Durée estimée : "+Math.max(1,Math.round(due.length*0.25))+" min</p>"+
-       "<button class=\"btn lg primary mt24\" data-rvstart>Commencer la session</button></div>";
-  }else{
-    h+="<div class=\"card mt16\" style=\"text-align:center;padding:32px\">"+
-       "<div class=\"h3 c-green\">Tout est à jour</div>"+
-       "<p class=\"lead mt8\">Aucune fiche n'est due aujourd'hui. Vous pouvez travailler librement dans les modes de jeu.</p>"+
-       "<div class=\"row mt24\" style=\"justify-content:center;flex-wrap:wrap\">"+
-       "<a class=\"btn\" href=\"#/cartes?m=apprendre\">Mode Apprendre</a>"+
-       "<a class=\"btn ghost\" href=\"#/cartes?m=associer\">Mode Associer</a>"+
-       "<button class=\"btn ghost\" data-rvforce>20 fiches au hasard</button></div></div>";
-  }
-  const up={};
-  CARDS.forEach(c=>{ if(S.srs[c.id]){ const d=S.srs[c.id].due; if(d>todayISO()) up[d]=(up[d]||0)+1; } });
-  const days=Object.keys(up).sort().slice(0,10);
+      "<div class=\"dim mt8\" style=\"font-size:13px\">"+gl.cards.done+" / "+gl.cards.target+" fiches · "+
+        gl.min.done+" / "+gl.min.target+" minutes</div></div>"+
+      "<div class=\"row\" style=\"gap:12px\">"+ring(gl.cards.pct,58,5,gl.cards.done,"fiches")+
+        ring(gl.min.pct,58,5,gl.min.done,"min")+"</div></div>";
+
+  /* deux cartes d'action, chacune avec son compteur et son bouton dédié */
+  h+="<div class=\"grid g2 mt16\">"+
+
+    "<div class=\"card\" style=\"text-align:center;padding:28px 22px\">"+
+      "<div class=\"eyebrow\""+(nRev?" style=\"color:var(--orange)\"":"")+">À revoir</div>"+
+      "<div class=\"h3 mt8\">"+(nRev?nRev+" restante"+(nRev>1?"s":""):"À jour")+"</div>"+
+      "<p class=\"dim mt8\" style=\"font-size:13px\">"+(nRev
+        ? "Session de "+Math.min(nRev,sessionSize())+" fiches, environ "+
+          Math.max(1,Math.round(Math.min(nRev,sessionSize())*0.25))+" min."
+        : "Aucune échéance atteinte. Revenez demain.")+"</p>"+
+      (nRev
+        ? "<button class=\"btn lg primary block mt24\" data-rvstart>Réviser "+Math.min(nRev,sessionSize())+" fiches</button>"
+        : "<button class=\"btn block mt24\" data-rvforce>Session libre de "+sessionSize()+" fiches</button>")+
+    "</div>"+
+
+    "<div class=\"card\" style=\"text-align:center;padding:28px 22px\">"+
+      "<div class=\"eyebrow\""+(nNeuf?" style=\"color:var(--blue)\"":"")+">Nouvelles fiches</div>"+
+      "<div class=\"h3 mt8\">"+(nNeuf?nNeuf+" à apprendre":(reste?"Quota atteint":"Corpus abordé"))+"</div>"+
+      "<p class=\"dim mt8\" style=\"font-size:13px\">"+(nNeuf
+        ? "Plafond de "+newPerDay()+" par jour. "+reste+" fiche"+(reste>1?"s":"")+" encore jamais vue"+(reste>1?"s":"")+"."
+        : (reste
+           ? "Vos "+newPerDay()+" nouvelles du jour sont faites. "+reste+" restent pour les jours suivants."
+           : "Les "+CARDS.length+" fiches ont toutes été abordées."))+"</p>"+
+      (nNeuf
+        ? "<button class=\"btn lg block mt24\" data-rvnew>Apprendre "+Math.min(nNeuf,sessionSize())+" fiches</button>"
+        : "<a class=\"btn block mt24\" href=\"#/cartes\">Parcourir librement</a>")+
+    "</div>"+
+
+  "</div>";
+
+  /* aperçu du calendrier, sur les fiches réellement en mémoire */
+  const upcoming={};
+  CARDS.forEach(c=>{ const e=srsGet(c.id);
+    if(e && (e.reps||0)>0 && e.due>todayISO()) upcoming[e.due]=(upcoming[e.due]||0)+1; });
+  const days=Object.keys(upcoming).sort().slice(0,10);
   if(days.length){
-    h+="<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h4\">Prochaines échéances</h2></div>"+
+    h+="<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h4\">Prochaines échéances</h2>"+
+      "<span class=\"dim\" style=\"font-size:12px\">calculées par la courbe d'oubli</span></div>"+
       "<table class=\"tbl\"><thead><tr><th>Date</th><th>Dans</th><th class=\"n\">Fiches</th></tr></thead><tbody>"+
-      days.map(d=>{const j=dayDiff(todayISO(),d);
-        return "<tr><td>"+new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+
-        "</td><td class=\"dim\">"+j+" jour"+(j>1?"s":"")+"</td><td class=\"n\">"+up[d]+"</td></tr>";}).join("")+
-      "</tbody></table></div>";
+      days.map(d=>"<tr><td>"+new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+
+        "</td><td class=\"dim\">"+dayDiff(todayISO(),d)+" jour"+(dayDiff(todayISO(),d)>1?"s":"")+"</td>"+
+        "<td class=\"n\">"+upcoming[d]+"</td></tr>").join("")+"</tbody></table></div>";
   }
   setView(h);
 }
-/* Session de révision : tirage aléatoire, plafonné au quota (10 par défaut).
-   En mode libre, on pioche dans l'ensemble du corpus. */
-function startRev(force){
+function startRev(force,mode){
   const n=sessionSize();
-  const ids = force
-    ? CARDS.map(c=>c.id)
-    : reviewPool();
-  const pick = ids.slice().sort(()=>Math.random()-0.5).slice(0,n);
-  const pool = pick.map(id=>CARD_BY_ID[id]).filter(Boolean);
+  let pool=[], kind=mode||"mixte";
+  if(force){
+    pool=CARDS.slice().sort(()=>Math.random()-0.5).slice(0,n); kind="libre";
+  }else if(mode==="neuf"){
+    pool=newQueue().slice(0,n);
+  }else{
+    /* les révisions d'abord : elles sont périssables, les nouvelles peuvent attendre */
+    const rev=reviewPool().sort(()=>Math.random()-0.5).slice(0,n).map(id=>CARD_BY_ID[id]).filter(Boolean);
+    const place=Math.max(0,n-rev.length);
+    pool=rev.concat(newQueue().slice(0,place));
+  }
+  pool=pool.filter(Boolean);
   if(!pool.length){ toast("Aucune fiche disponible pour une session.","err"); rv.started=false; return viewRevision(); }
-  rv={queue:pool,i:0,flip:false,ok:0,ko:0,started:true,free:!!force,again:{},left:Math.max(0,ids.length-pool.length)};
+  const resteRev=Math.max(0,reviewLeft()-pool.filter(c=>!isNew(c.id)).length);
+  const resteNeuf=Math.max(0,newQueue().length-pool.filter(c=>isNew(c.id)).length);
+  rv={queue:pool,i:0,flip:false,ok:0,ko:0,started:true,free:!!force,again:{},kind:kind,
+      left:resteRev+resteNeuf,leftRev:resteRev,leftNew:resteNeuf};
   paintRev();
 }
 function paintRev(){
@@ -7005,14 +7153,14 @@ function showOnboarding(){
     (obStep>0 ? "<button class=\"btn ghost sm\" data-obback>← Précédent</button>" : "")+
     (last ? "" : "<button class=\"btn ghost sm\" data-ob-skip>Passer la présentation</button>");
 
-  modal("", body, foot, "ob-ft");
+  modal("", body, foot, "ob-ft", true);   /* verrouillée : boutons dédiés uniquement */
 }
 function obNext(){
   /* aucune étape ne peut bloquer : à défaut de choix, la vue transverse s'applique */
   if(!S.prefs.vertical) S.prefs.vertical="tous";
   if(obStep>=OB.length-1){
     S.prefs.onboarded=true;
-    save(); closeModal(); paintNav(); route();
+    save(); closeModal(true); paintNav(); route();
   }else{ obStep++; save(); showOnboarding(); }
 }
 function obBack(){ if(obStep>0){ obStep--; showOnboarding(); } }
@@ -7034,10 +7182,12 @@ function admAction(a){
 
   if(a==="quota"){
     const c=+($("#aqCards")||{}).value, m=+($("#aqMin")||{}).value, k=+($("#aqMod")||{}).value;
+    const nw=+($("#aqNew")||{}).value;
     PLAN.quota.cards=clamp(c||10,3,50);
+    PLAN.quota.new=clamp(isNaN(nw)?10:nw,0,50);
     PLAN.quota.min=clamp(m||15,5,180);
     PLAN.quota.modules=clamp(k||1,1,10);
-    savePlan(); toast("Volumes enregistrés : "+PLAN.quota.cards+" fiches par session.","ok"); route(); return;
+    savePlan(); toast("Volumes enregistrés : "+PLAN.quota.cards+" par session, "+PLAN.quota.new+" nouvelles par jour.","ok"); route(); return;
   }
   if(a==="plan"){
     const g=($("#apPhase")||{}).value, d=($("#apStart")||{}).value||todayISO(), r=+($("#apRate")||{}).value||3;
@@ -7081,8 +7231,8 @@ function profileMenu(){
   modal("Mon profil",
     "<div class=\"row\" style=\"gap:14px\"><span class=\"gate-av\" style=\"margin:0\">"+esc(initials(ME.nom))+"</span>"+
     "<div><div class=\"h4\">"+T(ME.nom)+"</div>"+
-    "<div class=\"dim\" style=\"font-size:12.5px\">"+(ME.role==="admin"?"Administrateur · ":"")+
-      "Niveau "+lp.level+" · "+fmt(S.xp)+" XP · "+V.ico+" "+T(V.court)+"</div></div></div>"+
+    "<div class=\"dim\" style=\"font-size:12.5px\">"+H(rankLabel())+" · niveau "+lp.level+
+      " · "+fmt(S.xp)+" XP · "+V.ico+" "+T(V.court)+"</div></div></div>"+
     "<div class=\"statgrid mt24\">"+
       "<div class=\"stat\"><b>"+st.done+"</b><span>modules</span></div>"+
       "<div class=\"stat\"><b>"+S.streak.n+"</b><span>jours de suite</span></div>"+
@@ -7535,7 +7685,7 @@ function route(){
     case "phase":       viewPhase(seg[1]); break;
     case "module":      viewModule(seg[1]); break;
     case "cartes":      viewCartes(params); break;
-    case "revision":    viewRevision(); break;
+    case "revision":    viewRevision(params); break;
     case "referentiel": viewReferentiel(params); break;
     case "ressources":  viewRessources(params); break;
     case "process":     viewProcess(params); break;
@@ -7687,6 +7837,7 @@ document.addEventListener("click", e=>{
 
   /* révision espacée */
   if(hit("[data-rvstart]")){ startRev(false); return; }
+  if(hit("[data-rvnew]")){ startRev(false,"neuf"); return; }
   if(hit("[data-rvforce]")){ startRev(true); return; }
   const gr=hit("[data-grade]"); if(gr){ gradeRev(+gr.dataset.grade); return; }
 
@@ -7749,9 +7900,11 @@ document.addEventListener("click", e=>{
   /* présentation initiale */
   if(hit("[data-ob]")){ obNext(); return; }
   if(hit("[data-obback]")){ obBack(); return; }
-  if(hit("[data-ob-skip]")){ S.prefs.onboarded=true;
+  if(hit("[data-ob-skip]")){
+    S.prefs.onboarded=true;
     if(!S.prefs.vertical) S.prefs.vertical="tous";
-    save(); closeModal(); paintNav(); route(); return; }
+    save(); closeModal(true); paintNav(); route(); return;   /* action dédiée : fermeture forcée */
+  }
 });
 
 /* ── Saisies ──────────────────────────────────────────────── */
@@ -7802,7 +7955,7 @@ document.addEventListener("keydown", e=>{
     /* fermer la présentation vaut l'avoir vue : elle ne doit pas revenir à chaque ouverture */
     const inTour=$("#modalOvl").classList.contains("on") && !S.prefs.onboarded && obStep>=0 && document.querySelector("[data-ob]");
     if(inTour){ S.prefs.onboarded=true; if(!S.prefs.vertical) S.prefs.vertical="tous"; save(); }
-    closeModal(); document.body.classList.remove("nav-open"); return;
+    closeModal(true); document.body.classList.remove("nav-open"); return;
   }
 
   if(typing){
