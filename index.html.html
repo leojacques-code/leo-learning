@@ -280,8 +280,10 @@ select.field{cursor:pointer;appearance:none;background-image:linear-gradient(45d
 .ovl-bg{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(5px);animation:fadeIn .18s}
 .modal{position:relative;width:100%;max-width:640px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:var(--r-xl);box-shadow:var(--shadow);animation:modalIn .26s var(--ease);max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
 .modal-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line);flex:0 0 auto}
-.modal-bd{padding:20px;overflow-y:auto}
+.modal-bd{padding:20px;overflow-y:auto;flex:1 1 auto;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end;flex:0 0 auto}
+.modal-ft.ob-ft{flex-direction:column;justify-content:stretch;gap:8px;padding:16px 20px 20px}
+.modal-ft.ob-ft .btn{width:100%}
 
 /* Palette de commandes */
 .cmd{max-width:620px;padding:0}
@@ -470,7 +472,9 @@ table.tbl th.n{text-align:right}
 .barchart .bcl{font-size:10px;color:var(--fg-dim);text-align:center}
 
 /* Onboarding */
-.ob{max-width:470px;text-align:center;padding:38px 32px}
+.ob{max-width:470px;text-align:center;padding:34px 30px 8px}
+@media (max-height:720px){.ob{padding:20px 24px 4px}.ob-ico{font-size:32px;margin-bottom:8px}}
+@media (max-height:600px){.modal{max-height:94vh}.ovl{padding:3vh 12px 12px}}
 .ob-ico{font-size:42px;margin-bottom:14px}
 .dots{display:flex;gap:6px;justify-content:center;margin:22px 0}
 .dots i{width:6px;height:6px;border-radius:99px;background:var(--line-strong);transition:all .25s var(--ease)}
@@ -4167,7 +4171,7 @@ function lockScroll(on){
   scrollLocked=Math.max(0,scrollLocked+(on?1:-1));
   document.body.style.overflow = scrollLocked>0 ? "hidden" : "";
 }
-function modal(title, bodyHTML, footHTML){
+function modal(title, bodyHTML, footHTML, ftClass){
   const box=$("#modalBox"); if(!box) return;
   box.innerHTML =
     (title!==""
@@ -4175,7 +4179,7 @@ function modal(title, bodyHTML, footHTML){
         "<button class=\"iconbtn\" data-close aria-label=\"Fermer\">✕</button></div>"
       : "")+
     "<div class=\"modal-bd\">"+bodyHTML+"</div>"+
-    (footHTML?"<div class=\"modal-ft\">"+footHTML+"</div>":"");
+    (footHTML?"<div class=\"modal-ft "+(ftClass||"")+"\">"+footHTML+"</div>":"");
   const ovl=$("#modalOvl"); if(!ovl) return;
   if(!ovl.classList.contains("on")) lockScroll(true);
   ovl.classList.add("on");
@@ -6226,7 +6230,8 @@ function viewReglages(){
       "<p class=\"dim mt8\" style=\"font-size:13px\">Rejouez la présentation initiale et réaffichez les astuces "+
       "contextuelles de chaque écran.</p>"+
       "<div class=\"row wrap mt16\" style=\"gap:9px\">"+
-        "<button class=\"btn\" data-act=\"tour\">↻ Revoir la présentation</button>"+
+        "<button class=\"btn\" data-act=\"replay-ob\">↻ Revoir la présentation</button>"+
+        "<button class=\"btn\" data-act=\"tour\">Réafficher toutes les astuces</button>"+
         "<button class=\"btn ghost\" data-act=\"help\">Raccourcis clavier</button>"+
       "</div></div>"+
     "<div class=\"card mt24\"><div class=\"h4\">Ma verticale</div>"+
@@ -6261,7 +6266,7 @@ function viewReglages(){
         "<button class=\"btn primary\" data-act=\"export\">↧ Exporter en JSON</button>"+
         "<label class=\"btn\" style=\"cursor:pointer\">↥ Importer un fichier<input type=\"file\" id=\"impFile\" accept=\"application/json\" hidden></label>"+
         "<button class=\"btn danger\" data-act=\"reset\">Réinitialiser</button>"+
-        "<button class=\"btn ghost\" data-act=\"replay-ob\">Revoir la présentation</button>"+
+        
       "</div></div>"+
     "<div class=\"card mt16\"><div class=\"h4\">À propos</div>"+
       "<p class=\"dim mt8\" style=\"font-size:13px\">Hub M&amp;A Triactis. "+
@@ -6271,7 +6276,9 @@ function viewReglages(){
       "<p class=\"dim mt8\" style=\"font-size:13px\">Fichier unique, sans dépendance ni serveur. Les ordres de grandeur cités "+
       "(multiples, décotes, plafonds de garantie, prix par lot ou par encours) sont des repères de marché indicatifs, "+
       "à confronter au cas d'espèce et aux sources nommées dans chaque module. Ce support est un outil de formation : "+
-      "il ne constitue ni un conseil en investissement, ni un conseil juridique ou fiscal.</p></div>");
+      "il ne constitue ni un conseil en investissement, ni un conseil juridique ou fiscal.</p></div>"+
+    adminSettingsBlock());
+  adminSettingsHydrate();
 }
 
 /* ── 404 ──────────────────────────────────────────────────── */
@@ -6976,31 +6983,39 @@ let obStep=0;
 function showOnboarding(){
   const s=OB[obStep];
   const isVert = s.i==="vert";
+  const last = obStep>=OB.length-1;
+
+  /* Le corps défile, les actions restent épinglées dans le pied : sur un écran
+     court, les boutons doivent rester atteignables sans dépendre du défilement. */
   const body = isVert
     ? "<div class=\"ob\"><div class=\"h3\">"+H(s.t)+"</div><p class=\"lead mt12\">"+H(s.d)+"</p>"+
       "<div class=\"grid mt24\" style=\"grid-template-columns:repeat(2,minmax(0,1fr));gap:9px\">"+
         VERTICALES.map(v=>"<button class=\"card tight vertpick"+(S.prefs.vertical===v.id?" on":"")+"\" data-vertob=\""+v.id+"\" style=\"text-align:left;--vc:"+v.col+"\">"+
           "<div class=\"row\" style=\"gap:7px\"><span style=\"font-size:17px\">"+v.ico+"</span>"+
           "<b style=\"font-size:12.5px\">"+H(v.court)+"</b></div></button>").join("")+
-      "</div>"+
-      "<div class=\"dots\">"+OB.map((_,i)=>"<i class=\""+(i===obStep?"on":"")+"\"></i>").join("")+"</div>"+
-      "<button class=\"btn lg primary block\" data-ob"+(S.prefs.vertical?"":" disabled")+">Continuer →</button>"+
-      "<button class=\"btn ghost sm mt12\" data-ob-skip>Passer la présentation</button></div>"
+      "</div></div>"
     : "<div class=\"ob\"><div class=\"ob-ico\">"+s.i+"</div>"+
-      "<div class=\"h3\">"+H(s.t)+"</div><p class=\"lead mt12\">"+H(s.d)+"</p>"+
-      "<div class=\"dots\">"+OB.map((_,i)=>"<i class=\""+(i===obStep?"on":"")+"\"></i>").join("")+"</div>"+
-      "<button class=\"btn lg primary block\" data-ob>"+(obStep>=OB.length-1?"Commencer":"Suivant →")+"</button>"+
-      (obStep<OB.length-1?"<button class=\"btn ghost sm mt12\" data-ob-skip>Passer la présentation</button>":"")+"</div>";
-  modal("", body, "");
-  const hd=$(".modal-hd"); if(hd) hd.style.display="none";
+      "<div class=\"h3\">"+H(s.t)+"</div><p class=\"lead mt12\">"+H(s.d)+"</p></div>";
+
+  const foot =
+    "<div class=\"dots\" style=\"margin:0 0 4px\">"+OB.map((_,i)=>
+      "<i class=\""+(i===obStep?"on":"")+"\"></i>").join("")+"</div>"+
+    "<button class=\"btn lg primary block\" data-ob>"+
+      (isVert ? "Continuer →" : last ? "Commencer" : "Suivant →")+"</button>"+
+    (obStep>0 ? "<button class=\"btn ghost sm\" data-obback>← Précédent</button>" : "")+
+    (last ? "" : "<button class=\"btn ghost sm\" data-ob-skip>Passer la présentation</button>");
+
+  modal("", body, foot, "ob-ft");
 }
 function obNext(){
+  /* aucune étape ne peut bloquer : à défaut de choix, la vue transverse s'applique */
+  if(!S.prefs.vertical) S.prefs.vertical="tous";
   if(obStep>=OB.length-1){
     S.prefs.onboarded=true;
-    if(!S.prefs.vertical) S.prefs.vertical="tous";
     save(); closeModal(); paintNav(); route();
-  }else{ obStep++; showOnboarding(); }
+  }else{ obStep++; save(); showOnboarding(); }
 }
+function obBack(){ if(obStep>0){ obStep--; showOnboarding(); } }
 
 /* ═══════════════════════════════════════════════════════════
    ACTIONS D'ADMINISTRATION ET MENU DE PROFIL
@@ -7350,6 +7365,157 @@ function syncModal(){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   OPTIONS ADMINISTRATEUR DANS LES RÉGLAGES
+   Bloc additionnel, visible du seul rôle administrateur.
+   Le reste de la page est inchangé.
+   ═══════════════════════════════════════════════════════════ */
+
+/** Bloc inséré en fin de page réglages quand le compte est administrateur. */
+function adminSettingsBlock(){
+  if(!isAdmin()) return "";
+  const nMod=Object.keys(PLAN.modules).length, nCard=Object.keys(PLAN.cards).length;
+  const cloud=cloudReady();
+  return "<div class=\"card mt16\" style=\"border-color:color-mix(in srgb,var(--lilac) 45%,transparent)\">"+
+    "<div class=\"spread wrap\" style=\"gap:10px\">"+
+      "<div><div class=\"eyebrow c-lilac\">⚑ Administrateur</div>"+
+      "<div class=\"h4 mt8\">Outils d'encadrement</div></div>"+
+      "<span class=\"tag soft c-lilac\" style=\"font-size:10px\">rôle vérifié "+(cloud?"par le serveur":"localement")+"</span>"+
+    "</div>"+
+    "<p class=\"dim mt8\" style=\"font-size:13px\">Raccourcis vers ce que vous seul pouvez faire. "+
+    "Les réglages ci-dessus restent personnels à votre compte.</p>"+
+
+    "<div class=\"grid g2 mt16\">"+
+      "<div><div class=\"eyebrow\" style=\"margin-bottom:8px\">Rythme d'apprentissage</div>"+
+        "<table class=\"tbl\" style=\"margin:0\"><tbody>"+
+        "<tr><td>Fiches par session</td><td class=\"n\">"+sessionSize()+"</td></tr>"+
+        "<tr><td>Modules programmés</td><td class=\"n\">"+nMod+"</td></tr>"+
+        "<tr><td>Fiches à échéance forcée</td><td class=\"n\">"+nCard+"</td></tr>"+
+        "</tbody></table></div>"+
+      "<div><div class=\"eyebrow\" style=\"margin-bottom:8px\">Portée</div>"+
+        "<table class=\"tbl\" style=\"margin:0\"><tbody>"+
+        "<tr><td>Membres</td><td class=\"n\">"+(cloud?"<span id=\"admTeamCount\" class=\"dim\">…</span>":PROFILES.length)+"</td></tr>"+
+        "<tr><td>Plan partagé</td><td class=\"n\">"+(cloud?"serveur":"ce poste")+"</td></tr>"+
+        "<tr><td>Synchronisation</td><td class=\"n\">"+((SYNC_LABEL[SB.status]||SYNC_LABEL.local)[1])+"</td></tr>"+
+        "</tbody></table></div>"+
+    "</div>"+
+
+    "<div class=\"row wrap mt16\" style=\"gap:9px\">"+
+      "<a class=\"btn primary\" href=\"#/admin\">⚑ Console d'administration</a>"+
+      (cloud?"<a class=\"btn\" href=\"#/equipe\">▚ Suivi d'équipe</a>":"")+
+      (cloud?"<button class=\"btn\" data-admx=\"csv\">↧ Exporter le suivi en CSV</button>":"")+
+      "<button class=\"btn\" data-admx=\"diag\">⌗ Diagnostic technique</button>"+
+      (cloud?"<button class=\"btn ghost\" data-admx=\"push\">⟳ Forcer la synchronisation</button>":"")+
+      (nMod||nCard?"<button class=\"btn danger\" data-admx=\"wipeplan\">Réinitialiser le plan partagé</button>":"")+
+    "</div>"+
+
+    (!cloud?"<div class=\"tip mt16\" style=\"margin-bottom:0\"><span class=\"ti\">▣</span><span>"+
+      "<b>Mode local</b>Le suivi d'équipe et l'export CSV supposent une configuration serveur. "+
+      "Le plan reste limité à ce navigateur.</span></div>":"")+
+  "</div>";
+}
+
+/** Compte les membres en arrière-plan, sans bloquer l'affichage. */
+function adminSettingsHydrate(){
+  if(!isAdmin()||!cloudReady()) return;
+  const el=$("#admTeamCount"); if(!el) return;
+  sbTeam().then(rows=>{ const e2=$("#admTeamCount"); if(e2){ e2.textContent=rows.length; e2.className=""; } })
+          .catch(()=>{ const e2=$("#admTeamCount"); if(e2){ e2.textContent="?"; e2.title="Lecture impossible"; } });
+}
+
+/* ── Actions ──────────────────────────────────────────────── */
+function admExtra(a){
+  if(!isAdmin()){ toast("Action réservée aux administrateurs.","err"); return; }
+
+  if(a==="diag"){ diagModal(); return; }
+
+  if(a==="push"){
+    syncDirty=true;
+    cloudFlush().then(()=>toast(SB.err?("Échec : "+SB.err):"Synchronisation effectuée.", SB.err?"err":"ok"));
+    return;
+  }
+
+  if(a==="csv"){
+    sbTeam().then(rows=>{
+      if(!rows.length){ toast("Aucun membre à exporter.","err"); return; }
+      const head=["Nom","Adresse","Verticale","Role","Modules termines","Total modules","Avancement %","Fiches en memoire","Serie jours","XP","Derniere activite"];
+      const lines=rows.map(r=>[
+        r.nom, r.email||"", vertOf(r.vertical).court, r.role,
+        r.done, TASKS.length, pct(r.done,TASKS.length), r.cards, r.streak, r.xp, r.maj||""
+      ]);
+      /* point-virgule et BOM : Excel francophone ouvre le fichier sans manipulation */
+      const csv="\uFEFF"+[head].concat(lines).map(l=>l.map(v=>{
+        const t=String(v==null?"":v);
+        return /[";\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+      }).join(";")).join("\r\n");
+      const a2=document.createElement("a");
+      a2.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+      a2.download="hub-ma-suivi-equipe-"+todayISO()+".csv";
+      a2.click(); URL.revokeObjectURL(a2.href);
+      toast(rows.length+" membres exportés.","ok");
+    }).catch(e=>toast("Export impossible : "+e.message,"err"));
+    return;
+  }
+
+  if(a==="wipeplan"){
+    confirmBox("Réinitialiser le plan partagé",
+      "Les "+Object.keys(PLAN.modules).length+" dates de mise à disposition et les "+
+      Object.keys(PLAN.cards).length+" échéances de fiches seront supprimées, pour tout le monde. "+
+      "Le volume quotidien revient à 10 fiches par session. Aucune progression n'est touchée.",
+      "Réinitialiser le plan", ()=>{
+        PLAN.quota=structuredClone(PLAN_DEFAULT.quota); PLAN.modules={}; PLAN.cards={};
+        savePlan(); toast("Plan réinitialisé.","ok"); route();
+      });
+    return;
+  }
+}
+
+/* ── Diagnostic ───────────────────────────────────────────── */
+function diagModal(){
+  const cloud=cloudReady();
+  const rows=[
+    ["Version", "1.4"],
+    ["Mode", cloud?"Serveur Supabase":"Local, ce navigateur"],
+    ["Projet", cloud?String(SUPABASE.url).replace("https://","").split(".")[0]:"aucun"],
+    ["Clé publique", cloud?(SUPABASE.anonKey.slice(0,12)+"… ("+SUPABASE.anonKey.length+" car.)"):"non renseignée"],
+    ["Origine de la page", (location&&location.protocol)?location.protocol:"inconnue"],
+    ["Compte", SB.user?SB.user.email:(ME?ME.nom+" (local)":"aucun")],
+    ["Rôle", isAdmin()?"administrateur":"membre"],
+    ["Synchronisation", (SYNC_LABEL[SB.status]||SYNC_LABEL.local)[1]],
+    ["Modifications en attente", (typeof syncDirty!=="undefined"&&syncDirty)?"oui":"non"],
+    ["Dernier envoi", SB.lastSync?String(SB.lastSync).replace("T"," ").slice(0,16):"jamais"],
+    ["Taille de l'état", (new Blob([JSON.stringify(S)]).size/1024).toFixed(1)+" ko"],
+    ["Stockage local", storageOK?"disponible":"indisponible"],
+    ["Modules du parcours", TASKS.length],
+    ["Modules métier", (typeof VMODULES!=="undefined")?VMODULES.length:0],
+    ["Fiches de révision", CARDS.length],
+    ["Termes du référentiel", GLOSSARY.length],
+    ["Plan : modules programmés", Object.keys(PLAN.modules).length],
+    ["Plan : fiches forcées", Object.keys(PLAN.cards).length]
+  ];
+  modal("Diagnostic technique",
+    "<p class=\"lead\" style=\"font-size:14px\">État de l'installation. Utile à transmettre en cas d'anomalie.</p>"+
+    "<table class=\"tbl mt16\"><tbody>"+rows.map(r=>
+      "<tr><td class=\"dim\">"+H(r[0])+"</td><td class=\"mono\" style=\"font-size:12.5px\">"+T(String(r[1]))+"</td></tr>").join("")+
+    "</tbody></table>"+
+    (SB.err?"<div class=\"gate-err mt16\">Dernière erreur serveur : "+T(SB.err)+"</div>":"")+
+    (cloud && location && location.protocol==="file:"
+      ? "<div class=\"callout warn mt16\" style=\"margin-bottom:0\"><div class=\"ct\">Origine non valide</div>"+
+        "La page est ouverte en accès fichier direct : l'authentification sera refusée par le serveur. "+
+        "Mettez la page en ligne en https.</div>":""),
+    "<button class=\"btn\" data-diagcopy>Copier le diagnostic</button>"+
+    "<button class=\"btn ghost\" data-close>Fermer</button>");
+  DIAG_TEXT=rows.map(r=>r[0]+" : "+r[1]).join("\n");
+}
+let DIAG_TEXT="";
+function copyDiag(){
+  const txt="Hub M&A Triactis, diagnostic du "+todayISO()+"\n\n"+DIAG_TEXT;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast("Diagnostic copié.","ok"))
+      .catch(()=>toast("Copie refusée par le navigateur.","err"));
+  }else toast("Copie non disponible dans ce navigateur.","err");
+}
+
+/* ═══════════════════════════════════════════════════════════
    ROUTEUR, ÉVÉNEMENTS, RACCOURCIS, INITIALISATION
    ═══════════════════════════════════════════════════════════ */
 
@@ -7443,6 +7609,8 @@ document.addEventListener("click", e=>{
   const tc=hit("[data-tipclose]"); if(tc){ closeTip(tc.dataset.tipclose); return; }
 
   /* ── Administration ── */
+  const admx=hit("[data-admx]"); if(admx){ admExtra(admx.dataset.admx); return; }
+  if(hit("[data-diagcopy]")){ copyDiag(); return; }
   const adm=hit("[data-adm]");
   if(adm){ admAction(adm.dataset.adm); return; }
   const up=hit("[data-unplan]"); if(up){ delete PLAN.modules[up.dataset.unplan]; savePlan(); route(); return; }
@@ -7542,7 +7710,14 @@ document.addEventListener("click", e=>{
   if(hit("[data-readpath]")){ readPathModal(); return; }
 
   /* verticale */
-  const vp=hit("[data-vert]"); if(vp){ setVertical(vp.dataset.vert); location.hash="#/verticale"; route(); return; }
+  const vp=hit("[data-vert]");
+  if(vp){
+    setVertical(vp.dataset.vert);
+    /* depuis les réglages on reste sur place, ailleurs on ouvre la fiche métier */
+    if(location.hash.indexOf("#/reglages")===0) route();
+    else { location.hash="#/verticale"; route(); }
+    return;
+  }
   const vob=hit("[data-vertob]"); if(vob){ setVertical(vob.dataset.vertob,true); showOnboarding(); return; }
   if(hit("[data-vertchange]")){ viewVertPicker(); return; }
 
@@ -7560,19 +7735,20 @@ document.addEventListener("click", e=>{
   if(act){
     const a=act.dataset.act;
     if(a==="export") exportData();
-    if(a==="tour"){ resetTips(); }
+    if(a==="tour"){ resetTips(); }                    /* relance la présentation ET réaffiche les astuces */
+    if(a==="replay-ob"){ obStep=0; showOnboarding(); } /* relance la présentation seule */
     if(a==="help") helpModal();
     if(a==="pin") pinModal();
     if(a==="askadmin") location.hash="#/admin";
     if(a==="reset")  resetData();
-    if(a==="replay-ob"){ obStep=0; showOnboarding(); }
     if(a==="reset-confirm"){ STORE.del(KEY); S=load(); closeModal();
       applyTheme(); paintHeader(); paintNav(); route(); toast("Progression réinitialisée.","ok"); }
     return;
   }
 
   /* présentation initiale */
-  if(hit("[data-ob]")){ if(!t.closest("[data-ob]").disabled) obNext(); return; }
+  if(hit("[data-ob]")){ obNext(); return; }
+  if(hit("[data-obback]")){ obBack(); return; }
   if(hit("[data-ob-skip]")){ S.prefs.onboarded=true;
     if(!S.prefs.vertical) S.prefs.vertical="tous";
     save(); closeModal(); paintNav(); route(); return; }
