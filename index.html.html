@@ -284,6 +284,11 @@ select.field{cursor:pointer;appearance:none;background-image:linear-gradient(45d
 .modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end;flex:0 0 auto}
 .modal-ft.ob-ft{flex-direction:column;justify-content:stretch;gap:8px;padding:16px 20px 20px}
 .modal-ft.ob-ft .btn{width:100%}
+.ob-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;z-index:2;
+  display:grid;place-items:center;color:var(--fg-dim);font-size:14px;background:var(--bg-elev-2);
+  border:1px solid var(--line);transition:all .16s var(--ease)}
+.ob-x:hover{color:var(--fg);border-color:var(--line-strong);transform:rotate(90deg)}
+.ob-x:active{transform:rotate(90deg) scale(.92)}
 
 /* Palette de commandes */
 .cmd{max-width:620px;padding:0}
@@ -552,6 +557,59 @@ button,a,[role="button"],.cmd-it,.fc,.tile,.step,.vertpick,.gate-prof,.acc-h,
    elles ouvrent le sélecteur du système, plus fiable qu'un menu maison. */
 select.field{-webkit-appearance:none;appearance:none;background-color:var(--bg-elev)}
 select.field:focus{outline:none;border-color:var(--accent)}
+
+/* ── 5quater. MICRO-INTERACTIONS ───────────────────────────── */
+/* États complets sur tout élément actionnable : sans :active ni :focus-visible,
+   l'interface paraît inerte au clic et devient inutilisable au clavier. */
+.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.srsbtn:focus-visible,
+.tile:focus-visible,.step:focus-visible,.vertpick:focus-visible,.gate-prof:focus-visible,
+.acc-h:focus-visible,.modecard:focus-visible,.ob-x:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+.pill:active,.tab:active{transform:scale(.96)}
+.srsbtn:active,.tile:active,.step:active,.vertpick:active,.modecard:active{transform:scale(.975)}
+.taskrow .chk:active{transform:scale(.88)}
+.gate-prof:active{transform:translateX(3px) scale(.99)}
+.card,.stat,.taskrow,.gitem{will-change:auto}
+
+/* Barre de progression : reflet qui balaie la portion acquise, comme un
+   indicateur vivant plutôt qu'un simple rectangle. */
+.bar > i{position:relative;overflow:hidden}
+.bar > i::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+  transform:translateX(-100%);animation:sheen 2.6s var(--ease) infinite;
+}
+@keyframes sheen{0%{transform:translateX(-100%)}55%,100%{transform:translateX(220%)}}
+.bar.still > i::after{display:none}
+
+/* Retour immédiat sur une réponse de quiz : la couleur seule est trop discrète */
+@keyframes goodPulse{0%{transform:none}35%{transform:scale(1.022)}100%{transform:none}}
+@keyframes badShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.qopt.good{animation:goodPulse .38s var(--ease)}
+.qopt.bad{animation:badShake .32s}
+
+/* Compteurs : un changement de valeur doit se voir */
+@keyframes tick{0%{transform:translateY(0)}40%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+.hd-stat b.tick{animation:tick .34s var(--ease);color:var(--accent)}
+
+/* Chargement : silhouette plutôt qu'écran vide */
+.skelrow{height:14px;border-radius:6px;margin-bottom:9px}
+.skelrow:nth-child(2){width:82%}.skelrow:nth-child(3){width:64%}
+.loading{position:relative;pointer-events:none;opacity:.55}
+.loading::after{
+  content:"";position:absolute;top:50%;left:50%;width:18px;height:18px;margin:-9px 0 0 -9px;
+  border:2px solid var(--line-strong);border-top-color:var(--accent);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Finition : lecture confortable des paragraphes longs */
+.prose p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+@media (max-width:520px){.prose p{text-align:left}}
+.card,.gitem,.taskrow{box-shadow:var(--shadow-sm)}
+.modal,.gate-card{box-shadow:var(--shadow)}
 
 /* ── 6. ANIMATIONS ─────────────────────────────────────────── */
 @keyframes pageIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
@@ -3995,7 +4053,6 @@ const pct = (a,b) => b>0 ? Math.round(a/b*100) : 0;
 const todayISO = () => new Date().toISOString().slice(0,10);
 const addDays = (iso,n)=>{ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
 const dayDiff = (a,b)=> Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/86400000);
-const slug = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const clamp = (v,a,b)=> Math.max(a,Math.min(b,v));
 const dur = m => m>=60 ? (Math.floor(m/60)+" h "+(m%60?String(m%60).padStart(2,"0"):"")).trim() : m+" min";
@@ -4754,8 +4811,6 @@ function reviewPool(){
   return out;
 }
 const reviewLeft = () => reviewPool().length;
-/** Conservé pour compatibilité : total réellement à traiter aujourd'hui. */
-const dueCount = () => reviewLeft() + newQueue().length;
 
 /* ── Console ──────────────────────────────────────────────── */
 function viewAdmin(){
@@ -5382,7 +5437,15 @@ function paintHeader(){
   const st=$("#hdStreak"), xp=$("#hdXp");
   if(st) st.textContent = S.streak.n;
   if(xp){
+    const avant=xp.textContent;
     xp.textContent = fmt(S.xp);
+    /* signaler visuellement le gain, sans notification intrusive */
+    if(avant && avant!==xp.textContent && xp.classList){
+      xp.classList.remove("tick");
+      void xp.offsetWidth;                 /* force le redémarrage de l'animation */
+      xp.classList.add("tick");
+      setTimeout(()=>{ if(xp.classList) xp.classList.remove("tick"); },400);
+    }
     if(xp.parentElement) xp.parentElement.title = "Niveau "+lp.level+" · "+lp.cur+" / "+lp.need+" XP vers le niveau suivant";
   }
 }
@@ -7153,7 +7216,17 @@ function showOnboarding(){
     (obStep>0 ? "<button class=\"btn ghost sm\" data-obback>← Précédent</button>" : "")+
     (last ? "" : "<button class=\"btn ghost sm\" data-ob-skip>Passer la présentation</button>");
 
-  modal("", body, foot, "ob-ft", true);   /* verrouillée : boutons dédiés uniquement */
+  modal("", body, foot, "ob-ft", true);
+  /* Bouton Fermer explicite, superposé au coin de la modale : l'utilisateur
+     doit toujours disposer d'une sortie visible, sans dépendre du clavier. */
+  const box=$("#modalBox");
+  if(box && !box.querySelector("[data-obclose]")){
+    const b=document.createElement("button");
+    b.className="ob-x"; b.setAttribute("data-obclose","1");
+    b.setAttribute("aria-label","Fermer la présentation"); b.title="Fermer";
+    b.textContent="✕";
+    box.appendChild(b);
+  }
 }
 function obNext(){
   /* aucune étape ne peut bloquer : à défaut de choix, la vue transverse s'applique */
@@ -7164,6 +7237,26 @@ function obNext(){
   }else{ obStep++; save(); showOnboarding(); }
 }
 function obBack(){ if(obStep>0){ obStep--; showOnboarding(); } }
+/** Sortie de présentation : un seul chemin, quel que soit le geste employé
+    (bouton Fermer, Passer, Échap, clic extérieur). Ne peut jamais échouer. */
+function obDismiss(){
+  try{
+    S.prefs.onboarded=true;
+    if(!S.prefs.vertical) S.prefs.vertical="tous";
+    save();
+  }catch(e){}
+  closeModal(true);
+  try{ paintNav(); route(); }catch(e){}
+}
+/** Affichage protégé : si le rendu échoue, on ne bloque jamais la navigation. */
+function safeOnboarding(){
+  try{ showOnboarding(); }
+  catch(e){
+    S.prefs.onboarded=true; save();
+    closeModal(true);
+    toast("Présentation indisponible, vous pouvez la relancer depuis les réglages.","err");
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════
    ACTIONS D'ADMINISTRATION ET MENU DE PROFIL
@@ -7702,11 +7795,25 @@ function route(){
 
 /* ── Clics ────────────────────────────────────────────────── */
 document.addEventListener("click", e=>{
-  const t=e.target;
-  const hit = s => t.closest(s);
+  /* Aucune exception ne doit interrompre la délégation : une seule erreur
+     rendrait tous les boutons de la page inertes pour ce clic. */
+  try{ handleClick(e); }
+  catch(err){ reportError(err,"clic"); }
+});
+function handleClick(e){
+  const t = (e.target && e.target.closest) ? e.target
+          : (e.target && e.target.parentElement) ? e.target.parentElement : null;
+  if(!t) return;                       /* cible sans closest : rien à faire */
+  const hit = s => { try{ return t.closest(s); }catch(x){ return null; } };
   const val = s => { const el=t.closest(s); return el?el.getAttribute(s.replace(/[\[\]]/g,"")):null; };
 
-  if(hit("[data-close]")){ closeModal(); closeCmd(); return; }
+  if(hit("[data-close]")){
+    /* Sur la présentation, le fond ne doit pas être une zone morte :
+       il vaut abandon explicite, et l'utilisateur retrouve la navigation. */
+    if(document.querySelector("[data-ob]")) obDismiss();
+    else { closeModal(); closeCmd(); }
+    return;
+  }
 
   /* ── Connexion serveur ── */
   const cm=hit("[data-cmode]"); if(cm){ cg.mode=cm.dataset.cmode; cg.err=""; cg.info=""; renderCloudGate(); return; }
@@ -7900,12 +8007,9 @@ document.addEventListener("click", e=>{
   /* présentation initiale */
   if(hit("[data-ob]")){ obNext(); return; }
   if(hit("[data-obback]")){ obBack(); return; }
-  if(hit("[data-ob-skip]")){
-    S.prefs.onboarded=true;
-    if(!S.prefs.vertical) S.prefs.vertical="tous";
-    save(); closeModal(true); paintNav(); route(); return;   /* action dédiée : fermeture forcée */
-  }
-});
+  if(hit("[data-obclose]")){ obDismiss(); return; }
+  if(hit("[data-ob-skip]")){ obDismiss(); return; }
+}
 
 /* ── Saisies ──────────────────────────────────────────────── */
 document.addEventListener("input", e=>{
@@ -7951,12 +8055,14 @@ document.addEventListener("keydown", e=>{
     else if(e.key==="Enter"){ e.preventDefault(); runCmd(cmdSel); }
     return;
   }
-  if(e.key==="Escape"){
-    /* fermer la présentation vaut l'avoir vue : elle ne doit pas revenir à chaque ouverture */
-    const inTour=$("#modalOvl").classList.contains("on") && !S.prefs.onboarded && obStep>=0 && document.querySelector("[data-ob]");
-    if(inTour){ S.prefs.onboarded=true; if(!S.prefs.vertical) S.prefs.vertical="tous"; save(); }
-    closeModal(true); document.body.classList.remove("nav-open"); return;
+  const inTour = $("#modalOvl").classList.contains("on") && !!document.querySelector("[data-ob]");
+  if(inTour){
+    if(e.key==="Escape"){ e.preventDefault(); obDismiss(); return; }
+    if(e.key==="Enter"||e.key==="ArrowRight"){ e.preventDefault(); obNext(); return; }
+    if(e.key==="ArrowLeft"){ e.preventDefault(); obBack(); return; }
+    return;                                   /* aucun autre raccourci pendant la présentation */
   }
+  if(e.key==="Escape"){ closeModal(true); document.body.classList.remove("nav-open"); return; }
 
   if(typing){
     if(e.key==="Enter" && document.activeElement.id==="admCode"){ e.preventDefault(); admAction("elevate"); }
@@ -8021,15 +8127,27 @@ function startApp(){
   paintHeader(); paintNav();
   if(!location.hash) location.hash="#/";
   route();
-  if(!S.prefs.onboarded){ obStep=0; setTimeout(showOnboarding,380); }
+  if(!S.prefs.onboarded){ obStep=0; setTimeout(safeOnboarding,380); }
   const cut=addDays(todayISO(),-400);
   Object.keys(S.days).forEach(d=>{ if(d<cut) delete S.days[d]; });
   save();
+}
+/** Journalise sans bloquer, et prévient l'utilisateur une seule fois. */
+let errShown=false;
+function reportError(err,ou){
+  try{ console.error("["+ou+"]",err); }catch(e){}
+  if(!errShown){
+    errShown=true;
+    try{ toast("Une action a échoué. La navigation reste disponible.","err"); }catch(e){}
+    setTimeout(()=>{ errShown=false; },4000);
+  }
 }
 function init(){
   applyTheme();
   if(navigator.platform && navigator.platform.indexOf("Mac")<0){ const k=$("#kbdHint"); if(k) k.textContent="Ctrl K"; }
   window.addEventListener("hashchange", ()=>{ if(ME) route(); });
+  window.addEventListener("error", ev=>{ reportError(ev.error||ev.message,"script"); });
+  window.addEventListener("unhandledrejection", ev=>{ reportError(ev.reason,"promesse"); });
   window.addEventListener("beforeunload", ()=>{ flushSave(); if(syncDirty) cloudFlush(); });
   window.addEventListener("online",  ()=>{ if(syncDirty) cloudFlush(); else setStatus_("ok"); });
   window.addEventListener("offline", ()=>setStatus_("hors-ligne"));
