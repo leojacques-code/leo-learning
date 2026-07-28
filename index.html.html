@@ -480,6 +480,48 @@ table.tbl th.n{text-align:right}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:130;overflow:hidden}
 .confetti i{position:absolute;top:-12px;width:7px;height:11px;border-radius:2px;animation:cfall linear forwards}
 
+/* ── 5bis. ÉCRAN D'ENTRÉE, PROFILS, ASTUCES ────────────────── */
+body.gated{overflow:hidden}
+body.gated .app,body.gated .botnav{filter:blur(3px);pointer-events:none;user-select:none}
+#gate{position:fixed;inset:0;z-index:150;display:none;overflow-y:auto;background:var(--bg)}
+#gate.on{display:block}
+.gate-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.gate-card{
+  width:100%;max-width:452px;background:var(--bg-elev);border:1px solid var(--line);
+  border-radius:var(--r-xl);padding:32px;box-shadow:var(--shadow);animation:modalIn .34s var(--ease);
+}
+.gate-brand{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+.gate-lbl{display:block;font-size:12px;font-weight:600;color:var(--fg-muted);margin-bottom:6px}
+.gate-lbl .dim{font-weight:400}
+.gate-err{
+  font-size:13px;color:var(--red);background:color-mix(in srgb,var(--red) 11%,transparent);
+  border:1px solid color-mix(in srgb,var(--red) 34%,transparent);border-radius:var(--r-sm);padding:9px 12px;
+}
+.gate-note{font-size:11.5px;line-height:1.55;color:var(--fg-dim);margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.gate-av{
+  width:62px;height:62px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;
+  background:var(--accent);color:var(--accent-fg);font-weight:700;font-size:22px;letter-spacing:-.02em;
+}
+.gate-av.sm{width:38px;height:38px;font-size:14px;margin:0;flex:0 0 auto}
+.gate-prof{
+  display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--bg-elev);transition:all .16s var(--ease);
+}
+.gate-prof:hover{border-color:var(--accent);transform:translateX(3px)}
+.sb-me{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);width:100%;transition:background .14s}
+.sb-me:hover{background:var(--bg-hover)}
+.sb-me .gate-av{margin:0}
+.tip{
+  border:1px solid color-mix(in srgb,var(--accent) 42%,transparent);
+  background:color-mix(in srgb,var(--accent) 8%,transparent);
+  border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start;
+  font-size:13px;line-height:1.55;margin-bottom:18px;animation:slideDown .3s var(--ease);
+}
+.tip .ti{font-size:15px;flex:0 0 auto;line-height:1.3}
+.tip b{display:block;margin-bottom:2px;font-size:13px}
+.tip .tclose{margin-left:auto;flex:0 0 auto;color:var(--fg-dim);font-size:15px;line-height:1}
+.tip .tclose:hover{color:var(--fg)}
+
 /* ── 6. ANIMATIONS ─────────────────────────────────────────── */
 @keyframes pageIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -686,7 +728,8 @@ table.tbl th.n{text-align:right}
         <span class="num" style="font-size:11px;font-weight:600" id="sbPct">0 %</span>
       </div>
       <div class="bar thin"><i id="sbBar" style="width:0%"></i></div>
-      <a href="#/reglages" class="sb-link mt12"><span class="sb-ico">⚙</span> Réglages et sauvegarde</a>
+      <button class="sb-me mt12" data-profmenu id="sbMe"></button>
+      <a href="#/reglages" class="sb-link"><span class="sb-ico">⚙</span> Réglages et sauvegarde</a>
     </div>
   </aside>
 
@@ -699,6 +742,7 @@ table.tbl th.n{text-align:right}
         <button class="searchbtn" id="openCmd" aria-label="Rechercher">
           <span aria-hidden="true">⌕</span><span>Rechercher…</span><kbd id="kbdHint">⌘K</kbd>
         </button>
+        <button class="hd-stat hide-sm dim" id="syncBadge" data-syncinfo title="État de la synchronisation" style="display:none"></button>
         <span class="hd-stat hide-sm" title="Série de jours consécutifs">🔥 <b id="hdStreak">0</b></span>
         <span class="hd-stat hide-sm" title="Points d'expérience">✦ <b id="hdXp">0</b></span>
         <button class="iconbtn" id="toggleTheme" aria-label="Changer de thème" title="Thème clair ou sombre">◐</button>
@@ -721,6 +765,9 @@ table.tbl th.n{text-align:right}
 
 <!-- ══ NAVIGATION MOBILE ═════════════════════════════════════ -->
 <nav class="botnav" id="botnav" aria-label="Navigation mobile"></nav>
+
+<!-- ══ ÉCRAN D'ENTRÉE ═══════════════════════════════════════ -->
+<div id="gate" role="dialog" aria-modal="true" aria-label="Choix du profil"></div>
 
 <!-- ══ MODALES ═══════════════════════════════════════════════ -->
 <div class="ovl" id="cmdOvl" role="dialog" aria-modal="true" aria-label="Recherche globale">
@@ -3743,7 +3790,7 @@ GLOSSARY.push(
 {t:"Test de dépréciation",c:"Comptabilité",d:"Comparaison annuelle entre valeur recouvrable et valeur comptable d'une unité génératrice de trésorerie.",l:"goodwill"},
 {t:"Trésorerie excédentaire",c:"Valorisation",d:"Part de la trésorerie non nécessaire à l'exploitation, seule réellement déductible dans le pont de valeur.",l:"dette-nette"},
 {t:"Unité génératrice de trésorerie",c:"Comptabilité",d:"Plus petit ensemble d'actifs générant des flux indépendants, périmètre du test de dépréciation du goodwill.",l:"goodwill"},
-{t:"Valeur locative",c:"Valorisation",d:"Loyer de marché d'un local, référence du retraitement d'un loyer versé à une société liée au cédant.",l:"ebe-retraite"}
+{t:"Valeur locative de marché",c:"Valorisation",d:"Loyer qu'un local obtiendrait sur le marché libre, établi par avis de valeur ou barème notarial. Sert de référence au retraitement d'un loyer versé à une société liée au cédant.",l:"ebe-retraite"}
 );
 
 /* ── Synonymes anglais, pour la recherche bilingue ────────── */
@@ -3922,7 +3969,7 @@ const dur = m => m>=60 ? (Math.floor(m/60)+" h "+(m%60?String(m%60).padStart(2,"
 const mmss = s => String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 
 /* ── 2. Persistance ───────────────────────────────────────── */
-const KEY = "hub-ma-triactis-v2";
+let KEY = "hub-ma-triactis-v2";   // remplacee par "hubma:state:<profil>" a l'ouverture de session
 const DEFAULT_STATE = {
   v:3,
   tasks:{},          // id -> {st, fav, mastery, notes, time, seen, xpDone}
@@ -3935,7 +3982,7 @@ const DEFAULT_STATE = {
   badges:[],         // succès débloqués
   xp:0,
   streak:{n:0,best:0,last:null},
-  prefs:{theme:"light", onboarded:false, openPhases:[], lastRoute:"#/", vertical:null, glView:"detail", resView:"grid"}
+  prefs:{theme:"light", onboarded:false, openPhases:[], lastRoute:"#/", vertical:null, tips:[], glView:"detail", resView:"grid"}
 };
 
 /* Couche de stockage tolérante : bascule en mémoire si localStorage est
@@ -3966,10 +4013,20 @@ function load(){
     });
   }catch(e){ return structuredClone(DEFAULT_STATE); }
 }
-let saveTimer=null;
+let saveTimer=null, savePending=null;
+/* La sauvegarde est différée pour ne pas écrire à chaque frappe.
+   La clé est capturée au moment de la demande, et toute écriture en attente
+   est forcée avant un changement de profil : sans cela, l'état d'un profil
+   pourrait être écrit dans l'espace de stockage d'un autre. */
 function save(){
+  savePending=KEY;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{ STORE.set(KEY, JSON.stringify(S)); },120);
+  saveTimer = setTimeout(()=>{ flushSave(); },120);
+  if(typeof cloudTouch==="function") cloudTouch();   /* réplication distante, différée */
+}
+function flushSave(){
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+  if(savePending){ STORE.set(savePending, JSON.stringify(S)); savePending=null; }
 }
 function meta(id){
   if(!S.tasks[id]) S.tasks[id]={st:"todo",fav:false,mastery:0,notes:"",time:0,seen:null,xpDone:false};
@@ -4031,16 +4088,22 @@ const CARDS = [].concat(
   GLOSSARY.map((g,i)=>({ id:"g"+i, q:g.t, a:g.d, c:g.c, l:g.l, kind:"terme" })),
   EXTRA_CARDS.map((c,i)=>({ id:"x"+i, q:c.q, a:c.a, c:c.c, l:c.l, kind:"notion" }))
 );
+/* Index de recherche : les vues appellent ces accès des milliers de fois par rendu.
+   Une table de correspondance évite autant de parcours linéaires. */
+const CARD_BY_ID = {}; CARDS.forEach(c=>{ CARD_BY_ID[c.id]=c; });
 const CARD_CATS = Array.from(new Set(CARDS.map(c=>c.c))).sort();
 
 /* ── 6. Contenu d'un module ───────────────────────────────── */
 /** Résout un identifiant vers un module du parcours ou d'une verticale. */
-function anyMod(id){
-  const t=byId(id); if(t) return t;
-  const v=vmodOf(id);
-  if(v) return { id:v.id, nom:v.nom, cat:"Verticale", phase:"v-"+v.v, min:v.min, vert:v.v };
-  return null;
+const MOD_BY_ID = {};
+function modIndex(){
+  if(MOD_BY_ID.__built) return MOD_BY_ID;
+  TASKS.forEach(t=>{ MOD_BY_ID[t.id]=t; });
+  if(typeof VMODULES!=="undefined") VMODULES.forEach(m=>{ MOD_BY_ID[m.id]=m; });
+  MOD_BY_ID.__built=true; return MOD_BY_ID;
 }
+function anyMod(id){ return modIndex()[id]||null; }
+
 /** Contexte d'affichage : phase du parcours ou verticale. */
 function ctxOf(id){
   const v=vmodOf(id);
@@ -4080,7 +4143,7 @@ function stats(){
   const doing= TASKS.filter(t=>meta(t.id).st==="doing").length;
   const fav  = TASKS.filter(t=>meta(t.id).fav).length;
   const min  = Math.round(Object.values(S.tasks).reduce((a,m)=>a+(m.time||0),0)/60);
-  const due  = CARDS.filter(c=>isDue(c.id)).length;
+  const due  = (typeof dueCount==="function") ? dueCount() : CARDS.filter(c=>isDue(c.id)).length;
   const seen = CARDS.filter(c=>S.srs[c.id]).length;
   const mast = TASKS.reduce((a,t)=>a+meta(t.id).mastery,0);
   return { done, doing, fav, min, due, seen, total:TASKS.length, pctDone:pct(done,TASKS.length), mastery:pct(mast,TASKS.length*3) };
@@ -4099,16 +4162,31 @@ function toast(msg,type){
   box.appendChild(el);
   setTimeout(()=>{ el.classList.add("out"); setTimeout(()=>el.remove(),260); },2600);
 }
+let scrollLocked=0;
+function lockScroll(on){
+  scrollLocked=Math.max(0,scrollLocked+(on?1:-1));
+  document.body.style.overflow = scrollLocked>0 ? "hidden" : "";
+}
 function modal(title, bodyHTML, footHTML){
-  const box=$("#modalBox");
+  const box=$("#modalBox"); if(!box) return;
   box.innerHTML =
-    "<div class=\"modal-hd\"><div class=\"h4\">"+H(title)+"</div>"+
-    "<button class=\"iconbtn\" data-close aria-label=\"Fermer\">✕</button></div>"+
+    (title!==""
+      ? "<div class=\"modal-hd\"><div class=\"h4\">"+H(title)+"</div>"+
+        "<button class=\"iconbtn\" data-close aria-label=\"Fermer\">✕</button></div>"
+      : "")+
     "<div class=\"modal-bd\">"+bodyHTML+"</div>"+
     (footHTML?"<div class=\"modal-ft\">"+footHTML+"</div>":"");
-  $("#modalOvl").classList.add("on");
+  const ovl=$("#modalOvl"); if(!ovl) return;
+  if(!ovl.classList.contains("on")) lockScroll(true);
+  ovl.classList.add("on");
+  const first=box.querySelector("button:not([data-close]),input,select,textarea,a[href]");
+  if(first && first.focus) setTimeout(()=>{ try{ first.focus(); }catch(e){} },40);
 }
-function closeModal(){ $("#modalOvl").classList.remove("on"); }
+function closeModal(){
+  const ovl=$("#modalOvl"); if(!ovl) return;
+  if(ovl.classList.contains("on")) lockScroll(false);
+  ovl.classList.remove("on");
+}
 
 /* ── 9. Anneau de progression ─────────────────────────────── */
 function ring(p,size,stroke,label,sub){
@@ -4169,16 +4247,29 @@ function toggleFav(id){ const m=meta(id); m.fav=!m.fav; save(); }
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Migration depuis la version 2 ────────────────────────── */
-(function migrate(){
+function migrate(){
+  if(!S.tasks) S.tasks={};
+  if(!S.quiz) S.quiz={};
+  if(!S.prefs) S.prefs=structuredClone(DEFAULT_STATE.prefs);
+  if(!S.prefs.tips) S.prefs.tips=[];
   if(S.v===3) return;
   S.games=S.games||{}; S.glFav=S.glFav||[]; S.read=S.read||[]; S.badges=S.badges||[];
   Object.keys(S.tasks).forEach(k=>{ const m=S.tasks[k]; if(m.xpDone===undefined) m.xpDone=(m.st==="done"); });
   Object.keys(S.quiz).forEach(k=>{ const q=S.quiz[k]; if(q.xpPass===undefined){ q.xpPass=q.best>0; q.xpPerfect=false; } });
   if(S.prefs.vertical===undefined) S.prefs.vertical=null;
+  /* un import ou un état ancien ne doit pas faire perdre la verticale du profil */
+  if(!S.prefs.vertical && typeof ME!=="undefined" && ME && ME.vertical) S.prefs.vertical=ME.vertical;
   if(!S.prefs.glView) S.prefs.glView="detail";
   if(!S.prefs.resView) S.prefs.resView="grid";
   S.v=3; save();
-})();
+}
+migrate();
+
+/* ── Titres de niveau ─────────────────────────────────────── */
+const RANKS = ["Stagiaire","Analyste junior","Analyste","Analyste confirmé","Chargé d'affaires",
+               "Chargé d'affaires senior","Directeur de participations","Directeur associé",
+               "Associé","Associé gérant"];
+const rankOf = xp => RANKS[Math.min(levelOf(xp)-1, RANKS.length-1)];
 
 /* ── Objectif du jour ─────────────────────────────────────── */
 const GOAL = { cards:12, min:15 };
@@ -4297,6 +4388,788 @@ function keyHit(answer,expected){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   PROFILS, SESSION ET RÔLES
+   Chaque profil dispose de son propre espace de progression.
+
+   AVERTISSEMENT DE CONCEPTION, ASSUMÉ ET AFFICHÉ DANS L'INTERFACE
+   Une application d'un seul fichier, sans serveur, ne peut pas offrir
+   d'authentification au sens de la sécurité. Le code confidentiel
+   empêche l'ouverture accidentelle d'un profil par un tiers sur le
+   même poste : c'est une séparation d'usage, pas une protection.
+   Les données restent lisibles par quiconque accède au navigateur.
+   Une authentification réelle suppose un serveur et une base.
+   ═══════════════════════════════════════════════════════════ */
+
+const PKEY="hubma:profiles", SKEY="hubma:session", AKEY="hubma:admincode", LEGACY="hub-ma-triactis-v2";
+const ADMIN_DEFAULT="triactis";
+let PROFILES=[], ME=null, gate={mode:"list",sel:null,err:""};
+
+/* ── Empreinte du code confidentiel ───────────────────────── */
+function fnv1a(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16); }
+async function hashPin(pin,salt){
+  const data=(salt||"")+"::"+String(pin);
+  try{
+    if(window.crypto && crypto.subtle && crypto.subtle.digest){
+      const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+      return "s256:"+Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){}
+  return "fnv:"+fnv1a(data)+fnv1a(data.split("").reverse().join(""));
+}
+const newId = () => "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const initials = n => String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";
+
+/* ── Lecture et écriture du registre ──────────────────────── */
+function loadProfiles(){
+  try{ PROFILES=JSON.parse(STORE.get(PKEY)||"[]"); if(!Array.isArray(PROFILES)) PROFILES=[]; }
+  catch(e){ PROFILES=[]; }
+  return PROFILES;
+}
+const saveProfiles = () => STORE.set(PKEY, JSON.stringify(PROFILES));
+const profileOf = id => PROFILES.filter(p=>p.id===id)[0]||null;
+
+/* ── Session ──────────────────────────────────────────────── */
+function openSession(id){
+  const target=profileOf(id); if(!target) return false;
+  flushSave();                      // fige l'état du profil courant avant de basculer
+  ME=target;
+  ME.lastSeen=todayISO(); saveProfiles();
+  STORE.set(SKEY, JSON.stringify({id,at:Date.now()}));
+  KEY="hubma:state:"+id;          // bascule l'espace de stockage
+  S=load(); migrate(); save();
+  return true;
+}
+function closeSession(){
+  flushSave();                      // n'abandonne aucune donnée en attente
+  STORE.del(SKEY); ME=null;
+  KEY=LEGACY; S=load();
+  gate={mode:"list",sel:null,err:""};
+  stopTimer(); closeModal(); closeCmd();
+  renderGate();
+}
+function currentSession(){
+  try{ const s=JSON.parse(STORE.get(SKEY)||"null"); return s&&s.id?s.id:null; }catch(e){ return null; }
+}
+const isAdmin = () => !!(ME && ME.role==="admin") ||
+                      !!(typeof SB!=="undefined" && SB.profile && SB.profile.role==="admin");
+
+/* ── Création et suppression ──────────────────────────────── */
+async function createProfile(nom,vertical,pin,asAdmin){
+  nom=String(nom||"").trim().slice(0,40);
+  if(nom.length<2) return {ok:false,err:"Indiquez un nom d'au moins deux caractères."};
+  if(PROFILES.some(p=>norm(p.nom)===norm(nom))) return {ok:false,err:"Ce nom de profil existe déjà."};
+  if(pin && !/^\d{4,8}$/.test(pin)) return {ok:false,err:"Le code doit comporter de 4 à 8 chiffres."};
+  const first=PROFILES.length===0;
+  const salt=Math.random().toString(36).slice(2,12);
+  const p={ id:newId(), nom, vertical:vertical||"tous", role:(asAdmin||first)?"admin":"membre",
+            salt, pin: pin?await hashPin(pin,salt):null, created:todayISO(), lastSeen:todayISO() };
+  PROFILES.push(p); saveProfiles();
+
+  /* reprise de la progression anonyme existante, une seule fois */
+  if(first){
+    const old=STORE.get(LEGACY);
+    if(old){ STORE.set("hubma:state:"+p.id, old); }
+  }
+  openSession(p.id);
+  S.prefs.vertical=p.vertical; save();
+  return {ok:true,id:p.id};
+}
+async function checkPin(id,pin){
+  const p=profileOf(id); if(!p) return false;
+  if(!p.pin) return true;
+  return (await hashPin(pin,p.salt))===p.pin;
+}
+function deleteProfile(id){
+  const p=profileOf(id); if(!p) return;
+  PROFILES=PROFILES.filter(x=>x.id!==id); saveProfiles();
+  STORE.del("hubma:state:"+id);
+  if(ME&&ME.id===id) closeSession(); else renderGate();
+}
+async function setPin(pin){
+  if(!ME) return {ok:false,err:"Aucun profil actif."};
+  if(pin && !/^\d{4,8}$/.test(pin)) return {ok:false,err:"Le code doit comporter de 4 à 8 chiffres."};
+  ME.pin = pin ? await hashPin(pin,ME.salt) : null;
+  saveProfiles();
+  return {ok:true};
+}
+
+/* ── Code administrateur ──────────────────────────────────── */
+async function adminHash(){ const h=STORE.get(AKEY); return h || await hashPin(ADMIN_DEFAULT,"hubma"); }
+async function checkAdminCode(code){ return (await hashPin(code,"hubma"))===(await adminHash()); }
+async function setAdminCode(code){
+  if(!/^.{4,}$/.test(code||"")) return {ok:false,err:"Le code doit comporter au moins quatre caractères."};
+  STORE.set(AKEY, await hashPin(code,"hubma")); return {ok:true};
+}
+async function elevate(code){
+  if(!await checkAdminCode(code)) return false;
+  if(ME){ ME.role="admin"; saveProfiles(); }
+  return true;
+}
+
+/* ── Écran d'entrée ───────────────────────────────────────── */
+function gateShell(inner){
+  return "<div class=\"gate-wrap\"><div class=\"gate-card\">"+
+    "<div class=\"gate-brand\"><span class=\"sb-logo\" style=\"width:34px;height:34px;font-size:17px\">M</span>"+
+    "<div><b style=\"font-size:16px;letter-spacing:-.02em\">Hub M&amp;A</b>"+
+    "<span style=\"display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-dim)\">Triactis</span></div></div>"+
+    inner+
+    "<p class=\"gate-note\">Les profils et la progression sont enregistrés dans ce navigateur uniquement. "+
+    "Le code confidentiel évite l'ouverture d'un profil par un tiers sur ce poste : ce n'est pas une "+
+    "protection des données, qui restent accessibles à qui utilise cet ordinateur.</p>"+
+  "</div></div>";
+}
+function renderGate(){
+  loadProfiles();
+  const g=$("#gate"); if(!g) return;
+  g.classList.add("on");
+  document.body.classList.add("gated");
+
+  if(gate.mode==="create" || !PROFILES.length){
+    g.innerHTML=gateShell(
+      "<h1 class=\"h3\">"+(PROFILES.length?"Nouveau profil":"Créer votre profil")+"</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">"+(PROFILES.length
+        ? "Chaque profil conserve sa propre progression, ses fiches et ses statistiques."
+        : "Le premier profil créé reçoit le rôle administrateur, qui donne accès à la planification des leçons et des fiches.")+"</p>"+
+      "<div class=\"stack sp12 mt24\">"+
+        "<div><label class=\"gate-lbl\" for=\"gName\">Nom ou prénom</label>"+
+          "<input class=\"field\" id=\"gName\" placeholder=\"Ex. Léo\" autocomplete=\"off\" maxlength=\"40\"></div>"+
+        "<div><label class=\"gate-lbl\" for=\"gVert\">Verticale de travail</label>"+
+          "<select class=\"field\" id=\"gVert\">"+VERTICALES.map(v=>
+            "<option value=\""+v.id+"\">"+esc(v.ico+" "+v.court)+"</option>").join("")+"</select></div>"+
+        "<div><label class=\"gate-lbl\" for=\"gPin\">Code confidentiel <span class=\"dim\">facultatif, 4 à 8 chiffres</span></label>"+
+          "<input class=\"field\" id=\"gPin\" type=\"password\" inputmode=\"numeric\" placeholder=\"••••\" autocomplete=\"new-password\" maxlength=\"8\"></div>"+
+      "</div>"+
+      (gate.err?"<div class=\"gate-err mt12\">"+T(gate.err)+"</div>":"")+
+      "<button class=\"btn lg primary block mt16\" data-gcreate>Créer le profil et commencer</button>"+
+      (PROFILES.length?"<button class=\"btn ghost sm block mt12\" data-gmode=\"list\">← Retour à la liste</button>":""));
+    setTimeout(()=>{ const n=$("#gName"); if(n) n.focus(); },60);
+    return;
+  }
+
+  if(gate.mode==="pin" && gate.sel){
+    const p=profileOf(gate.sel);
+    g.innerHTML=gateShell(
+      "<div class=\"gate-av\">"+esc(initials(p.nom))+"</div>"+
+      "<h1 class=\"h3\" style=\"text-align:center\">"+T(p.nom)+"</h1>"+
+      "<p class=\"lead mt8\" style=\"text-align:center;font-size:14px\">Saisissez votre code confidentiel.</p>"+
+      "<input class=\"field mt24\" id=\"gPinIn\" type=\"password\" inputmode=\"numeric\" placeholder=\"••••\" "+
+        "autocomplete=\"current-password\" maxlength=\"8\" style=\"text-align:center;letter-spacing:.5em;height:48px;font-size:20px\">"+
+      (gate.err?"<div class=\"gate-err mt12\">"+T(gate.err)+"</div>":"")+
+      "<button class=\"btn lg primary block mt16\" data-gunlock>Entrer</button>"+
+      "<button class=\"btn ghost sm block mt12\" data-gmode=\"list\">← Choisir un autre profil</button>"+
+      "<button class=\"btn ghost sm block\" data-gforgot=\""+p.id+"\">Code oublié ?</button>");
+    setTimeout(()=>{ const n=$("#gPinIn"); if(n) n.focus(); },60);
+    return;
+  }
+
+  if(gate.mode==="forgot" && gate.sel){
+    const p=profileOf(gate.sel), st=profileSummary(gate.sel);
+    g.innerHTML=gateShell(
+      "<h1 class=\"h3\">Code oublié</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">Le code n'est pas conservé en clair : il est donc impossible "+
+      "de le retrouver ou de le réinitialiser. Deux issues seulement.</p>"+
+      "<div class=\"stack sp12 mt24\">"+
+        "<div class=\"card tight\"><b style=\"font-size:13.5px\">1. Vous avez un fichier de sauvegarde</b>"+
+        "<p class=\"dim mt8\" style=\"font-size:12.5px\">Créez un nouveau profil, puis importez votre export JSON "+
+        "depuis les réglages. Vous récupérez l'intégralité de votre progression.</p></div>"+
+        "<div class=\"card tight\"><b style=\"font-size:13.5px\">2. Vous n'avez pas de sauvegarde</b>"+
+        "<p class=\"dim mt8\" style=\"font-size:12.5px\">Le profil doit être supprimé, ce qui efface définitivement "+
+        "sa progression : "+st.done+" module"+(st.done>1?"s":"")+" terminé"+(st.done>1?"s":"")+", son historique de "+
+        "révision et ses notes.</p></div>"+
+      "</div>"+
+      "<button class=\"btn danger block mt16\" data-gdelete=\""+p.id+"\">Supprimer le profil "+T(p.nom)+"</button>"+
+      "<button class=\"btn ghost sm block mt12\" data-gmode=\"list\">← Retour</button>");
+    return;
+  }
+
+  g.innerHTML=gateShell(
+    "<h1 class=\"h3\">Qui apprend aujourd'hui ?</h1>"+
+    "<p class=\"lead mt8\" style=\"font-size:14px\">Sélectionnez votre profil pour retrouver votre progression.</p>"+
+    "<div class=\"stack sp8 mt24\">"+PROFILES.map(p=>{
+      const st=profileSummary(p.id);
+      return "<button class=\"gate-prof\" data-gpick=\""+p.id+"\">"+
+        "<span class=\"gate-av sm\">"+esc(initials(p.nom))+"</span>"+
+        "<span style=\"flex:1;min-width:0;text-align:left\">"+
+          "<b style=\"font-size:14px\">"+T(p.nom)+"</b>"+
+          "<span class=\"dim\" style=\"display:block;font-size:11.5px\">"+
+            (p.role==="admin"?"Administrateur · ":"")+"Niveau "+st.level+" · "+st.done+" modules · "+
+            (p.lastSeen===todayISO()?"vu aujourd'hui":"vu le "+p.lastSeen)+"</span></span>"+
+        (p.pin?"<span class=\"dim\" title=\"Profil protégé par un code\">🔒</span>":"")+
+        "<span class=\"dim\">→</span></button>";
+    }).join("")+"</div>"+
+    (gate.err?"<div class=\"gate-err mt12\">"+T(gate.err)+"</div>":"")+
+    "<button class=\"btn block mt16\" data-gmode=\"create\">＋ Créer un profil</button>");
+}
+/* résumé lisible sans ouvrir la session */
+function profileSummary(id){
+  try{
+    const raw=STORE.get("hubma:state:"+id); if(!raw) return {level:1,done:0};
+    const st=JSON.parse(raw);
+    const done=Object.keys(st.tasks||{}).filter(k=>st.tasks[k].st==="done").length;
+    return { level:Math.floor(Math.sqrt((st.xp||0)/60))+1, done };
+  }catch(e){ return {level:1,done:0}; }
+}
+function hideGate(){
+  const g=$("#gate"); if(g) g.classList.remove("on");
+  document.body.classList.remove("gated");
+}
+
+/* ── Amorçage ─────────────────────────────────────────────── */
+function bootAuth(){
+  loadProfiles();
+  const sid=currentSession();
+  if(sid && profileOf(sid) && openSession(sid)){ hideGate(); return true; }
+  renderGate(); return false;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLANIFICATION ET CONSOLE D'ADMINISTRATION
+   Le plan est commun au poste (tous les profils du navigateur).
+   La progression, elle, reste propre à chaque profil.
+   ═══════════════════════════════════════════════════════════ */
+
+const PLKEY="hubma:plan";
+const PLAN_DEFAULT={ quota:{cards:10,min:15,modules:1}, modules:{}, cards:{}, updated:null };
+let PLAN=loadPlan();
+
+function loadPlan(){
+  try{
+    const p=JSON.parse(STORE.get(PLKEY)||"null");
+    if(!p) return structuredClone(PLAN_DEFAULT);
+    return Object.assign(structuredClone(PLAN_DEFAULT),p,{quota:Object.assign({},PLAN_DEFAULT.quota,p.quota||{})});
+  }catch(e){ return structuredClone(PLAN_DEFAULT); }
+}
+function savePlan(){
+  PLAN.updated=todayISO();
+  STORE.set(PLKEY, JSON.stringify(PLAN));
+  /* le plan est commun : on le réplique pour que chaque membre le reçoive */
+  if(typeof sbPushPlan==="function" && typeof cloudReady==="function" && cloudReady() && SB.user && isAdmin()){
+    sbPushPlan().catch(e=>toast("Plan non répliqué : "+e.message,"err"));
+  }
+}
+
+/* combien de fiches par session : le quota fait loi, borné pour rester tenable */
+const sessionSize = () => clamp(PLAN.quota.cards||10,3,50);
+
+/* modules programmés pour aujourd'hui ou en retard, non terminés */
+function plannedModules(){
+  const t=todayISO();
+  return Object.keys(PLAN.modules)
+    .filter(id=>anyMod(id) && PLAN.modules[id]<=t && meta(id).st!=="done")
+    .sort((a,b)=>PLAN.modules[a].localeCompare(PLAN.modules[b]))
+    .map(id=>({mod:anyMod(id), date:PLAN.modules[id], late:PLAN.modules[id]<t}));
+}
+/* fiches forcées par le plan, échéance atteinte */
+const plannedCards = () => Object.keys(PLAN.cards).filter(id=>PLAN.cards[id]<=todayISO() && CARDS.some(c=>c.id===id));
+
+/* file de révision : plan + échéances naturelles, mélangée, plafonnée */
+function reviewPool(){
+  const forced=plannedCards();
+  const due=CARDS.filter(c=>isDue(c.id)).map(c=>c.id);
+  const seen={}, out=[];
+  forced.concat(due).forEach(id=>{ if(!seen[id]){ seen[id]=1; out.push(id); } });
+  return out;
+}
+const dueCount = () => reviewPool().length;
+
+/* ── Console ──────────────────────────────────────────────── */
+function viewAdmin(){
+  crumbs([{n:"Administration"}]);
+  if(!isAdmin()) return adminGateView();
+  loadProfiles();
+  const phases=PHASES.concat(VERTICALES.filter(v=>v.id!=="tous").map(v=>({id:"v:"+v.id,n:"·",nom:v.court+" (métier)",ico:v.ico})));
+  const nPlanned=Object.keys(PLAN.modules).length, nCards=Object.keys(PLAN.cards).length;
+
+  setView(
+   "<div class=\"eyebrow\">Réservé aux administrateurs</div>"+
+   "<h1 class=\"h2 mt8\">Console d'administration</h1>"+
+   "<p class=\"lead mt8\">Définissez le rythme d'apprentissage : volume quotidien, dates de mise à disposition des modules et échéances de fiches.</p>"+
+
+   (cloudReady()
+     ? "<div class=\"row wrap mt16\" style=\"gap:9px\">"+
+       "<a class=\"btn primary\" href=\"#/equipe\">▚ Suivi d'équipe</a>"+
+       "<span class=\"tag soft c-green\" style=\"align-self:center\">◉ serveur connecté</span></div>"
+     : "<div class=\"tip mt16\"><span class=\"ti\">▣</span><span><b>Mode local</b>"+
+       "Le suivi d'équipe et la synchronisation entre postes supposent une configuration Supabase, "+
+       "à renseigner en tête du fichier.</span></div>")+
+
+   "<div class=\"callout warn mt24\"><div class=\"ct\">Portée réelle de cette console</div>"+
+   "Le plan est enregistré dans ce navigateur et s'applique à tous les profils de ce poste. Il ne se synchronise pas "+
+   "entre ordinateurs, et le code d'accès n'est pas une barrière de sécurité : il évite une manipulation involontaire. "+
+   "Un déploiement multi-poste avec comptes réels suppose un serveur.</div>"+
+
+   /* quotas */
+   "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Volume quotidien</h2></div>"+
+     "<div class=\"grid g3\">"+
+       "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqCards\">Fiches par session de révision</label>"+
+         "<input class=\"field\" id=\"aqCards\" type=\"number\" min=\"3\" max=\"50\" value=\""+sessionSize()+"\">"+
+         "<p class=\"dim mt8\" style=\"font-size:12px\">Valeur appliquée immédiatement à la révision du jour. Défaut : 10.</p></div>"+
+       "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqMin\">Objectif de minutes par jour</label>"+
+         "<input class=\"field\" id=\"aqMin\" type=\"number\" min=\"5\" max=\"180\" value=\""+(PLAN.quota.min||15)+"\"></div>"+
+       "<div class=\"card\"><label class=\"gate-lbl\" for=\"aqMod\">Modules par jour visés</label>"+
+         "<input class=\"field\" id=\"aqMod\" type=\"number\" min=\"1\" max=\"10\" value=\""+(PLAN.quota.modules||1)+"\"></div>"+
+     "</div>"+
+     "<button class=\"btn primary mt16\" data-adm=\"quota\">Enregistrer les volumes</button></div>"+
+
+   /* planification des modules */
+   "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Programmer des modules</h2>"+
+     "<span class=\"dim\" style=\"font-size:12px\">"+nPlanned+" module"+(nPlanned>1?"s":"")+" programmé"+(nPlanned>1?"s":"")+"</span></div>"+
+     "<div class=\"card\"><div class=\"grid g4\" style=\"align-items:end\">"+
+       "<div><label class=\"gate-lbl\" for=\"apPhase\">Ensemble</label>"+
+         "<select class=\"field\" id=\"apPhase\">"+phases.map(p=>
+           "<option value=\""+p.id+"\">"+esc(p.ico+" "+p.nom)+"</option>").join("")+"</select></div>"+
+       "<div><label class=\"gate-lbl\" for=\"apStart\">Début</label>"+
+         "<input class=\"field\" id=\"apStart\" type=\"date\" value=\""+todayISO()+"\"></div>"+
+       "<div><label class=\"gate-lbl\" for=\"apRate\">Modules par semaine</label>"+
+         "<input class=\"field\" id=\"apRate\" type=\"number\" min=\"1\" max=\"20\" value=\"3\"></div>"+
+       "<button class=\"btn primary\" data-adm=\"plan\">Programmer</button>"+
+     "</div>"+
+     "<p class=\"dim mt12\" style=\"font-size:12px\">Les modules sont répartis à partir de la date de début, au rythme indiqué, "+
+     "jours ouvrés uniquement. Un module programmé apparaît dans « Au programme » sur le tableau de bord.</p></div>"+
+
+     (nPlanned? "<table class=\"tbl mt16\"><thead><tr><th>Date</th><th>Module</th><th>Statut</th><th class=\"n\">Action</th></tr></thead><tbody>"+
+       Object.keys(PLAN.modules).filter(id=>anyMod(id)).sort((a,b)=>PLAN.modules[a].localeCompare(PLAN.modules[b])).slice(0,60).map(id=>{
+         const m=anyMod(id), st=meta(id).st;
+         return "<tr><td class=\"mono\" style=\"font-size:12px\">"+PLAN.modules[id]+"</td>"+
+           "<td><a href=\"#/module/"+id+"\">"+T(m.nom)+"</a></td>"+
+           "<td>"+(st==="done"?"<span class=\"c-green\">terminé</span>":st==="doing"?"<span class=\"c-orange\">en cours</span>":"<span class=\"dim\">à faire</span>")+"</td>"+
+           "<td class=\"n\"><button class=\"btn sm ghost\" data-unplan=\""+id+"\">retirer</button></td></tr>";
+       }).join("")+"</tbody></table>"+
+       "<button class=\"btn danger sm mt12\" data-adm=\"clearplan\">Effacer toute la programmation</button>"
+      : "<div class=\"empty mt16\">Aucun module programmé. Le parcours reste entièrement libre.</div>")+
+   "</div>"+
+
+   /* échéances de fiches */
+   "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Échéances de fiches</h2>"+
+     "<span class=\"dim\" style=\"font-size:12px\">"+nCards+" fiche"+(nCards>1?"s":"")+" forcée"+(nCards>1?"s":"")+"</span></div>"+
+     "<div class=\"card\"><div class=\"grid g3\" style=\"align-items:end\">"+
+       "<div><label class=\"gate-lbl\" for=\"acCat\">Catégorie de fiches</label>"+
+         "<select class=\"field\" id=\"acCat\"><option value=\"all\">Toutes les catégories</option>"+
+           CARD_CATS.map(c=>"<option value=\""+esc(c)+"\">"+esc(c)+"</option>").join("")+"</select></div>"+
+       "<div><label class=\"gate-lbl\" for=\"acDate\">Échéance</label>"+
+         "<input class=\"field\" id=\"acDate\" type=\"date\" value=\""+todayISO()+"\"></div>"+
+       "<button class=\"btn primary\" data-adm=\"cards\">Rendre dues à cette date</button>"+
+     "</div>"+
+     "<p class=\"dim mt12\" style=\"font-size:12px\">Force la mise à disposition des fiches à la date choisie, en complément "+
+     "du calcul de répétition espacée. Utile pour caler une session sur un point précis avant un rendez-vous.</p>"+
+     (nCards?"<button class=\"btn danger sm mt12\" data-adm=\"clearcards\">Lever toutes les échéances forcées</button>":"")+
+     "</div></div>"+
+
+   /* profils */
+   "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Profils de ce poste</h2>"+
+     "<span class=\"dim\" style=\"font-size:12px\">"+PROFILES.length+" profil"+(PROFILES.length>1?"s":"")+"</span></div>"+
+     "<table class=\"tbl\"><thead><tr><th>Profil</th><th>Rôle</th><th>Verticale</th><th class=\"n\">Modules</th><th>Dernière visite</th><th class=\"n\">Actions</th></tr></thead><tbody>"+
+     PROFILES.map(p=>{ const st=profileSummary(p.id); const V=vertOf(p.vertical);
+       return "<tr><td><strong>"+T(p.nom)+"</strong>"+(ME&&ME.id===p.id?" <span class=\"dim\">(vous)</span>":"")+(p.pin?" 🔒":"")+"</td>"+
+         "<td>"+(p.role==="admin"?"<span class=\"c-lilac\">administrateur</span>":"membre")+"</td>"+
+         "<td class=\"dim\">"+T(V.court)+"</td><td class=\"n\">"+st.done+"</td>"+
+         "<td class=\"dim mono\" style=\"font-size:12px\">"+p.lastSeen+"</td>"+
+         "<td class=\"n\">"+(p.role==="admin"
+            ? "<button class=\"btn sm ghost\" data-demote=\""+p.id+"\">retirer le rôle</button>"
+            : "<button class=\"btn sm ghost\" data-promote=\""+p.id+"\">rendre admin</button>")+
+           (ME&&ME.id===p.id?"":" <button class=\"btn sm danger\" data-delprof=\""+p.id+"\">supprimer</button>")+
+         "</td></tr>";
+     }).join("")+"</tbody></table></div>"+
+
+   /* code */
+   "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Code d'accès administrateur</h2></div>"+
+     "<div class=\"card\"><div class=\"row wrap\" style=\"gap:10px;align-items:end\">"+
+       "<div style=\"flex:1;min-width:220px\"><label class=\"gate-lbl\" for=\"acNew\">Nouveau code, quatre caractères minimum</label>"+
+         "<input class=\"field\" id=\"acNew\" type=\"password\" autocomplete=\"new-password\" placeholder=\"••••••••\"></div>"+
+       "<button class=\"btn\" data-adm=\"code\">Modifier le code</button></div>"+
+       "<p class=\"dim mt12\" style=\"font-size:12px\">Code initial : <code>"+ADMIN_DEFAULT+"</code>. "+
+       "Changez-le au premier usage. Il n'est stocké que sous forme d'empreinte, mais reste contournable "+
+       "par toute personne sachant lire le code source : ne lui confiez rien de sensible.</p></div></div>");
+}
+
+function adminGateView(){
+  crumbs([{n:"Administration"}]);
+  setView("<div style=\"max-width:440px;margin:8vh auto 0\">"+
+    "<div class=\"card\" style=\"padding:30px\">"+
+      "<div class=\"eyebrow\">Accès restreint</div>"+
+      "<h1 class=\"h3 mt8\">Console d'administration</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">Saisissez le code d'accès pour définir les dates d'apprentissage "+
+      "des leçons et des fiches.</p>"+
+      "<input class=\"field mt24\" id=\"admCode\" type=\"password\" placeholder=\"Code d'accès\" autocomplete=\"current-password\">"+
+      "<div id=\"admErr\"></div>"+
+      "<button class=\"btn primary block mt16\" data-adm=\"elevate\">Déverrouiller</button>"+
+      "<p class=\"dim mt16\" style=\"font-size:12px\">Code initial : <code>"+ADMIN_DEFAULT+"</code>. "+
+      "Il s'agit d'un garde-fou d'usage, pas d'un mécanisme de sécurité.</p>"+
+    "</div></div>");
+  setTimeout(()=>{ const i=$("#admCode"); if(i) i.focus(); },60);
+}
+
+/* ── Actions ──────────────────────────────────────────────── */
+function planSet(groupId,startISO,perWeek){
+  const list = groupId.indexOf("v:")===0 ? vmodsFor(groupId.slice(2)) : byPhase(groupId);
+  if(!list.length) return 0;
+  const step=Math.max(1,Math.round(5/clamp(perWeek,1,20)));   // jours ouvrés entre deux modules
+  let d=startISO, placed=0;
+  list.forEach((m,i)=>{
+    if(i>0){ for(let k=0;k<step;k++){ d=addDays(d,1); const wd=new Date(d+"T12:00:00").getDay();
+      if(wd===0) d=addDays(d,1); if(new Date(d+"T12:00:00").getDay()===6) d=addDays(d,2); } }
+    PLAN.modules[m.id]=d; placed++;
+  });
+  savePlan(); return placed;
+}
+function cardsDueAt(cat,dateISO){
+  const list = cat==="all" ? CARDS : CARDS.filter(c=>c.c===cat);
+  list.forEach(c=>{ PLAN.cards[c.id]=dateISO; });
+  savePlan(); return list.length;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COUCHE SUPABASE
+   Authentification réelle et stockage distant, via l'API REST
+   appelée directement en fetch : aucune dépendance externe,
+   donc aucun script tiers à charger et un comportement testable.
+
+   La clé « anon » est publique par conception : c'est la
+   sécurité au niveau des lignes (RLS) qui protège les données,
+   jamais le secret de cette clé. Voir le tutoriel joint.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. Configuration, à renseigner ───────────────────────── */
+const SUPABASE = {
+  url:     "",   /* ex. https://abcdefghijklm.supabase.co */
+  anonKey: ""    /* clé publique anon, onglet Settings puis API */
+};
+const T_PROFILES="hub_profiles", T_PROGRESS="hub_progress", T_PLAN="hub_plan";
+const SBSESS="hubma:sb-session", SBCACHE="hubma:sb-cache";
+
+const cloudReady = () => !!(SUPABASE.url && SUPABASE.anonKey);
+let SB = { session:null, user:null, profile:null, status:"local", lastSync:null, err:null };
+
+/* ── 2. Session locale ────────────────────────────────────── */
+function sbLoadSession(){
+  try{ SB.session=JSON.parse(STORE.get(SBSESS)||"null"); }catch(e){ SB.session=null; }
+  return SB.session;
+}
+function sbStoreSession(s){
+  SB.session=s;
+  if(s) STORE.set(SBSESS, JSON.stringify(s)); else STORE.del(SBSESS);
+}
+const sbExpired = () => !SB.session || !SB.session.expires_at || (Date.now()/1000) > (SB.session.expires_at-60);
+
+/* ── 3. Appels bas niveau ─────────────────────────────────── */
+function sbHeaders(auth){
+  const h={ "apikey":SUPABASE.anonKey, "Content-Type":"application/json" };
+  if(auth && SB.session && SB.session.access_token) h["Authorization"]="Bearer "+SB.session.access_token;
+  return h;
+}
+async function sbRaw(path,opts){
+  const res=await fetch(SUPABASE.url.replace(/\/+$/,"")+path, opts);
+  let body=null;
+  const txt=await res.text();
+  if(txt){ try{ body=JSON.parse(txt); }catch(e){ body={raw:txt}; } }
+  if(!res.ok){
+    const msg=(body&&(body.msg||body.message||body.error_description||body.error||body.hint))||("Erreur "+res.status);
+    const err=new Error(msg); err.status=res.status; err.body=body; throw err;
+  }
+  return body;
+}
+/** Appel authentifié, avec rafraîchissement automatique du jeton. */
+async function sbCall(path,opts,retry){
+  if(sbExpired() && SB.session && SB.session.refresh_token && !retry){
+    try{ await sbRefresh(); }catch(e){ /* on tente quand même, le 401 sera traité */ }
+  }
+  try{
+    return await sbRaw(path, Object.assign({}, opts, {headers:Object.assign(sbHeaders(true), (opts&&opts.headers)||{})}));
+  }catch(e){
+    if(e.status===401 && !retry && SB.session && SB.session.refresh_token){
+      await sbRefresh();
+      return sbCall(path,opts,true);
+    }
+    throw e;
+  }
+}
+
+/* ── 4. Authentification ──────────────────────────────────── */
+function sbSetSession(d){
+  if(!d || !d.access_token) return null;
+  const s={ access_token:d.access_token, refresh_token:d.refresh_token,
+            expires_at: d.expires_at || Math.floor(Date.now()/1000)+(d.expires_in||3600),
+            user:d.user||null };
+  sbStoreSession(s); SB.user=s.user; return s;
+}
+async function sbSignUp(email,password,meta){
+  const d=await sbRaw("/auth/v1/signup",{ method:"POST", headers:sbHeaders(false),
+    body:JSON.stringify({ email:String(email).trim(), password, data:meta||{} }) });
+  /* si la confirmation par courriel est active, aucune session n'est renvoyée */
+  if(d && d.access_token){ sbSetSession(d); return {ok:true, confirmed:true}; }
+  return {ok:true, confirmed:false, email:String(email).trim()};
+}
+async function sbSignIn(email,password){
+  const d=await sbRaw("/auth/v1/token?grant_type=password",{ method:"POST", headers:sbHeaders(false),
+    body:JSON.stringify({ email:String(email).trim(), password }) });
+  sbSetSession(d); return SB.session;
+}
+async function sbRefresh(){
+  if(!SB.session||!SB.session.refresh_token) throw new Error("Aucune session à rafraîchir.");
+  const d=await sbRaw("/auth/v1/token?grant_type=refresh_token",{ method:"POST", headers:sbHeaders(false),
+    body:JSON.stringify({ refresh_token:SB.session.refresh_token }) });
+  return sbSetSession(d);
+}
+async function sbSignOut(){
+  try{ if(SB.session) await sbCall("/auth/v1/logout",{method:"POST"}); }catch(e){}
+  sbStoreSession(null); SB.user=null; SB.profile=null; SB.status="deconnecte";
+}
+async function sbRecover(email){
+  await sbRaw("/auth/v1/recover",{ method:"POST", headers:sbHeaders(false),
+    body:JSON.stringify({ email:String(email).trim() }) });
+  return true;
+}
+async function sbGetUser(){
+  const u=await sbCall("/auth/v1/user",{method:"GET"});
+  SB.user=u; if(SB.session){ SB.session.user=u; sbStoreSession(SB.session); }
+  return u;
+}
+
+/* ── 5. Fiche de profil ───────────────────────────────────── */
+async function sbFetchProfile(){
+  if(!SB.user) return null;
+  const rows=await sbCall("/rest/v1/"+T_PROFILES+"?id=eq."+encodeURIComponent(SB.user.id)+"&select=*",{method:"GET"});
+  SB.profile=(rows&&rows[0])||null;
+  return SB.profile;
+}
+async function sbUpsertProfile(patch){
+  if(!SB.user) return null;
+  const row=Object.assign({ id:SB.user.id, email:SB.user.email }, patch||{});
+  const rows=await sbCall("/rest/v1/"+T_PROFILES,{ method:"POST",
+    headers:{ "Prefer":"resolution=merge-duplicates,return=representation" },
+    body:JSON.stringify(row) });
+  SB.profile=(rows&&rows[0])||SB.profile;
+  return SB.profile;
+}
+
+/* ── 6. Synchronisation de l'état ─────────────────────────── */
+/** Fusion sans perte : on ne régresse jamais sur un acquis. */
+function mergeState(a,b){
+  if(!a) return b; if(!b) return a;
+  const out=structuredClone(a);
+  out.xp=Math.max(a.xp||0,b.xp||0);
+  out.v=Math.max(a.v||0,b.v||0);
+  out.streak={ n:Math.max((a.streak||{}).n||0,(b.streak||{}).n||0),
+               best:Math.max((a.streak||{}).best||0,(b.streak||{}).best||0),
+               last:[(a.streak||{}).last,(b.streak||{}).last].filter(Boolean).sort().pop()||null };
+  const RANK={todo:0,doing:1,done:2};
+  out.tasks={};
+  Object.keys(Object.assign({},a.tasks,b.tasks)).forEach(k=>{
+    const x=(a.tasks||{})[k]||{}, y=(b.tasks||{})[k]||{};
+    out.tasks[k]={
+      st: (RANK[y.st]||0)>(RANK[x.st]||0) ? y.st : (x.st||"todo"),
+      mastery: Math.max(x.mastery||0,y.mastery||0),
+      xpDone: !!(x.xpDone||y.xpDone),
+      fav: (y.seen||"")>(x.seen||"") ? !!y.fav : !!x.fav,
+      time: Math.max(x.time||0,y.time||0),
+      notes: (y.seen||"")>(x.seen||"") ? (y.notes||x.notes||"") : (x.notes||y.notes||""),
+      seen: [x.seen,y.seen].filter(Boolean).sort().pop()||null
+    };
+  });
+  out.quiz={};
+  Object.keys(Object.assign({},a.quiz,b.quiz)).forEach(k=>{
+    const x=(a.quiz||{})[k]||{}, y=(b.quiz||{})[k]||{};
+    out.quiz[k]={ best:Math.max(x.best||0,y.best||0), tries:Math.max(x.tries||0,y.tries||0),
+                  xpPass:!!(x.xpPass||y.xpPass), xpPerfect:!!(x.xpPerfect||y.xpPerfect) };
+  });
+  out.srs={};
+  Object.keys(Object.assign({},a.srs,b.srs)).forEach(k=>{
+    const x=(a.srs||{})[k], y=(b.srs||{})[k];
+    if(!x) return void(out.srs[k]=y); if(!y) return void(out.srs[k]=x);
+    out.srs[k]=(y.reps||0)>=(x.reps||0)?y:x;      /* la révision la plus avancée gagne */
+  });
+  out.days={};
+  Object.keys(Object.assign({},a.days,b.days)).forEach(k=>{
+    const x=(a.days||{})[k]||{}, y=(b.days||{})[k]||{};
+    out.days[k]={ min:Math.max(x.min||0,y.min||0), done:Math.max(x.done||0,y.done||0), cards:Math.max(x.cards||0,y.cards||0) };
+  });
+  out.badges=Array.from(new Set([].concat(a.badges||[],b.badges||[])));
+  out.glFav=Array.from(new Set([].concat(a.glFav||[],b.glFav||[])));
+  out.read=Array.from(new Set([].concat(a.read||[],b.read||[])));
+  out.games={};
+  Object.keys(Object.assign({},a.games,b.games)).forEach(k=>{
+    const x=(a.games||{})[k], y=(b.games||{})[k];
+    out.games[k]=(typeof x==="number"&&typeof y==="number")?Math.max(x,y):(y!==undefined?y:x);
+  });
+  out.prefs=Object.assign({},a.prefs,b.prefs);
+  out.prefs.tips=Array.from(new Set([].concat((a.prefs||{}).tips||[],(b.prefs||{}).tips||[])));
+  return out;
+}
+
+async function sbPullState(){
+  if(!SB.user) return null;
+  const rows=await sbCall("/rest/v1/"+T_PROGRESS+"?user_id=eq."+encodeURIComponent(SB.user.id)+"&select=state,updated_at",{method:"GET"});
+  return (rows&&rows[0])||null;
+}
+async function sbPushState(){
+  if(!SB.user) return null;
+  const rows=await sbCall("/rest/v1/"+T_PROGRESS,{ method:"POST",
+    headers:{ "Prefer":"resolution=merge-duplicates,return=representation" },
+    body:JSON.stringify({ user_id:SB.user.id, state:S, updated_at:new Date().toISOString() }) });
+  SB.lastSync=new Date().toISOString();
+  return (rows&&rows[0])||null;
+}
+
+/* file d'attente : on n'écrase pas le distant si le réseau tombe */
+let syncTimer=null, syncDirty=false, syncing=false, inflight=null;
+function cloudTouch(){
+  if(!cloudReady()||!SB.user) return;
+  syncDirty=true;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(cloudFlush,2500);
+  if(!syncing) setStatus_("attente");
+}
+/** Un seul envoi à la fois. Les appels concurrents attendent celui en cours,
+    et toute modification survenue pendant l'envoi déclenche un second tour :
+    sans cette boucle, la dernière action de l'utilisateur serait perdue. */
+async function cloudFlush(){
+  if(!cloudReady()||!SB.user) return;
+  if(syncing) return inflight;
+  if(!syncDirty) return;
+  syncing=true; setStatus_("envoi");
+  inflight=(async()=>{
+    try{
+      let tours=0;
+      while(syncDirty && tours<5){ syncDirty=false; tours++; await sbPushState(); }
+      SB.err=null; setStatus_("ok");
+    }catch(e){
+      syncDirty=true;                 /* on ne perd jamais la modification */
+      SB.err=e.message; setStatus_("hors-ligne");
+    }finally{ syncing=false; inflight=null; }
+  })();
+  return inflight;
+}
+function setStatus_(s){ SB.status=s; paintSync(); }
+
+/* ── 7. Plan partagé ──────────────────────────────────────── */
+async function sbPullPlan(){
+  const rows=await sbCall("/rest/v1/"+T_PLAN+"?id=eq.1&select=*",{method:"GET"});
+  return (rows&&rows[0])||null;
+}
+async function sbPushPlan(){
+  const rows=await sbCall("/rest/v1/"+T_PLAN,{ method:"POST",
+    headers:{ "Prefer":"resolution=merge-duplicates,return=representation" },
+    body:JSON.stringify({ id:1, quota:PLAN.quota, modules:PLAN.modules, cards:PLAN.cards,
+                          updated_at:new Date().toISOString() }) });
+  return (rows&&rows[0])||null;
+}
+
+/* ── 8. Suivi d'équipe, réservé aux administrateurs ───────── */
+async function sbTeam(){
+  const rows=await sbCall("/rest/v1/"+T_PROFILES+"?select=id,display_name,email,vertical,role,updated_at&order=display_name",{method:"GET"});
+  const prog=await sbCall("/rest/v1/"+T_PROGRESS+"?select=user_id,state,updated_at",{method:"GET"});
+  const byUser={}; (prog||[]).forEach(p=>{ byUser[p.user_id]=p; });
+  return (rows||[]).map(r=>{
+    const p=byUser[r.id], st=(p&&p.state)||{};
+    const tasks=st.tasks||{};
+    const done=Object.keys(tasks).filter(k=>tasks[k].st==="done").length;
+    const cards=Object.keys(st.srs||{}).length;
+    return { id:r.id, nom:r.display_name||r.email, email:r.email, vertical:r.vertical, role:r.role,
+             done, cards, xp:st.xp||0, streak:(st.streak||{}).n||0,
+             maj:(p&&p.updated_at)?String(p.updated_at).slice(0,10):null };
+  });
+}
+
+/* ── 9. Ouverture de session complète ─────────────────────── */
+async function cloudBoot(){
+  if(!cloudReady()){ SB.status="local"; return false; }
+  sbLoadSession();
+  if(!SB.session) { SB.status="deconnecte"; return false; }
+  try{
+    if(sbExpired()) await sbRefresh();
+    await sbGetUser();
+    await cloudAdopt();
+    return true;
+  }catch(e){
+    SB.err=e.message;
+    /* jeton mort : on repart de l'écran de connexion sans perdre le cache local */
+    sbStoreSession(null); SB.status="deconnecte";
+    return false;
+  }
+}
+/** Charge le profil, fusionne l'état distant et le cache local, publie le résultat. */
+async function cloudAdopt(){
+  let prof=await sbFetchProfile();
+  if(!prof){
+    const md=(SB.user&&SB.user.user_metadata)||{};
+    prof=await sbUpsertProfile({ display_name:md.display_name||String(SB.user.email).split("@")[0],
+                                 vertical:md.vertical||"tous", role:"membre" });
+  }
+  KEY="hubma:state:"+SB.user.id;
+  S=load(); migrate();
+  let remote=null;
+  try{ remote=await sbPullState(); }catch(e){ SB.err=e.message; }
+  if(remote && remote.state){
+    S=mergeState(S,remote.state); migrate();
+  }
+  if(prof){
+    ME={ id:SB.user.id, nom:prof.display_name||SB.user.email, email:SB.user.email,
+         vertical:prof.vertical||"tous", role:prof.role||"membre", cloud:true, pin:null, lastSeen:todayISO() };
+    if(!S.prefs.vertical) S.prefs.vertical=ME.vertical;
+  }
+  flushSave();
+  try{ await sbPushState(); SB.status="ok"; SB.err=null; }
+  catch(e){ SB.err=e.message; SB.status="hors-ligne"; }
+  try{
+    const pl=await sbPullPlan();
+    if(pl){ PLAN.quota=Object.assign({},PLAN_DEFAULT.quota,pl.quota||{});
+            PLAN.modules=pl.modules||{}; PLAN.cards=pl.cards||{}; savePlan(); }
+  }catch(e){}
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ASTUCES CONTEXTUELLES ET TUTORIEL
+   Une astuce s'affiche une fois par écran, puis se referme
+   définitivement. Elle est rejouable depuis les réglages.
+   ═══════════════════════════════════════════════════════════ */
+
+const TIPS = {
+  cartes:{ i:"▤", t:"Cinq façons de travailler les mêmes fiches",
+    d:"Cartes pour reconnaître, Apprendre pour se tester en QCM, Écrire pour restituer de mémoire, "+
+      "Associer pour aller vite, Test pour se noter. Les touches 1 à 4 notent une fiche, Espace la retourne." },
+  revision:{ i:"⟳", t:"Pourquoi seulement dix fiches",
+    d:"Une session courte et quotidienne retient bien mieux qu'une longue série mensuelle. Les fiches sont "+
+      "tirées au hasard parmi celles arrivées à échéance, et reprogrammées selon votre réponse." },
+  referentiel:{ i:"§", t:"Le référentiel alimente vos révisions",
+    d:"L'étoile met un terme de côté, la flèche l'envoie directement dans vos fiches de révision. "+
+      "Les onglets basculent entre définitions, étapes du process et indicateurs." },
+  process:{ i:"⌗", t:"Douze étapes, une par clic",
+    d:"Chaque étape détaille ses livrables, ses intervenants et ses pièges, avec le module de fond associé. "+
+      "L'anatomie de montage en bas de page chiffre un exemple complet." },
+  verticale:{ i:"◈", t:"Votre espace métier",
+    d:"Indicateurs, conventions de valorisation, retraitements et points d'audit propres à votre verticale. "+
+      "Les blocs dépliables s'ouvrent d'un clic." },
+  parcours:{ i:"◎", t:"Filtrer sans se perdre",
+    d:"Combinez la recherche, la phase, la catégorie et l'état. La touche / place le curseur dans la recherche, "+
+      "⌘ K ouvre la recherche globale sur tout le contenu." },
+  stats:{ i:"▚", t:"Lire sa progression",
+    d:"Le calendrier montre la régularité, qui compte davantage que le volume. Les succès se débloquent "+
+      "au fil du parcours." }
+};
+
+const tipSeen = k => (S.prefs.tips||[]).indexOf(k)>=0;
+function tipHTML(k){
+  const t=TIPS[k];
+  if(!t || tipSeen(k)) return "";
+  return "<div class=\"tip\" data-tipbox=\""+k+"\"><span class=\"ti\">"+t.i+"</span>"+
+    "<span><b>"+T(t.t)+"</b>"+T(t.d)+"</span>"+
+    "<button class=\"tclose\" data-tipclose=\""+k+"\" aria-label=\"Masquer cette astuce\">✕</button></div>";
+}
+function closeTip(k){
+  if(!S.prefs.tips) S.prefs.tips=[];
+  if(S.prefs.tips.indexOf(k)<0) S.prefs.tips.push(k);
+  save();
+  const el=document.querySelector("[data-tipbox=\""+k+"\"]");
+  if(el){ el.style.height=el.offsetHeight+"px"; el.classList.add("out"); el.remove(); }
+}
+function resetTips(){
+  S.prefs.tips=[]; S.prefs.onboarded=false; obStep=0; save();
+  toast("Astuces réactivées et présentation relancée.","ok");
+  showOnboarding();
+}
+
+/* ═══════════════════════════════════════════════════════════
    NAVIGATION · barre latérale, arbre, fil d'Ariane, palette
    ═══════════════════════════════════════════════════════════ */
 
@@ -4332,7 +5205,9 @@ function navLink(item,cur){
 function paintNav(){
   const cur = location.hash || "#/";
   $("#navMain").innerHTML  = MAIN_NAV.map(i=>navLink(i,cur)).join("");
-  $("#navTools").innerHTML = TOOL_NAV.map(i=>navLink(i,cur)).join("");
+  $("#navTools").innerHTML = TOOL_NAV.map(i=>navLink(i,cur)).join("")
+    + (typeof isAdmin==="function" && isAdmin()
+        ? navLink({h:"#/admin",i:"⚑",n:"Administration"},cur) : "");
 
   const open = S.prefs.openPhases||[];
   $("#navTree").innerHTML = PHASES.map(p=>{
@@ -4388,6 +5263,20 @@ function paintNav(){
     const on = cur===i.h || (i.h!=="#/" && cur.indexOf(i.h)===0);
     return "<a href=\""+i.h+"\" class=\""+(on?"on":"")+"\"><i aria-hidden=\"true\">"+i.i+"</i><span>"+H(i.n)+"</span></a>";
   }).join("");
+
+  /* carte de profil */
+  const me=$("#sbMe");
+  if(me){
+    if(typeof ME!=="undefined" && ME){
+      const lp=levelProgress(S.xp);
+      me.innerHTML="<span class=\"gate-av sm\">"+esc(initials(ME.nom))+"</span>"+
+        "<span style=\"flex:1;min-width:0;text-align:left\">"+
+          "<b style=\"font-size:12.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">"+T(ME.nom)+"</b>"+
+          "<span class=\"dim\" style=\"font-size:10.5px\">"+RANKS[Math.min(lp.level-1,RANKS.length-1)]+"</span></span>"+
+        "<span class=\"dim\" style=\"font-size:11px\">⋯</span>";
+      me.style.display="";
+    } else me.style.display="none";
+  }
 
   const g=stats();
   const pc=$("#sbPct"), bar=$("#sbBar");
@@ -4532,9 +5421,13 @@ function importData(file){
     try{
       const p=JSON.parse(r.result);
       if(!p || typeof p!=="object" || !("tasks" in p)) throw new Error("format");
-      S=Object.assign(structuredClone(DEFAULT_STATE),p);
-      save(); applyTheme(); paintHeader(); paintNav(); route();
-      toast("Progression restaurée.","ok");
+      S=Object.assign(structuredClone(DEFAULT_STATE),p,{
+        prefs:Object.assign({},DEFAULT_STATE.prefs,p.prefs||{}),
+        streak:Object.assign({},DEFAULT_STATE.streak,p.streak||{})
+      });
+      migrate();                       /* remet l'état au schéma courant */
+      flushSave(); applyTheme(); paintHeader(); paintNav(); route();
+      toast("Progression restaurée dans le profil "+(ME?ME.nom:"courant")+".","ok");
     }catch(e){ toast("Fichier illisible ou format non reconnu.","err"); }
   };
   r.readAsText(file);
@@ -4649,6 +5542,23 @@ function viewDashboard(){
     "<div class=\"stat\"><b>"+dur(g.min)+"</b><span>Temps cumulé</span></div>"+
   "</div>";
 
+  /* Au programme du jour, si un plan existe */
+  const prog = (typeof plannedModules==="function") ? plannedModules() : [];
+  if(prog.length){
+    h += "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Au programme aujourd'hui</h2>"+
+      "<span class=\"dim\" style=\"font-size:12px\">défini par votre administrateur</span></div>"+
+      "<div class=\"tasklist\">"+prog.slice(0,6).map(x=>
+        "<div class=\"taskrow\" data-phase=\""+(x.mod.phase||"")+"\">"+
+          "<button class=\"chk "+(meta(x.mod.id).st==="doing"?"doing":"")+"\" data-cycle=\""+x.mod.id+"\" aria-label=\"Statut\">"+
+            (meta(x.mod.id).st==="doing"?"·":"")+"</button>"+
+          "<a class=\"tname\" href=\"#/module/"+x.mod.id+"\">"+T(x.mod.nom)+"</a>"+
+          "<div class=\"tmeta\">"+
+            (x.late?"<span class=\"tag soft c-orange\" style=\"font-size:10px\">en retard</span>":
+                    "<span class=\"tag soft c-blue\" style=\"font-size:10px\">aujourd'hui</span>")+
+            "<span class=\"dim\" style=\"font-size:11px\">"+x.mod.min+"′</span></div></div>").join("")+
+      "</div></div>";
+  }
+
   /* Phases */
   h += "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Les 7 phases</h2>"+
        "<a class=\"btn sm ghost\" href=\"#/parcours\">Voir les 108 modules →</a></div>"+
@@ -4717,7 +5627,7 @@ function viewParcours(params){
   const cats=Array.from(new Set(TASKS.map(t=>t.cat)));
 
   const head =
-    "<div class=\"eyebrow\">Parcours complet</div>"+
+    tipHTML("parcours")+"<div class=\"eyebrow\">Parcours complet</div>"+
     "<h1 class=\"h2 mt8\">108 modules, 7 phases</h1>"+
     "<div class=\"row wrap mt16\" style=\"gap:10px\">"+
       "<div class=\"searchwrap\" style=\"flex:1;min-width:220px\"><span class=\"si\">⌕</span>"+
@@ -4753,14 +5663,14 @@ function paintParcours(){
   if(!list.length){ box.innerHTML="<div class=\"empty\"><div class=\"ei\">⌕</div>Aucun module ne correspond à ces critères.</div>"; return; }
   let out="<div class=\"dim mt8\" style=\"font-size:12px;margin-bottom:12px\">"+list.length+" module"+(list.length>1?"s":"")+"</div>";
   let cur=null;
-  list.forEach(t=>{
+  list.forEach((t,i)=>{
     if(t.phase!==cur){
       cur=t.phase; const p=phaseOf(cur);
       out+="<div class=\"sec-hd\" style=\"margin-top:26px\"><h2 class=\"h4\">"+p.ico+" "+T(p.nom)+"</h2>"+
            "<a class=\"btn sm ghost\" href=\"#/phase/"+p.id+"\">Vue d'ensemble →</a></div><div class=\"tasklist\">";
     }
     out+=taskRow(t);
-    const nx=list[list.indexOf(t)+1];
+    const nx=list[i+1];
     if(!nx || nx.phase!==cur) out+="</div>";
   });
   box.innerHTML=out;
@@ -4999,7 +5909,7 @@ function viewReferentiel(params){
   crumbs([{n:"Référentiel"}]);
   if(params && params.get("t")){ gl.q=params.get("t"); gl.c="all"; gl.fav=false; }
   const cats=Array.from(new Set(GLOSSARY.map(g=>g.c))).sort();
-  let h="<div class=\"eyebrow\">Vocabulaire de la transaction</div>"+
+  let h=tipHTML("referentiel")+"<div class=\"eyebrow\">Vocabulaire de la transaction</div>"+
     "<h1 class=\"h2 mt8\">Référentiel</h1>"+
     "<p class=\"lead mt8\">"+GLOSSARY.length+" termes définis, reliés aux modules. La recherche accepte les équivalents anglais : "+
     "tapez <em>net debt</em>, <em>escrow</em> ou <em>earnout</em>.</p>"+
@@ -5280,8 +6190,45 @@ function viewReglages(){
   crumbs([{n:"Réglages"}]);
   const size=(new Blob([JSON.stringify(S)]).size/1024).toFixed(1);
   const V=S.prefs.vertical?vertOf(S.prefs.vertical):null;
+  const lp=levelProgress(S.xp);
   setView(
     "<div class=\"eyebrow\">Configuration</div><h1 class=\"h2 mt8\">Réglages et sauvegarde</h1>"+
+
+    /* profil actif */
+    (ME?"<div class=\"card mt24\"><div class=\"spread wrap\" style=\"gap:14px\">"+
+      "<div class=\"row\" style=\"gap:13px\"><span class=\"gate-av\" style=\"margin:0\">"+esc(initials(ME.nom))+"</span>"+
+      "<div><div class=\"h4\">"+T(ME.nom)+"</div>"+
+      "<div class=\"dim\" style=\"font-size:12.5px\">"+(ME.role==="admin"?"Administrateur · ":"Membre · ")+
+        rankOf(S.xp)+" · niveau "+lp.level+"</div></div></div>"+
+      "<div class=\"row wrap\" style=\"gap:8px\">"+
+        "<button class=\"btn sm\" data-act=\"pin\">"+(ME.pin?"Modifier le code":"Ajouter un code")+"</button>"+
+        (isAdmin()?"<a class=\"btn sm\" href=\"#/admin\">Administration</a>":"<button class=\"btn sm ghost\" data-act=\"askadmin\">Devenir administrateur</button>")+
+        "<button class=\"btn sm ghost\" data-switch>Changer de profil</button>"+
+        "<button class=\"btn sm danger\" data-logout>Fermer la session</button>"+
+      "</div></div>"+
+      "<p class=\"dim mt12\" style=\"font-size:12px\">La progression est propre à ce profil. "+
+      PROFILES.length+" profil"+(PROFILES.length>1?"s":"")+" sur ce poste. Le code confidentiel évite "+
+      "l'ouverture par un tiers, il ne chiffre pas les données.</p></div>":"")+
+
+    /* apprentissage */
+    "<div class=\"card mt16\"><div class=\"h4\">Rythme d'apprentissage</div>"+
+      "<table class=\"tbl mt12\"><tbody>"+
+      "<tr><td>Fiches par session de révision</td><td class=\"n\">"+sessionSize()+"</td></tr>"+
+      "<tr><td>Objectif quotidien</td><td class=\"n\">"+(PLAN.quota.min||15)+" min</td></tr>"+
+      "<tr><td>Modules programmés</td><td class=\"n\">"+Object.keys(PLAN.modules).length+"</td></tr>"+
+      "<tr><td>Fiches à échéance forcée</td><td class=\"n\">"+Object.keys(PLAN.cards).length+"</td></tr>"+
+      "</tbody></table>"+
+      "<p class=\"dim mt8\" style=\"font-size:12px\">Ces valeurs sont définies par un administrateur "+
+      "et s'appliquent à tous les profils de ce poste.</p></div>"+
+
+    /* aide */
+    "<div class=\"card mt16\"><div class=\"h4\">Aide et présentation</div>"+
+      "<p class=\"dim mt8\" style=\"font-size:13px\">Rejouez la présentation initiale et réaffichez les astuces "+
+      "contextuelles de chaque écran.</p>"+
+      "<div class=\"row wrap mt16\" style=\"gap:9px\">"+
+        "<button class=\"btn\" data-act=\"tour\">↻ Revoir la présentation</button>"+
+        "<button class=\"btn ghost\" data-act=\"help\">Raccourcis clavier</button>"+
+      "</div></div>"+
     "<div class=\"card mt24\"><div class=\"h4\">Ma verticale</div>"+
       "<p class=\"dim mt8\" style=\"font-size:13px\">Détermine les modules métier et la fiche de référence affichés dans l'onglet Ma verticale.</p>"+
       "<div class=\"grid mt16\" style=\"grid-template-columns:repeat(auto-fit,minmax(185px,1fr))\">"+
@@ -5369,7 +6316,7 @@ function viewCartes(params){
   buildDeck();
   const g=stats();
 
-  let h="<div class=\"eyebrow\">Mémorisation active</div>"+
+  let h=tipHTML("cartes")+"<div class=\"eyebrow\">Mémorisation active</div>"+
     "<h1 class=\"h2 mt8\">Fiches de révision</h1>"+
     "<p class=\"lead mt8\">"+CARDS.length+" fiches, cinq façons de les travailler. La "+
     "<a href=\"#/revision\" style=\"text-decoration:underline\">révision du jour</a> les programme selon la courbe de l'oubli, "+
@@ -5704,13 +6651,13 @@ function resultCard(title,ok,tot,sub,btnAttr){
 }
 
 /* ── Session de répétition espacée ────────────────────────── */
-let rv={queue:[],i:0,flip:false,ok:0,ko:0,started:false};
+let rv={queue:[],i:0,flip:false,ok:0,ko:0,started:false,again:{},left:0};
 function viewRevision(){
   crumbs([{n:"Révision du jour"}]);
   const due=CARDS.filter(c=>isDue(c.id));
   if(rv.started) return paintRev();
   const gl=goalToday();
-  let h="<div class=\"eyebrow\">Répétition espacée</div>"+
+  let h=tipHTML("revision")+"<div class=\"eyebrow\">Répétition espacée</div>"+
     "<h1 class=\"h2 mt8\">Révision du jour</h1>"+
     "<p class=\"lead mt8\">Chaque fiche vous est représentée juste avant que vous ne l'oubliiez. Plus une fiche est facile, plus l'intervalle s'allonge.</p>"+
     "<div class=\"statgrid mt24\">"+
@@ -5750,9 +6697,17 @@ function viewRevision(){
   }
   setView(h);
 }
+/* Session de révision : tirage aléatoire, plafonné au quota (10 par défaut).
+   En mode libre, on pioche dans l'ensemble du corpus. */
 function startRev(force){
-  const pool = force ? CARDS.slice().sort(()=>Math.random()-0.5).slice(0,20) : CARDS.filter(c=>isDue(c.id));
-  rv={queue:pool.sort(()=>Math.random()-0.5),i:0,flip:false,ok:0,ko:0,started:true};
+  const n=sessionSize();
+  const ids = force
+    ? CARDS.map(c=>c.id)
+    : reviewPool();
+  const pick = ids.slice().sort(()=>Math.random()-0.5).slice(0,n);
+  const pool = pick.map(id=>CARD_BY_ID[id]).filter(Boolean);
+  if(!pool.length){ toast("Aucune fiche disponible pour une session.","err"); rv.started=false; return viewRevision(); }
+  rv={queue:pool,i:0,flip:false,ok:0,ko:0,started:true,free:!!force,again:{},left:Math.max(0,ids.length-pool.length)};
   paintRev();
 }
 function paintRev(){
@@ -5762,10 +6717,16 @@ function paintRev(){
       ring(pct(rv.ok,tot||1),120,9,rv.ok+"/"+tot,"réussies")+
       "<h1 class=\"h2 mt24\">Session terminée</h1>"+
       "<p class=\"lead mt8\">"+rv.ok+" fiche"+(rv.ok>1?"s":"")+" maîtrisée"+(rv.ok>1?"s":"")+", "+rv.ko+" reprogrammée"+(rv.ko>1?"s":"")+". +"+(tot*XP.card)+" XP.</p>"+
+      (rv.left>0
+        ? "<div class=\"tip\" style=\"max-width:430px;margin:20px auto 0;text-align:left\"><span class=\"ti\">⟳</span>"+
+          "<span><b>Il reste "+rv.left+" fiche"+(rv.left>1?"s":"")+" à revoir aujourd'hui.</b>"+
+          "Les sessions sont limitées à "+sessionSize()+" fiches pour rester efficaces : enchaînez si vous le souhaitez.</span></div>"
+        : "")+
       "<div class=\"row mt24\" style=\"justify-content:center;flex-wrap:wrap\">"+
-      "<a class=\"btn primary\" href=\"#/\">Tableau de bord</a>"+
+      (rv.left>0?"<button class=\"btn primary\" data-rvnext>Session suivante ("+Math.min(rv.left,sessionSize())+") →</button>":"")+
+      "<a class=\"btn"+(rv.left>0?" ghost":" primary")+"\" href=\"#/\">Tableau de bord</a>"+
       "<a class=\"btn ghost\" href=\"#/cartes?m=test\">Passer un test</a>"+
-      "<button class=\"btn ghost\" data-rvforce>Nouvelle session libre</button></div></div>");
+      "<button class=\"btn ghost\" data-rvforce>Session libre</button></div></div>");
     rv.started=false; checkIn(); checkBadges(); return;
   }
   const c=rv.queue[rv.i], st=srs(c.id);
@@ -5801,7 +6762,12 @@ function nextIv(id,grade){
 function gradeRev(g){
   const c=rv.queue[rv.i];
   review(c.id,g);
-  if(g===0){ rv.ko++; rv.queue.push(c); } else rv.ok++;
+  if(g===0){
+    rv.ko++;
+    /* une seule reprise par session : l'état est local à la session, jamais écrit
+       sur l'objet du corpus, sinon la fiche ne serait plus jamais reproposée. */
+    if(!rv.again[c.id]){ rv.again[c.id]=1; rv.queue.push(c); }
+  } else rv.ok++;
   rv.i++; rv.flip=false; paintRev();
 }
 
@@ -5811,12 +6777,14 @@ function gradeRev(g){
 
 /* ── Ma verticale ─────────────────────────────────────────── */
 function viewVerticale(params){
+  if(params && params.get("pick")) return viewVertPicker();
   const id = (params && params.get("v")) || S.prefs.vertical;
-  if(!id){ return viewVertPicker(); }
+  if(!id) return viewVertPicker();
   const V=vertOf(id), mods=vmodsFor(V.id), st=vertStat(V.id);
   crumbs([{n:"Ma verticale"},{n:V.court}]);
 
   let h="<div style=\"--ph:"+V.col+"\">"+
+   tipHTML("verticale")+
    "<div class=\"row wrap\" style=\"gap:22px\">"+
      (mods.length?ring(st.pct,84,6,st.pct+"%","complété"):"<div style=\"font-size:44px\">"+V.ico+"</div>")+
      "<div style=\"flex:1;min-width:250px\">"+
@@ -5915,7 +6883,7 @@ let prSel=1;
 function viewProcess(params){
   crumbs([{n:"Le process M&A"}]);
   if(params && params.get("e")) prSel=+params.get("e")||1;
-  let h="<div class=\"eyebrow\">Déroulé d'une opération</div>"+
+  let h=tipHTML("process")+"<div class=\"eyebrow\">Déroulé d'une opération</div>"+
     "<h1 class=\"h2 mt8\">Le process M&amp;A en 12 étapes</h1>"+
     "<p class=\"lead mt8\">De la qualification du cédant au closing. Durées indicatives pour une opération small cap française : "+
     "compter six à douze mois au total. Cliquez une étape pour la déplier.</p>"+
@@ -6035,6 +7003,353 @@ function obNext(){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ACTIONS D'ADMINISTRATION ET MENU DE PROFIL
+   ═══════════════════════════════════════════════════════════ */
+
+function admAction(a){
+  if(a==="elevate"){
+    const i=$("#admCode"), code=i?i.value:"";
+    elevate(code).then(ok=>{
+      if(ok){ toast("Console déverrouillée.","ok"); route(); }
+      else{ const e=$("#admErr"); if(e) e.innerHTML="<div class=\"gate-err mt12\">Code incorrect.</div>"; }
+    });
+    return;
+  }
+  if(!isAdmin()){ toast("Action réservée aux administrateurs.","err"); return; }
+
+  if(a==="quota"){
+    const c=+($("#aqCards")||{}).value, m=+($("#aqMin")||{}).value, k=+($("#aqMod")||{}).value;
+    PLAN.quota.cards=clamp(c||10,3,50);
+    PLAN.quota.min=clamp(m||15,5,180);
+    PLAN.quota.modules=clamp(k||1,1,10);
+    savePlan(); toast("Volumes enregistrés : "+PLAN.quota.cards+" fiches par session.","ok"); route(); return;
+  }
+  if(a==="plan"){
+    const g=($("#apPhase")||{}).value, d=($("#apStart")||{}).value||todayISO(), r=+($("#apRate")||{}).value||3;
+    const n=planSet(g,d,r);
+    toast(n?n+" modules programmés à partir du "+d+".":"Aucun module dans cet ensemble.", n?"ok":"err");
+    route(); return;
+  }
+  if(a==="clearplan"){
+    confirmBox("Effacer la programmation",
+      "Les "+Object.keys(PLAN.modules).length+" dates de mise à disposition des modules seront supprimées. "+
+      "La progression des profils n'est pas touchée.",
+      "Effacer", ()=>{ PLAN.modules={}; savePlan(); toast("Programmation effacée.","ok"); route(); });
+    return;
+  }
+  if(a==="cards"){
+    const cat=($("#acCat")||{}).value||"all", d=($("#acDate")||{}).value||todayISO();
+    const n=cardsDueAt(cat,d);
+    toast(n+" fiches rendues dues le "+d+".","ok"); route(); return;
+  }
+  if(a==="clearcards"){
+    confirmBox("Lever les échéances forcées",
+      "Les "+Object.keys(PLAN.cards).length+" échéances imposées seront supprimées. Les fiches reviendront "+
+      "au calendrier calculé par la répétition espacée.",
+      "Lever", ()=>{ PLAN.cards={}; savePlan(); toast("Échéances levées.","ok"); route(); });
+    return;
+  }
+  if(a==="code"){
+    const v=($("#acNew")||{}).value||"";
+    setAdminCode(v).then(r=>{
+      if(!r.ok){ toast(r.err,"err"); return; }
+      toast("Code administrateur modifié.","ok"); route();
+    });
+    return;
+  }
+}
+
+/* ── Menu de profil ───────────────────────────────────────── */
+function profileMenu(){
+  if(!ME) return;
+  const st=stats(), lp=levelProgress(S.xp), V=vertOf(S.prefs.vertical);
+  modal("Mon profil",
+    "<div class=\"row\" style=\"gap:14px\"><span class=\"gate-av\" style=\"margin:0\">"+esc(initials(ME.nom))+"</span>"+
+    "<div><div class=\"h4\">"+T(ME.nom)+"</div>"+
+    "<div class=\"dim\" style=\"font-size:12.5px\">"+(ME.role==="admin"?"Administrateur · ":"")+
+      "Niveau "+lp.level+" · "+fmt(S.xp)+" XP · "+V.ico+" "+T(V.court)+"</div></div></div>"+
+    "<div class=\"statgrid mt24\">"+
+      "<div class=\"stat\"><b>"+st.done+"</b><span>modules</span></div>"+
+      "<div class=\"stat\"><b>"+S.streak.n+"</b><span>jours de suite</span></div>"+
+      "<div class=\"stat\"><b>"+badgeCount()+"</b><span>succès</span></div>"+
+      "<div class=\"stat\"><b>"+dur(st.min)+"</b><span>cumulé</span></div>"+
+    "</div>"+
+    "<div class=\"stack sp8 mt24\">"+
+      "<a class=\"btn block\" href=\"#/reglages\" data-close>Réglages et sauvegarde</a>"+
+      (isAdmin()?"<a class=\"btn block\" href=\"#/admin\" data-close>Console d'administration</a>":"")+
+      "<button class=\"btn block\" data-switch>Changer de profil</button>"+
+      "<button class=\"btn block danger\" data-logout>Fermer la session</button>"+
+    "</div>",
+    "<button class=\"btn ghost\" data-close>Fermer</button>");
+}
+
+/* ── Confirmations ────────────────────────────────────────── */
+let pendingConfirm=null;
+function confirmBox(title,text,label,fn){
+  pendingConfirm=fn;
+  modal(title,
+    "<p class=\"lead\" style=\"font-size:14.5px\">"+T(text)+"</p>"+
+    "<p class=\"mt12 c-red\" style=\"font-size:13px\"><strong>Cette opération est irréversible.</strong></p>",
+    "<button class=\"btn ghost\" data-close>Annuler</button>"+
+    "<button class=\"btn danger\" data-confirm>"+H(label)+"</button>");
+}
+function runConfirm(){ const f=pendingConfirm; pendingConfirm=null; closeModal(); if(f) f(); }
+
+function confirmDeleteProfile(id){
+  const p=profileOf(id); if(!p) return;
+  const st=profileSummary(id);
+  confirmBox("Supprimer le profil "+p.nom,
+    "Toute la progression de ce profil sera effacée : "+st.done+" modules, son historique de révision, "+
+    "ses notes et ses statistiques. Les autres profils ne sont pas touchés.",
+    "Supprimer définitivement", ()=>{ deleteProfile(id); toast("Profil supprimé.","ok"); route(); });
+}
+
+/* ── Code confidentiel du profil ──────────────────────────── */
+function pinModal(){
+  if(!ME) return;
+  modal(ME.pin?"Modifier le code confidentiel":"Ajouter un code confidentiel",
+    "<p class=\"lead\" style=\"font-size:14px\">Quatre à huit chiffres. Laissez le champ vide pour retirer "+
+    "la protection du profil.</p>"+
+    "<div class=\"mt16\"><label class=\"gate-lbl\" for=\"pinA\">Nouveau code</label>"+
+    "<input class=\"field\" id=\"pinA\" type=\"password\" inputmode=\"numeric\" maxlength=\"8\" autocomplete=\"new-password\" placeholder=\"••••\"></div>"+
+    "<div class=\"mt12\"><label class=\"gate-lbl\" for=\"pinB\">Confirmation</label>"+
+    "<input class=\"field\" id=\"pinB\" type=\"password\" inputmode=\"numeric\" maxlength=\"8\" autocomplete=\"new-password\" placeholder=\"••••\"></div>"+
+    "<div id=\"pinErr\"></div>"+
+    "<div class=\"callout warn mt16\" style=\"margin-bottom:0\"><div class=\"ct\">À savoir</div>"+
+    "Ce code n'est pas récupérable. Si vous l'oubliez, il faudra supprimer le profil depuis la console "+
+    "d'administration, ce qui effacera sa progression. Exportez votre sauvegarde régulièrement.</div>",
+    "<button class=\"btn ghost\" data-close>Annuler</button>"+
+    "<button class=\"btn primary\" data-pinsave>Enregistrer</button>");
+}
+function savePinFromModal(){
+  const a=($("#pinA")||{}).value||"", b=($("#pinB")||{}).value||"";
+  const err=m=>{ const e=$("#pinErr"); if(e) e.innerHTML="<div class=\"gate-err mt12\">"+T(m)+"</div>"; };
+  if(a!==b) return err("Les deux codes ne correspondent pas.");
+  setPin(a).then(r=>{
+    if(!r.ok) return err(r.err);
+    closeModal(); toast(a?"Code confidentiel enregistré.":"Protection retirée.","ok"); route();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INTERFACE NUAGE · connexion, état de synchronisation, équipe
+   ═══════════════════════════════════════════════════════════ */
+
+let cg = { mode:"signin", err:"", info:"", busy:false };
+
+/* ── Écran de connexion ───────────────────────────────────── */
+function renderCloudGate(){
+  const g=$("#gate"); if(!g) return;
+  g.classList.add("on"); document.body.classList.add("gated");
+
+  const err = cg.err ? "<div class=\"gate-err mt12\">"+T(cg.err)+"</div>" : "";
+  const info= cg.info? "<div class=\"tip mt12\" style=\"margin-bottom:0\"><span class=\"ti\">✓</span><span>"+T(cg.info)+"</span></div>" : "";
+  const busy= cg.busy? " disabled" : "";
+
+  let inner;
+  if(cg.mode==="signup"){
+    inner="<h1 class=\"h3\">Créer un compte</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">Votre progression sera enregistrée sur le serveur du cabinet "+
+      "et accessible depuis n'importe quel poste.</p>"+
+      "<div class=\"stack sp12 mt24\">"+
+        "<div><label class=\"gate-lbl\" for=\"cName\">Nom et prénom</label>"+
+          "<input class=\"field\" id=\"cName\" autocomplete=\"name\" placeholder=\"Léo Martin\" maxlength=\"60\"></div>"+
+        "<div><label class=\"gate-lbl\" for=\"cMail\">Adresse professionnelle</label>"+
+          "<input class=\"field\" id=\"cMail\" type=\"email\" autocomplete=\"email\" placeholder=\"leo@triactis.fr\"></div>"+
+        "<div><label class=\"gate-lbl\" for=\"cPwd\">Mot de passe <span class=\"dim\">huit caractères minimum</span></label>"+
+          "<input class=\"field\" id=\"cPwd\" type=\"password\" autocomplete=\"new-password\" placeholder=\"••••••••••\"></div>"+
+        "<div><label class=\"gate-lbl\" for=\"cVert\">Verticale de travail</label>"+
+          "<select class=\"field\" id=\"cVert\">"+VERTICALES.map(v=>
+            "<option value=\""+v.id+"\">"+esc(v.ico+" "+v.court)+"</option>").join("")+"</select></div>"+
+      "</div>"+err+info+
+      "<button class=\"btn lg primary block mt16\" data-csignup"+busy+">"+(cg.busy?"Création…":"Créer mon compte")+"</button>"+
+      "<button class=\"btn ghost sm block mt12\" data-cmode=\"signin\">J'ai déjà un compte</button>";
+  }else if(cg.mode==="forgot"){
+    inner="<h1 class=\"h3\">Mot de passe oublié</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">Nous envoyons un lien de réinitialisation à votre adresse.</p>"+
+      "<div class=\"mt24\"><label class=\"gate-lbl\" for=\"cMail\">Adresse professionnelle</label>"+
+        "<input class=\"field\" id=\"cMail\" type=\"email\" autocomplete=\"email\" placeholder=\"leo@triactis.fr\"></div>"+
+      err+info+
+      "<button class=\"btn lg primary block mt16\" data-crecover"+busy+">"+(cg.busy?"Envoi…":"Envoyer le lien")+"</button>"+
+      "<button class=\"btn ghost sm block mt12\" data-cmode=\"signin\">← Retour à la connexion</button>";
+  }else{
+    inner="<h1 class=\"h3\">Connexion</h1>"+
+      "<p class=\"lead mt8\" style=\"font-size:14px\">Retrouvez votre progression sur tous vos postes.</p>"+
+      "<div class=\"stack sp12 mt24\">"+
+        "<div><label class=\"gate-lbl\" for=\"cMail\">Adresse professionnelle</label>"+
+          "<input class=\"field\" id=\"cMail\" type=\"email\" autocomplete=\"email\" placeholder=\"leo@triactis.fr\"></div>"+
+        "<div><label class=\"gate-lbl\" for=\"cPwd\">Mot de passe</label>"+
+          "<input class=\"field\" id=\"cPwd\" type=\"password\" autocomplete=\"current-password\" placeholder=\"••••••••••\"></div>"+
+      "</div>"+err+info+
+      "<button class=\"btn lg primary block mt16\" data-csignin"+busy+">"+(cg.busy?"Connexion…":"Se connecter")+"</button>"+
+      "<div class=\"row mt12\" style=\"justify-content:space-between\">"+
+        "<button class=\"btn ghost sm\" data-cmode=\"signup\">Créer un compte</button>"+
+        "<button class=\"btn ghost sm\" data-cmode=\"forgot\">Mot de passe oublié</button></div>";
+  }
+
+  g.innerHTML="<div class=\"gate-wrap\"><div class=\"gate-card\">"+
+    "<div class=\"gate-brand\"><span class=\"sb-logo\" style=\"width:34px;height:34px;font-size:17px\">M</span>"+
+    "<div><b style=\"font-size:16px;letter-spacing:-.02em\">Hub M&amp;A</b>"+
+    "<span style=\"display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-dim)\">Triactis</span></div>"+
+    "<span class=\"tag soft c-green\" style=\"margin-left:auto;font-size:10px\">◉ serveur</span></div>"+
+    inner+
+    "<p class=\"gate-note\">Authentification et chiffrement gérés par Supabase. Le mot de passe n'est jamais "+
+    "stocké dans ce navigateur : seul un jeton de session temporaire l'est. Vos données ne sont lisibles "+
+    "que par vous, la règle étant appliquée côté serveur.</p>"+
+  "</div></div>";
+  setTimeout(()=>{ const f=$("#cName")||$("#cMail"); if(f&&f.focus) f.focus(); },60);
+}
+
+/* ── Actions ──────────────────────────────────────────────── */
+function cloudBusy(b){ cg.busy=b; renderCloudGate(); }
+
+function doSignIn(){
+  const m=($("#cMail")||{}).value||"", p=($("#cPwd")||{}).value||"";
+  if(!/.+@.+\..+/.test(m)) { cg.err="Adresse électronique invalide."; return renderCloudGate(); }
+  if(!p){ cg.err="Saisissez votre mot de passe."; return renderCloudGate(); }
+  cg.err=""; cg.info=""; cloudBusy(true);
+  sbSignIn(m,p)
+    .then(()=>cloudAdopt())
+    .then(()=>{ cg.busy=false; hideGate(); startApp(); })
+    .catch(e=>{
+      cg.busy=false;
+      cg.err = /invalid login|credentials/i.test(e.message)
+        ? "Adresse ou mot de passe incorrect."
+        : /not confirmed/i.test(e.message)
+          ? "Votre adresse n'est pas encore confirmée : ouvrez le courriel reçu à l'inscription."
+          : "Connexion impossible : "+e.message;
+      renderCloudGate();
+    });
+}
+function doSignUp(){
+  const n=($("#cName")||{}).value||"", m=($("#cMail")||{}).value||"",
+        p=($("#cPwd")||{}).value||"", v=($("#cVert")||{}).value||"tous";
+  if(n.trim().length<2){ cg.err="Indiquez votre nom."; return renderCloudGate(); }
+  if(!/.+@.+\..+/.test(m)){ cg.err="Adresse électronique invalide."; return renderCloudGate(); }
+  if(p.length<8){ cg.err="Le mot de passe doit comporter au moins huit caractères."; return renderCloudGate(); }
+  cg.err=""; cg.info=""; cloudBusy(true);
+  sbSignUp(m,p,{display_name:n.trim(),vertical:v})
+    .then(r=>{
+      if(!r.confirmed){
+        cg.busy=false; cg.mode="signin";
+        cg.info="Compte créé. Ouvrez le courriel de confirmation envoyé à "+r.email+", puis connectez-vous.";
+        return renderCloudGate();
+      }
+      return sbUpsertProfile({display_name:n.trim(),vertical:v,role:"membre"})
+        .then(()=>cloudAdopt())
+        .then(()=>{ cg.busy=false; hideGate(); startApp(); });
+    })
+    .catch(e=>{
+      cg.busy=false;
+      cg.err = /already registered|already exists/i.test(e.message)
+        ? "Un compte existe déjà pour cette adresse. Utilisez la connexion."
+        : "Création impossible : "+e.message;
+      renderCloudGate();
+    });
+}
+function doRecover(){
+  const m=($("#cMail")||{}).value||"";
+  if(!/.+@.+\..+/.test(m)){ cg.err="Adresse électronique invalide."; return renderCloudGate(); }
+  cg.err=""; cloudBusy(true);
+  sbRecover(m)
+    .then(()=>{ cg.busy=false; cg.mode="signin";
+      cg.info="Si un compte existe pour "+m+", un lien de réinitialisation vient d'être envoyé.";
+      renderCloudGate(); })
+    .catch(e=>{ cg.busy=false; cg.err="Envoi impossible : "+e.message; renderCloudGate(); });
+}
+function doSignOut(){
+  closeModal();
+  sbSignOut().then(()=>{
+    flushSave(); ME=null; KEY=LEGACY; S=load();
+    cg={mode:"signin",err:"",info:"",busy:false};
+    stopTimer(); renderCloudGate();
+  });
+}
+
+/* ── Indicateur de synchronisation ────────────────────────── */
+const SYNC_LABEL={ ok:["◉","Synchronisé","c-green"], envoi:["◍","Envoi…","c-blue"],
+  attente:["◌","Modifications locales","c-orange"], "hors-ligne":["⊘","Hors ligne","c-red"],
+  local:["▣","Mode local","dim"], deconnecte:["○","Déconnecté","dim"] };
+function paintSync(){
+  const el=$("#syncBadge"); if(!el) return;
+  const s=SYNC_LABEL[SB.status]||SYNC_LABEL.local;
+  el.className="hd-stat hide-sm "+s[2];
+  el.innerHTML="<span>"+s[0]+"</span>";
+  el.title = s[1] + (SB.err?" · "+SB.err:"") + (SB.lastSync?" · dernier envoi "+String(SB.lastSync).slice(11,16):"");
+  el.style.display = cloudReady() ? "" : "none";
+}
+
+/* ── Suivi d'équipe ───────────────────────────────────────── */
+let teamCache=null;
+function viewTeam(){
+  crumbs([{n:"Administration",h:"#/admin"},{n:"Suivi d'équipe"}]);
+  if(!cloudReady()) return setView("<div class=\"empty\" style=\"margin-top:50px\"><div class=\"ei\">▣</div>"+
+    "<div class=\"h3\">Suivi indisponible en mode local</div>"+
+    "<p class=\"lead mt8\">Le suivi d'équipe suppose un serveur. Renseignez la configuration Supabase "+
+    "en tête du fichier pour l'activer.</p></div>");
+  if(!isAdmin()) return setView("<div class=\"empty\" style=\"margin-top:50px\"><div class=\"ei\">⚑</div>"+
+    "<div class=\"h3\">Réservé aux administrateurs</div></div>");
+
+  setView("<div class=\"eyebrow\">Administration</div><h1 class=\"h2 mt8\">Suivi d'équipe</h1>"+
+    "<p class=\"lead mt8\">Avancement de chaque membre, tel que remonté par le serveur.</p>"+
+    "<div id=\"teamBox\" class=\"mt24\"><div class=\"skel\" style=\"height:200px\"></div></div>");
+
+  sbTeam().then(rows=>{
+    teamCache=rows;
+    const box=$("#teamBox"); if(!box) return;
+    if(!rows.length){ box.innerHTML="<div class=\"empty\">Aucun membre enregistré pour le moment.</div>"; return; }
+    const tot=TASKS.length;
+    box.innerHTML=
+      "<div class=\"statgrid\" style=\"margin-bottom:18px\">"+
+        "<div class=\"stat\"><b>"+rows.length+"</b><span>membres</span></div>"+
+        "<div class=\"stat\"><b>"+Math.round(rows.reduce((a,r)=>a+r.done,0)/rows.length)+"</b><span>modules en moyenne</span></div>"+
+        "<div class=\"stat\"><b>"+rows.filter(r=>r.maj===todayISO()).length+"</b><span>actifs aujourd'hui</span></div>"+
+        "<div class=\"stat\"><b>"+fmt(rows.reduce((a,r)=>a+r.xp,0))+"</b><span>XP cumulés</span></div>"+
+      "</div>"+
+      "<table class=\"tbl\"><thead><tr><th>Membre</th><th>Verticale</th><th>Rôle</th>"+
+      "<th class=\"n\">Modules</th><th>Avancement</th><th class=\"n\">Fiches</th><th class=\"n\">Série</th><th>Dernière activité</th></tr></thead><tbody>"+
+      rows.sort((a,b)=>b.done-a.done).map(r=>{
+        const V=vertOf(r.vertical);
+        return "<tr><td><strong>"+T(r.nom)+"</strong><span class=\"dim\" style=\"display:block;font-size:11px\">"+T(r.email||"")+"</span></td>"+
+          "<td class=\"dim\">"+V.ico+" "+T(V.court)+"</td>"+
+          "<td>"+(r.role==="admin"?"<span class=\"c-lilac\">admin</span>":"<span class=\"dim\">membre</span>")+"</td>"+
+          "<td class=\"n\">"+r.done+" / "+tot+"</td>"+
+          "<td style=\"min-width:110px\"><div class=\"bar thin\"><i style=\"width:"+pct(r.done,tot)+"%\"></i></div></td>"+
+          "<td class=\"n\">"+r.cards+"</td><td class=\"n\">"+r.streak+"</td>"+
+          "<td class=\"dim mono\" style=\"font-size:12px\">"+(r.maj||"jamais")+"</td></tr>";
+      }).join("")+"</tbody></table>"+
+      "<p class=\"dim mt16\" style=\"font-size:12px\">Ces données proviennent des lignes que les règles de sécurité "+
+      "autorisent un administrateur à lire. Un membre ne voit jamais que les siennes.</p>";
+  }).catch(e=>{
+    const box=$("#teamBox"); if(box) box.innerHTML="<div class=\"gate-err\">Lecture impossible : "+T(e.message)+
+      ". Vérifiez que les règles de sécurité autorisent la lecture par un administrateur.</div>";
+  });
+}
+
+/* ── Détail de la synchronisation ─────────────────────────── */
+function syncModal(){
+  const s=SYNC_LABEL[SB.status]||SYNC_LABEL.local;
+  const rows=[
+    ["Mode", cloudReady()?"Serveur Supabase":"Local, ce navigateur seulement"],
+    ["État", s[1]],
+    ["Compte", SB.user?SB.user.email:"aucun"],
+    ["Rôle", isAdmin()?"administrateur":"membre"],
+    ["Dernier envoi", SB.lastSync?String(SB.lastSync).replace("T"," ").slice(0,16):"jamais"],
+    ["Modifications en attente", syncDirty?"oui":"non"],
+    ["Taille de l'état", (new Blob([JSON.stringify(S)]).size/1024).toFixed(1)+" ko"]
+  ];
+  modal("Synchronisation",
+    "<table class=\"tbl\"><tbody>"+rows.map(r=>
+      "<tr><td class=\"dim\">"+H(r[0])+"</td><td><strong>"+T(String(r[1]))+"</strong></td></tr>").join("")+"</tbody></table>"+
+    (SB.err?"<div class=\"gate-err mt16\">"+T(SB.err)+"</div>":"")+
+    "<p class=\"dim mt16\" style=\"font-size:12.5px\">La progression est écrite localement à chaque action, puis "+
+    "répliquée sur le serveur deux secondes et demie plus tard. Si le réseau tombe, les modifications restent "+
+    "en attente et repartent au retour de la connexion. Rien n'est perdu.</p>",
+    (cloudReady()&&SB.user?"<button class=\"btn primary\" data-forcesync>Synchroniser maintenant</button>":"")+
+    "<button class=\"btn ghost\" data-close>Fermer</button>");
+}
+
+/* ═══════════════════════════════════════════════════════════
    ROUTEUR, ÉVÉNEMENTS, RACCOURCIS, INITIALISATION
    ═══════════════════════════════════════════════════════════ */
 
@@ -6061,6 +7376,8 @@ function route(){
     case "verticale":   params.get("pick") ? viewVertPicker() : viewVerticale(params); break;
     case "stats":       viewStats(); break;
     case "reglages":    viewReglages(); break;
+    case "admin":       viewAdmin(); break;
+    case "equipe":      viewTeam(); break;
     default:            view404();
   }
   S.prefs.lastRoute=location.hash||"#/"; save();
@@ -6074,6 +7391,69 @@ document.addEventListener("click", e=>{
   const val = s => { const el=t.closest(s); return el?el.getAttribute(s.replace(/[\[\]]/g,"")):null; };
 
   if(hit("[data-close]")){ closeModal(); closeCmd(); return; }
+
+  /* ── Connexion serveur ── */
+  const cm=hit("[data-cmode]"); if(cm){ cg.mode=cm.dataset.cmode; cg.err=""; cg.info=""; renderCloudGate(); return; }
+  if(hit("[data-csignin]")){ doSignIn(); return; }
+  if(hit("[data-csignup]")){ doSignUp(); return; }
+  if(hit("[data-crecover]")){ doRecover(); return; }
+  if(hit("[data-syncinfo]")){ syncModal(); return; }
+  if(hit("[data-forcesync]")){ syncDirty=true; cloudFlush().then(()=>{ closeModal(); toast("Synchronisation effectuée.","ok"); }); return; }
+
+  /* ── Écran d'entrée et profils ── */
+  const gp=hit("[data-gpick]");
+  if(gp){
+    const id=gp.dataset.gpick, p=profileOf(id);
+    gate.err="";
+    if(p && p.pin){ gate.mode="pin"; gate.sel=id; renderGate(); }
+    else if(openSession(id)){ hideGate(); startApp(); }
+    return;
+  }
+  const gfo=hit("[data-gforgot]"); if(gfo){ gate.mode="forgot"; gate.sel=gfo.dataset.gforgot; gate.err=""; renderGate(); return; }
+  const gdl=hit("[data-gdelete]");
+  if(gdl){
+    const id=gdl.dataset.gdelete, pr=profileOf(id);
+    if(gdl.dataset.armed==="1"){ deleteProfile(id); gate={mode:"list",sel:null,err:""}; renderGate(); return; }
+    gdl.dataset.armed="1"; gdl.textContent="Confirmer la suppression de "+(pr?pr.nom:"ce profil");
+    return;
+  }
+  const gm=hit("[data-gmode]"); if(gm){ gate.mode=gm.dataset.gmode; gate.err=""; renderGate(); return; }
+  if(hit("[data-gcreate]")){
+    const n=$("#gName"), v=$("#gVert"), pin=$("#gPin");
+    createProfile(n?n.value:"", v?v.value:"tous", pin?pin.value:"").then(r=>{
+      if(!r.ok){ gate.err=r.err; renderGate(); return; }
+      gate.err=""; hideGate(); startApp();
+    });
+    return;
+  }
+  if(hit("[data-gunlock]")){
+    const inp=$("#gPinIn"), code=inp?inp.value:"";
+    checkPin(gate.sel,code).then(ok=>{
+      if(!ok){ gate.err="Code incorrect."; renderGate(); return; }
+      if(openSession(gate.sel)){ gate.err=""; hideGate(); startApp(); }
+    });
+    return;
+  }
+  if(hit("[data-profmenu]")){ profileMenu(); return; }
+  if(hit("[data-logout]")){ if(cloudReady()&&SB.user) doSignOut(); else { closeModal(); closeSession(); } return; }
+  const sw=hit("[data-switch]"); if(sw){ if(cloudReady()&&SB.user){ doSignOut(); return; }
+    closeModal(); STORE.del(SKEY); ME=null; gate={mode:"list",sel:null,err:""}; renderGate(); return; }
+
+  /* ── Astuces ── */
+  const tc=hit("[data-tipclose]"); if(tc){ closeTip(tc.dataset.tipclose); return; }
+
+  /* ── Administration ── */
+  const adm=hit("[data-adm]");
+  if(adm){ admAction(adm.dataset.adm); return; }
+  const up=hit("[data-unplan]"); if(up){ delete PLAN.modules[up.dataset.unplan]; savePlan(); route(); return; }
+  const pr=hit("[data-promote]"); if(pr){ const p=profileOf(pr.dataset.promote); if(p){ p.role="admin"; saveProfiles(); toast("Rôle administrateur accordé à "+p.nom+".","ok"); route(); } return; }
+  const dm=hit("[data-demote]");  if(dm){ const p=profileOf(dm.dataset.demote);
+    if(p){ if(PROFILES.filter(x=>x.role==="admin").length<=1){ toast("Il doit rester au moins un administrateur.","err"); return; }
+      p.role="membre"; saveProfiles(); if(ME&&ME.id===p.id) ME=p; toast("Rôle retiré à "+p.nom+"."); route(); } return; }
+  const dp=hit("[data-delprof]"); if(dp){ confirmDeleteProfile(dp.dataset.delprof); return; }
+  if(hit("[data-rvnext]")){ startRev(false); return; }
+  if(hit("[data-confirm]")){ runConfirm(); return; }
+  if(hit("[data-pinsave]")){ savePinFromModal(); return; }
 
   /* barre latérale et en-tête */
   const tog=hit("[data-toggle]");
@@ -6172,7 +7552,7 @@ document.addEventListener("click", e=>{
     paintStep();
     const sb=$("#stepBody"); if(sb) sb.scrollIntoView({behavior:"smooth",block:"nearest"});
     return; }
-  const ac=hit(".acc-h"); if(ac){ ac.closest(".acc").classList.toggle("open"); return; }
+  const ac=hit(".acc-h"); if(ac){ const box=ac.closest(".acc"); if(box) box.classList.toggle("open"); return; }
 
   /* réglages */
   const th=hit("[data-theme]"); if(th){ S.prefs.theme=th.dataset.theme; save(); applyTheme(); route(); return; }
@@ -6180,6 +7560,10 @@ document.addEventListener("click", e=>{
   if(act){
     const a=act.dataset.act;
     if(a==="export") exportData();
+    if(a==="tour"){ resetTips(); }
+    if(a==="help") helpModal();
+    if(a==="pin") pinModal();
+    if(a==="askadmin") location.hash="#/admin";
     if(a==="reset")  resetData();
     if(a==="replay-ob"){ obStep=0; showOnboarding(); }
     if(a==="reset-confirm"){ STORE.del(KEY); S=load(); closeModal();
@@ -6216,6 +7600,16 @@ document.addEventListener("change", e=>{
 /* ── Clavier ──────────────────────────────────────────────── */
 let gPending=false, gTimer=null;
 document.addEventListener("keydown", e=>{
+  /* écran d'entrée : seule la touche Entrée agit, les raccourcis sont neutralisés */
+  const g=$("#gate");
+  if(g && g.classList.contains("on")){
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const seq=["[data-csignin]","[data-csignup]","[data-crecover]","[data-gunlock]","[data-gcreate]"];
+      for(const sel of seq){ const b=document.querySelector(sel); if(b){ b.click(); break; } }
+    }
+    return;
+  }
   const tag=(document.activeElement&&document.activeElement.tagName)||"";
   const typing = tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT";
   const cmdOpen = $("#cmdOvl").classList.contains("on");
@@ -6228,9 +7622,15 @@ document.addEventListener("keydown", e=>{
     else if(e.key==="Enter"){ e.preventDefault(); runCmd(cmdSel); }
     return;
   }
-  if(e.key==="Escape"){ closeModal(); document.body.classList.remove("nav-open"); return; }
+  if(e.key==="Escape"){
+    /* fermer la présentation vaut l'avoir vue : elle ne doit pas revenir à chaque ouverture */
+    const inTour=$("#modalOvl").classList.contains("on") && !S.prefs.onboarded && obStep>=0 && document.querySelector("[data-ob]");
+    if(inTour){ S.prefs.onboarded=true; if(!S.prefs.vertical) S.prefs.vertical="tous"; save(); }
+    closeModal(); document.body.classList.remove("nav-open"); return;
+  }
 
   if(typing){
+    if(e.key==="Enter" && document.activeElement.id==="admCode"){ e.preventDefault(); admAction("elevate"); }
     if(e.key==="Enter"){
       if(document.activeElement.id==="wrtIn"){ e.preventDefault(); submitWrite(false); }
       if(document.activeElement.id==="tstIn"){ e.preventDefault(); answerTest(document.activeElement.value); }
@@ -6287,17 +7687,36 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ── Initialisation ───────────────────────────────────────── */
-function init(){
-  applyTheme();
-  if(navigator.platform && navigator.platform.indexOf("Mac")<0){ const k=$("#kbdHint"); if(k) k.textContent="Ctrl K"; }
-  window.addEventListener("hashchange", route);
+function startApp(){
+  loadPlan();
+  paintHeader(); paintNav();
   if(!location.hash) location.hash="#/";
   route();
-  checkBadges();
-  if(!S.prefs.onboarded) setTimeout(showOnboarding,420);
+  if(!S.prefs.onboarded){ obStep=0; setTimeout(showOnboarding,380); }
   const cut=addDays(todayISO(),-400);
   Object.keys(S.days).forEach(d=>{ if(d<cut) delete S.days[d]; });
   save();
+}
+function init(){
+  applyTheme();
+  if(navigator.platform && navigator.platform.indexOf("Mac")<0){ const k=$("#kbdHint"); if(k) k.textContent="Ctrl K"; }
+  window.addEventListener("hashchange", ()=>{ if(ME) route(); });
+  window.addEventListener("beforeunload", ()=>{ flushSave(); if(syncDirty) cloudFlush(); });
+  window.addEventListener("online",  ()=>{ if(syncDirty) cloudFlush(); else setStatus_("ok"); });
+  window.addEventListener("offline", ()=>setStatus_("hors-ligne"));
+
+  if(!cloudReady()){                       /* aucune configuration serveur : mode local */
+    SB.status="local";
+    if(bootAuth()) startApp();
+    return;
+  }
+  cloudBoot().then(ok=>{
+    if(ok){ hideGate(); startApp(); }
+    else { cg={mode:"signin",err:SB.err||"",info:"",busy:false}; renderCloudGate(); }
+  }).catch(()=>{
+    cg={mode:"signin",err:"Serveur injoignable. Vérifiez votre connexion.",info:"",busy:false};
+    renderCloudGate();
+  });
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
 else init();
