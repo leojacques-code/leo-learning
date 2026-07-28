@@ -97,10 +97,11 @@ ul,ol{list-style:none}
   background:var(--bg-elev);border-right:1px solid var(--line);z-index:60;
 }
 .sb-brand{display:flex;align-items:center;gap:10px;height:var(--header-h);padding:0 16px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.sb-close{display:none;flex:0 0 auto}
 .sb-logo{width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-weight:700;font-size:15px;flex:0 0 auto}
 .sb-name{font-weight:600;letter-spacing:-.02em;font-size:var(--t-base)}
 .sb-name small{display:block;font-weight:400;font-size:11px;color:var(--fg-dim);letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
-.sb-scroll{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding:12px 10px 20px}
+.sb-scroll{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding:12px 10px 20px;-webkit-overflow-scrolling:touch}
 .sb-sect{margin-top:16px}
 .sb-sect:first-child{margin-top:0}
 .sb-label{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--fg-dim);padding:0 10px 7px;font-weight:600}
@@ -224,7 +225,7 @@ a.card:hover,button.card:hover{border-color:var(--line-strong);transform:transla
 .pill:hover{border-color:var(--line-strong);color:var(--fg)}
 .pill.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .pillrow{display:flex;gap:7px;flex-wrap:wrap}
-.pillrow.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}
+.pillrow.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .pillrow.scroll::-webkit-scrollbar{display:none}
 
 .tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2.5px 9px;border-radius:var(--r-full);border:1px solid currentColor;line-height:1.4}
@@ -277,7 +278,7 @@ select.field{cursor:pointer;appearance:none;background-image:linear-gradient(45d
 /* Modale */
 .ovl{position:fixed;inset:0;z-index:100;display:none;align-items:flex-start;justify-content:center;padding:8vh 16px 16px}
 .ovl.on{display:flex}
-.ovl-bg{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(5px);animation:fadeIn .18s}
+.ovl-bg{position:absolute;inset:0;background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);animation:fadeIn .18s}
 .modal{position:relative;width:100%;max-width:640px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:var(--r-xl);box-shadow:var(--shadow);animation:modalIn .26s var(--ease);max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
 .modal-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line);flex:0 0 auto}
 .modal-bd{padding:20px;overflow-y:auto;flex:1 1 auto;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
@@ -295,7 +296,7 @@ select.field{cursor:pointer;appearance:none;background-image:linear-gradient(45d
 .cmd-in{display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--line)}
 .cmd-in input{flex:1;background:none;border:none;outline:none;font-size:var(--t-md);color:var(--fg)}
 .cmd-in input::placeholder{color:var(--fg-dim)}
-.cmd-list{max-height:58vh;overflow-y:auto;padding:7px}
+.cmd-list{max-height:58vh;overflow-y:auto;padding:7px;-webkit-overflow-scrolling:touch}
 .cmd-grp{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-dim);padding:10px 11px 5px;font-weight:600}
 .cmd-it{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--r-sm);cursor:pointer;font-size:var(--t-sm)}
 .cmd-it .ci{width:19px;text-align:center;flex:0 0 auto;opacity:.85}
@@ -543,6 +544,10 @@ button,a,[role="button"],.cmd-it,.fc,.tile,.step,.vertpick,.gate-prof,.acc-h,
 }
 /* Cible minimale de 44 px en tactile, recommandation d'accessibilité */
 @media (pointer:coarse){
+  /* Safari iOS zoome la page si un champ actif fait moins de 16px : on ne
+     descend jamais sous ce seuil en tactile, quelle que soit la classe. */
+  .field,select.field,.cmd-in input{font-size:16px!important}
+
   .btn.sm{height:38px;padding:0 15px}
   .pill{height:36px;padding:0 15px}
   .azbar button{width:34px;height:34px}
@@ -611,6 +616,23 @@ select.field:focus{outline:none;border-color:var(--accent)}
 .card,.gitem,.taskrow{box-shadow:var(--shadow-sm)}
 .modal,.gate-card{box-shadow:var(--shadow)}
 
+.boot-error{
+  position:fixed;inset:0;z-index:999;background:#1a0d0d;color:#ffe4e4;
+  display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--font);
+}
+.boot-error[hidden]{display:none}
+.boot-error .bx{max-width:480px;text-align:center}
+.boot-error h1{font-size:19px;margin-bottom:10px;color:#fff}
+.boot-error p{font-size:13.5px;line-height:1.6;color:#ffc9c9;margin-bottom:14px}
+.boot-error pre{
+  text-align:left;font-size:11px;background:#000;color:#ff9d9d;padding:10px 12px;border-radius:8px;
+  overflow-x:auto;margin-bottom:16px;max-height:120px;
+}
+.boot-error button{
+  height:38px;padding:0 18px;border-radius:99px;border:1px solid #ff9d9d;background:none;color:#fff;
+  font-size:13.5px;font-weight:600;cursor:pointer;
+}
+
 /* ── 6. ANIMATIONS ─────────────────────────────────────────── */
 @keyframes pageIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -631,6 +653,7 @@ select.field:focus{outline:none;border-color:var(--accent)}
   .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:960px){
+  .sb-close{display:flex}
   .app{grid-template-columns:1fr}
   .sb{position:fixed;left:0;top:0;width:min(300px,86vw);transform:translateX(-102%);transition:transform .3s var(--ease);box-shadow:none}
   body.nav-open .sb{transform:none;box-shadow:var(--shadow)}
@@ -787,10 +810,13 @@ select.field:focus{outline:none;border-color:var(--accent)}
 
   <!-- ══ BARRE LATÉRALE ══════════════════════════════════════ -->
   <aside class="sb" id="sb" aria-label="Navigation principale">
-    <a href="#/" class="sb-brand">
-      <span class="sb-logo">M</span>
-      <span class="sb-name">Hub M&amp;A<small>Triactis</small></span>
-    </a>
+    <div class="sb-brand">
+      <a href="#/" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <span class="sb-logo">M</span>
+        <span class="sb-name">Hub M&amp;A<small>Triactis</small></span>
+      </a>
+      <button class="iconbtn sb-close" data-navclose aria-label="Fermer le menu">✕</button>
+    </div>
 
     <div class="sb-scroll">
       <div class="sb-sect">
@@ -859,6 +885,7 @@ select.field:focus{outline:none;border-color:var(--accent)}
 
 <!-- ══ ÉCRAN D'ENTRÉE ═══════════════════════════════════════ -->
 <div id="gate" role="dialog" aria-modal="true" aria-label="Choix du profil"></div>
+<div id="bootError" class="boot-error" hidden></div>
 
 <!-- ══ MODALES ═══════════════════════════════════════════════ -->
 <div class="ovl" id="cmdOvl" role="dialog" aria-modal="true" aria-label="Recherche globale">
@@ -4090,18 +4117,24 @@ function warnStorage(){
   setTimeout(()=>toast("Stockage local indisponible : la progression ne sera pas conservée après fermeture.","err"),900);
 }
 
+const APP_BUILD = "1.8-2026-07-28";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
+console.log("Hub M&A Triactis · build "+APP_BUILD);
+/** Clone profond sans dépendance à structuredClone : notre état est un objet
+    purement JSON, donc round-trip JSON suffit et fonctionne partout. */
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
 let S = load();
 
 function load(){
   try{
     const raw = STORE.get(KEY);
-    if(!raw) return structuredClone(DEFAULT_STATE);
+    if(!raw) return deepClone(DEFAULT_STATE);
     const p = JSON.parse(raw);
-    return Object.assign(structuredClone(DEFAULT_STATE), p, {
+    return Object.assign(deepClone(DEFAULT_STATE), p, {
       prefs:Object.assign({}, DEFAULT_STATE.prefs, p.prefs||{}),
       streak:Object.assign({}, DEFAULT_STATE.streak, p.streak||{})
     });
-  }catch(e){ return structuredClone(DEFAULT_STATE); }
+  }catch(e){ return deepClone(DEFAULT_STATE); }
 }
 let saveTimer=null, savePending=null;
 /* La sauvegarde est différée pour ne pas écrire à chaque frappe.
@@ -4355,7 +4388,7 @@ function toggleFav(id){ const m=meta(id); m.fav=!m.fav; save(); }
 function migrate(){
   if(!S.tasks) S.tasks={};
   if(!S.quiz) S.quiz={};
-  if(!S.prefs) S.prefs=structuredClone(DEFAULT_STATE.prefs);
+  if(!S.prefs) S.prefs=deepClone(DEFAULT_STATE.prefs);
   if(!S.prefs.tips) S.prefs.tips=[];
   if(S.v===3) return;
   S.games=S.games||{}; S.glFav=S.glFav||[]; S.read=S.read||[]; S.badges=S.badges||[];
@@ -4380,14 +4413,22 @@ const rankOf = xp => RANKS[Math.min(levelOf(xp)-1, RANKS.length-1)];
 const rankLabel = () => (typeof isAdmin==="function" && isAdmin()) ? "Administrateur" : rankOf(S.xp);
 
 /* ── Objectif du jour ─────────────────────────────────────── */
-const GOAL = { cards:12, min:15 };
+/* Il n'existe qu'UNE source de vérité pour les objectifs quotidiens : le plan
+   administrable (PLAN.quota). Une constante GOAL séparée avait fini par
+   diverger silencieusement de ce qui est annoncé partout ailleurs (10 fiches),
+   affichant 12 dans ce seul widget. Pour ne plus jamais revivre ça, ce widget
+   lit directement les mêmes réglages que les blocs « nouvelles du jour » et
+   « révision du jour », et se met à jour automatiquement si un administrateur
+   change le quota. */
 function goalToday(){
   const d=today();
+  const cTarget=Math.max(1,newPerDay());   /* même quota que « nouvelles fiches du jour » */
+  const mTarget=Math.max(1,PLAN.quota.min||15);
   return {
-    cards:{done:Math.min(d.cards,GOAL.cards), target:GOAL.cards, pct:pct(Math.min(d.cards,GOAL.cards),GOAL.cards)},
-    min:{done:Math.min(d.min,GOAL.min), target:GOAL.min, pct:pct(Math.min(d.min,GOAL.min),GOAL.min)},
+    cards:{done:Math.min(d.cards,cTarget), target:cTarget, pct:pct(Math.min(d.cards,cTarget),cTarget)},
+    min:{done:Math.min(d.min,mTarget), target:mTarget, pct:pct(Math.min(d.min,mTarget),mTarget)},
     modules:d.done,
-    complete:(d.cards>=GOAL.cards && d.min>=GOAL.min)
+    complete:(d.cards>=cTarget && d.min>=mTarget)
   };
 }
 
@@ -4743,9 +4784,9 @@ let PLAN=loadPlan();
 function loadPlan(){
   try{
     const p=JSON.parse(STORE.get(PLKEY)||"null");
-    if(!p) return structuredClone(PLAN_DEFAULT);
-    return Object.assign(structuredClone(PLAN_DEFAULT),p,{quota:Object.assign({},PLAN_DEFAULT.quota,p.quota||{})});
-  }catch(e){ return structuredClone(PLAN_DEFAULT); }
+    if(!p) return deepClone(PLAN_DEFAULT);
+    return Object.assign(deepClone(PLAN_DEFAULT),p,{quota:Object.assign({},PLAN_DEFAULT.quota,p.quota||{})});
+  }catch(e){ return deepClone(PLAN_DEFAULT); }
 }
 function savePlan(){
   PLAN.updated=todayISO();
@@ -5091,7 +5132,7 @@ async function sbUpsertProfile(patch){
 /** Fusion sans perte : on ne régresse jamais sur un acquis. */
 function mergeState(a,b){
   if(!a) return b; if(!b) return a;
-  const out=structuredClone(a);
+  const out=deepClone(a);
   out.xp=Math.max(a.xp||0,b.xp||0);
   out.v=Math.max(a.v||0,b.v||0);
   out.streak={ n:Math.max((a.streak||{}).n||0,(b.streak||{}).n||0),
@@ -5279,7 +5320,7 @@ const TIPS = {
   referentiel:{ i:"§", t:"Le référentiel alimente vos révisions",
     d:"L'étoile met un terme de côté, la flèche l'envoie directement dans vos fiches de révision. "+
       "Les onglets basculent entre définitions, étapes du process et indicateurs." },
-  process:{ i:"⌗", t:"Douze étapes, une par clic",
+  process:{ i:"⌗", t:PROCESS.length+" étapes, une par clic",
     d:"Chaque étape détaille ses livrables, ses intervenants et ses pièges, avec le module de fond associé. "+
       "L'anatomie de montage en bas de page chiffre un exemple complet." },
   verticale:{ i:"◈", t:"Votre espace métier",
@@ -5577,7 +5618,7 @@ function importData(file){
     try{
       const p=JSON.parse(r.result);
       if(!p || typeof p!=="object" || !("tasks" in p)) throw new Error("format");
-      S=Object.assign(structuredClone(DEFAULT_STATE),p,{
+      S=Object.assign(deepClone(DEFAULT_STATE),p,{
         prefs:Object.assign({},DEFAULT_STATE.prefs,p.prefs||{}),
         streak:Object.assign({},DEFAULT_STATE.streak,p.streak||{})
       });
@@ -5680,8 +5721,8 @@ function viewDashboard(){
       "<div><div class=\"eyebrow\">Objectif du jour</div>"+
       "<div class=\"h4 mt8\">"+(gd.complete?"Atteint":gd.cards.done+" / "+gd.cards.target+" fiches")+"</div>"+
       "<div class=\"dim mt8\" style=\"font-size:12.5px\">"+(gd.complete
-        ? "Douze fiches et quinze minutes : c'est fait pour aujourd'hui."
-        : "Douze fiches et quinze minutes entretiennent la série.")+"</div></div>"+
+        ? gd.cards.target+" fiches et "+gd.min.target+" minutes : c'est fait pour aujourd'hui."
+        : gd.cards.target+" fiches et "+gd.min.target+" minutes entretiennent la série.")+"</div></div>"+
       "<div class=\"row\" style=\"gap:12px\">"+ring(gd.cards.pct,58,5,gd.cards.done,"fiches")+ring(gd.min.pct,58,5,gd.min.done,"min")+"</div></div>"+
     "<a class=\"card\" href=\"#/stats\"><div class=\"spread\"><div class=\"eyebrow\">Succès</div>"+
       "<span class=\"dim num\" style=\"font-size:12px\">"+badgeCount()+" / "+BADGES.length+"</span></div>"+
@@ -5755,15 +5796,15 @@ function viewDashboard(){
   /* Accès rapides */
   h += "<div class=\"grid g3 sec\">"+
     "<a class=\"card\" href=\"#/process\"><div class=\"eyebrow\">Référence</div>"+
-      "<div class=\"h4 mt8\">Le process en 12 étapes</div>"+
-      "<div class=\"dim mt8\" style=\"font-size:12.5px\">Livrables, intervenants et pièges de chaque étape, plus les 12 métriques clés.</div></a>"+
+      "<div class=\"h4 mt8\">Le process en "+PROCESS.length+" étapes</div>"+
+      "<div class=\"dim mt8\" style=\"font-size:12.5px\">Livrables, intervenants et pièges de chaque étape, plus les "+METRICS.length+" métriques clés.</div></a>"+
     "<a class=\"card\" href=\"#/cartes?m=associer\"><div class=\"eyebrow\">Jeu</div>"+
       "<div class=\"h4 mt8\">Associer contre le chrono</div>"+
-      "<div class=\"dim mt8\" style=\"font-size:12.5px\">Six paires termes et définitions, le plus vite possible."+
+      "<div class=\"dim mt8\" style=\"font-size:12.5px\">"+MATCH_PAIRS+" paires termes et définitions, le plus vite possible."+
       (S.games["match:all"]?" Votre record : "+mmss(S.games["match:all"])+".":"")+"</div></a>"+
     "<a class=\"card\" href=\"#/cartes?m=test\"><div class=\"eyebrow\">Contrôle</div>"+
       "<div class=\"h4 mt8\">Passer un test</div>"+
-      "<div class=\"dim mt8\" style=\"font-size:12.5px\">Vingt questions de quatre types, corrigées une à une."+
+      "<div class=\"dim mt8\" style=\"font-size:12.5px\">"+Math.min(TEST_SIZE,CARDS.length)+" questions de quatre types, corrigées une à une."+
       (S.games["test:all"]?" Votre record : "+S.games["test:all"]+" %.":"")+"</div></a>"+
   "</div>";
 
@@ -6302,7 +6343,7 @@ function viewStats(){
     "</div>"+
     "<div class=\"card mt16 spread wrap\" style=\"gap:18px\">"+
       "<div><div class=\"eyebrow\">Objectif du jour</div>"+
-      "<div class=\"dim mt8\" style=\"font-size:13px\">"+(gd.complete?"Objectif atteint pour aujourd'hui.":"Douze fiches et quinze minutes suffisent à entretenir la série.")+"</div></div>"+
+      "<div class=\"dim mt8\" style=\"font-size:13px\">"+(gd.complete?"Objectif atteint pour aujourd'hui.":gd.cards.target+" fiches et "+gd.min.target+" minutes suffisent à entretenir la série.")+"</div></div>"+
       "<div class=\"row\" style=\"gap:14px\">"+ring(gd.cards.pct,62,5,gd.cards.done,"fiches")+ring(gd.min.pct,62,5,gd.min.done,"min")+"</div></div>"+
     "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h4\">Succès</h2>"+
       "<span class=\"dim\" style=\"font-size:11px\">"+badgeCount()+" sur "+BADGES.length+" débloqués</span></div>"+
@@ -6445,6 +6486,7 @@ function viewReglages(){
         
       "</div></div>"+
     "<div class=\"card mt16\"><div class=\"h4\">À propos</div>"+
+      "<p class=\"dim mt8 mono\" style=\"font-size:11.5px\">Version "+APP_BUILD+"</p>"+
       "<p class=\"dim mt8\" style=\"font-size:13px\">Hub M&amp;A Triactis. "+
       TASKS.length+" modules de parcours, "+VMODULES.length+" modules métier, "+PHASES.length+" phases, "+
       GLOSSARY.length+" termes, "+CARDS.length+" fiches, "+PROCESS.length+" étapes de process, "+
@@ -6681,8 +6723,9 @@ function overrideWrite(){
 function nextWrite(){ wrt.i++; wrt.state="ask"; paintWrite(); }
 
 /* ── Mode 4 : associer ────────────────────────────────────── */
+const TEST_SIZE=20, MATCH_PAIRS=6;   /* source unique : réutilisées aussi dans les textes de présentation */
 function initMatch(){
-  const pairs=deck.list.slice().sort(()=>Math.random()-0.5).slice(0,6);
+  const pairs=deck.list.slice().sort(()=>Math.random()-0.5).slice(0,MATCH_PAIRS);
   const tiles=[];
   pairs.forEach((c,i)=>{
     tiles.push({k:i,side:"q",txt:short(c.q,52),id:c.id});
@@ -6746,7 +6789,7 @@ function pickTile(i){
 
 /* ── Mode 5 : test ────────────────────────────────────────── */
 function initTest(){
-  const pool=deck.list.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(20,deck.list.length));
+  const pool=deck.list.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(TEST_SIZE,deck.list.length));
   tst={q:pool.map((c,i)=>buildTestQ(c,i)), i:0, ans:[], done:false};
   paintTest();
 }
@@ -7184,7 +7227,7 @@ function paintStep(){
 
 /* ── Présentation initiale ────────────────────────────────── */
 const OB=[
- {i:"◈",t:"Bienvenue sur le Hub M&A",d:"Sept phases, 108 modules de parcours et des modules métier propres à votre verticale, du bilan comptable au montage à effet de levier."},
+ {i:"◈",t:"Bienvenue sur le Hub M&A",d:PHASES.length+" phases, "+TASKS.length+" modules de parcours et des modules métier propres à votre verticale, du bilan comptable au montage à effet de levier."},
  {i:"vert",t:"Sur quelle verticale travaillez-vous ?",d:"Ce choix débloque un onglet dédié : indicateurs du métier, conventions de valorisation, retraitements et points de due diligence. Il se change à tout moment dans les réglages."},
  {i:"◎",t:"Un module, une méthode",d:"Chaque module suit la même structure : pourquoi cela compte, la méthode, un cas chiffré, les pièges, puis un quiz dont chaque réponse est expliquée."},
  {i:"▤",t:"Cinq façons de mémoriser",d:"Cartes, Apprendre, Écrire, Associer et Test. La révision du jour reprogramme chaque fiche juste avant que vous ne l'oubliiez."},
@@ -7705,7 +7748,7 @@ function admExtra(a){
       Object.keys(PLAN.cards).length+" échéances de fiches seront supprimées, pour tout le monde. "+
       "Le volume quotidien revient à 10 fiches par session. Aucune progression n'est touchée.",
       "Réinitialiser le plan", ()=>{
-        PLAN.quota=structuredClone(PLAN_DEFAULT.quota); PLAN.modules={}; PLAN.cards={};
+        PLAN.quota=deepClone(PLAN_DEFAULT.quota); PLAN.modules={}; PLAN.cards={};
         savePlan(); toast("Plan réinitialisé.","ok"); route();
       });
     return;
@@ -7888,6 +7931,7 @@ function handleClick(e){
     save(); paintNav(); return;
   }
   if(hit("#burger")){ document.body.classList.toggle("nav-open"); return; }
+  if(hit("[data-navclose]")){ document.body.classList.remove("nav-open"); return; }
   if(hit("#openCmd")||hit("[data-act=cmd]")){ openCmd(); return; }
   if(hit("#toggleTheme")){ toggleTheme(); if(location.hash==="#/reglages") route(); return; }
   if(hit("#openHelp")){ helpModal(); return; }
@@ -8142,6 +8186,24 @@ function reportError(err,ou){
     setTimeout(()=>{ errShown=false; },4000);
   }
 }
+/** Dernier filet : si l'amorçage lui-même échoue (avant que le reste de
+    l'application ne soit prêt à afficher quoi que ce soit), on montre une
+    erreur EXPLICITE plutôt que de laisser une page muette. C'est la panne
+    la plus difficile à diagnostiquer à distance : elle doit se voir. */
+function showBootError(err){
+  try{
+    const box=document.getElementById?document.getElementById("bootError"):null;
+    if(!box) return;
+    box.hidden=false;
+    box.innerHTML =
+      "<div class=\"bx\"><h1>L'application n'a pas pu démarrer</h1>"+
+      "<p>Une erreur technique a empêché le chargement. Faites un rechargement complet "+
+      "(Ctrl + F5, ou Cmd + Maj + R sur Mac) : si le problème persiste, transmettez le message "+
+      "ci-dessous.</p>"+
+      "<pre>"+String((err&&(err.stack||err.message))||err||"erreur inconnue").slice(0,600)+"</pre>"+
+      "<button onclick=\"location.reload(true)\">Recharger la page</button></div>";
+  }catch(e2){}
+}
 function init(){
   applyTheme();
   if(navigator.platform && navigator.platform.indexOf("Mac")<0){ const k=$("#kbdHint"); if(k) k.textContent="Ctrl K"; }
@@ -8165,8 +8227,12 @@ function init(){
     renderCloudGate();
   });
 }
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
-else init();
+/* Amorçage protégé, appelé UNE seule fois, quel que soit l'état du document :
+   toute exception synchrone est capturée et affichée plutôt que de laisser
+   le reste du script ne jamais s'exécuter. */
+function bootOnce(){ try{ init(); }catch(err){ showBootError(err); try{ console.error(err); }catch(e2){} } }
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", bootOnce);
+else bootOnce();
 
 </script>
 </body>
