@@ -255,6 +255,11 @@ select.field{cursor:pointer;appearance:none;background-image:linear-gradient(45d
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .row{display:flex;align-items:center;gap:12px}
 .row.wrap{flex-wrap:wrap}
+/* Cette regle manquait alors que 13 endroits du balisage utilisent déjà la
+   classe « spread wrap » : elle n'avait donc aucun effet. C'est la cause des
+   debordements horizontaux mesures sur le tableau de bord (+67 px) et le
+   referentiel le 29 juillet 2026. */
+.spread.wrap{flex-wrap:wrap}
 .spread{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .stack{display:flex;flex-direction:column}
 .sp4{gap:4px}.sp8{gap:8px}.sp12{gap:12px}.sp16{gap:16px}.sp24{gap:24px}
@@ -548,13 +553,27 @@ button,a,[role="button"],.cmd-it,.fc,.tile,.step,.vertpick,.gate-prof,.acc-h,
      descend jamais sous ce seuil en tactile, quelle que soit la classe. */
   .field,select.field,.cmd-in input{font-size:16px!important}
 
-  .btn.sm{height:38px;padding:0 15px}
-  .pill{height:36px;padding:0 15px}
-  .azbar button{width:34px;height:34px}
-  .chk{width:26px;height:26px}
-  .starbtn{min-width:32px;min-height:32px;display:inline-grid;place-items:center}
-  .tclose{min-width:32px;min-height:32px;display:inline-grid;place-items:center}
-  .iconbtn{width:40px;height:40px}
+  /* Recommandation d accessibilité : 44 px. Appliquée partout ou elle ne
+     deforme pas la mise en page, les exceptions sont documentees ci-dessous. */
+  .iconbtn{width:44px;height:44px}
+  .starbtn{min-width:44px;min-height:44px;display:inline-grid;place-items:center}
+  .tclose{min-width:44px;min-height:44px;display:inline-grid;place-items:center}
+  /* La case de statut d un module garde ses 26 px visibles : c est sa zone de
+     tap qui passe a 44 px par un pseudo-element, donc sans deplacer un pixel.
+     La rangee mesure 68 px avec 21 px de marge de part et d autre : la zone
+     elargie reste a l interieur et ne chevauche pas la rangee voisine. */
+  .chk{width:26px;height:26px;position:relative}
+  .chk::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;
+              transform:translate(-50%,-50%)}
+  /* Exceptions assumées : ces contrôles sont côte à côte et un élargissement
+     ferait chevaucher les zones de tap. Releves au maximum compatible avec
+     leur disposition. */
+  .pill{height:40px;padding:0 16px}
+  .azbar button{width:40px;height:40px}
+  /* Le terme d un référentiel est un bouton d une seule ligne de texte : sa
+     hauteur visible etait de 26 px alors que la rangee qui le contient en
+     mesure 53. Le porter a 44 px n ajoute donc aucune hauteur en vue detaillee. */
+  .gitem .gt{display:inline-flex;align-items:center;min-height:44px}
   .tab{padding:13px 16px}
   .srsbtn{padding:15px 8px}
 }
@@ -681,6 +700,18 @@ select.field:focus{outline:none;border-color:var(--accent)}
   .heat{grid-template-columns:repeat(14,1fr)}
 }
 @media (max-width:520px){
+  /* Une étiquette longue ne peut plus élargir la page : elle passe a la ligne.
+     Les libelles courts gardent leur hauteur, la hauteur fixe etant remplacee
+     par un minimum. Corrige les debordements du process (+25 px) et de la
+     vue module. */
+  .btn{max-width:100%;white-space:normal;text-align:center;line-height:1.25;
+       height:auto;min-height:38px;padding-top:6px;padding-bottom:6px}
+  .btn.sm{height:auto;min-height:38px}
+  .btn.lg{height:auto;min-height:46px}
+  /* Un tableau ne se comprime pas sous la largeur de son contenu : il défile
+     horizontalement dans son cadre plutot que d elargir la page entiere.
+     Corrige la console d administration (+214 px). */
+  .tbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hero{gap:16px}
   .modal{max-height:88vh}
@@ -695,11 +726,34 @@ select.field:focus{outline:none;border-color:var(--accent)}
 .skip{position:fixed;top:-60px;left:12px;z-index:200;background:var(--accent);color:var(--accent-fg);padding:9px 15px;border-radius:var(--r-sm);font-weight:600;transition:top .2s}
 .skip:focus{top:12px}
 @media print{
-  .sb,.hd,.botnav,.toasts,.toc{display:none!important}
+  .sb,.hd,.botnav,.toasts,.toc,.no-print{display:none!important}
   .app{grid-template-columns:1fr}
   body{background:#fff;color:#000}
   .view{padding:0;max-width:none}
+  /* L'attestation imprimee ne doit rien devoir au theme sombre ni aux
+     couleurs derivees : encre noire sur papier blanc, bordures franches. */
+  .att{border:1px solid #000!important;box-shadow:none!important;margin:0!important;page-break-inside:avoid}
+  .att-tbl th,.att-tbl td{border-color:#666!important;color:#000!important}
+  .att-score b,.att-t,.att-p b{color:#000!important}
 }
+
+/* Attestation : composant volontairement autonome, pour que son rendu papier
+   ne depende pas des variables de theme de l'application. */
+.att{border:1px solid var(--line-strong);border-radius:var(--r);background:#fff;color:#111;overflow:hidden}
+.att-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+        padding:26px 30px;border-bottom:1px solid #ddd;background:#fafafa}
+.att-ey{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#666}
+.att-t{font-size:23px;font-weight:700;letter-spacing:-.02em;margin-top:7px;color:#111}
+.att-score{text-align:right;flex:0 0 auto}
+.att-score b{display:block;font-size:38px;line-height:1;font-weight:700;color:#111}
+.att-score span{font-size:11px;color:#666}
+.att-b{padding:26px 30px 30px}
+.att-p{font-size:13.5px;line-height:1.62;color:#222;margin-bottom:12px}
+.att-sec{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+         color:#666;margin:24px 0 10px}
+.att-tbl{width:100%;font-size:12.5px;color:#222}
+.att-tbl th{color:#666;font-weight:600}
+.att-fine{font-size:11px;line-height:1.6;color:#666;margin-top:14px}
 
 /* ── 9. COMPOSANTS V2 ──────────────────────────────────────── */
 /* Cartes de mode de jeu */
@@ -801,6 +855,15 @@ select.field:focus{outline:none;border-color:var(--accent)}
 @media (max-width:520px){
   .stepper{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+/* Ce bloc combine doit rester le dernier des trois : le bloc « max-width:520px »
+   fixe une hauteur minimale de 38 px pour les fenetres etroites sans tactile,
+   et il est ecrit apres le bloc « pointer:coarse ». Sur un telephone, les deux
+   conditions sont vraies : sans cette regle finale, le 38 px l emporterait sur
+   le 44 px voulu en tactile. */
+@media (pointer:coarse) and (max-width:520px){
+  .btn,.btn.sm{min-height:44px}
+  .btn.lg{min-height:48px}
+}
 </style>
 </head>
 <body>
@@ -841,7 +904,7 @@ select.field:focus{outline:none;border-color:var(--accent)}
 
     <div class="sb-foot">
       <div class="spread" style="padding:0 4px 8px">
-        <span class="dim" style="font-size:11px">Progression globale</span>
+        <span class="dim" style="font-size:11px" id="sbProgLbl">Noyau obligatoire</span>
         <span class="num" style="font-size:11px;font-weight:600" id="sbPct">0 %</span>
       </div>
       <div class="bar thin"><i id="sbBar" style="width:0%"></i></div>
@@ -853,17 +916,17 @@ select.field:focus{outline:none;border-color:var(--accent)}
   <!-- ══ ZONE PRINCIPALE ═════════════════════════════════════ -->
   <div class="main">
     <header class="hd">
-      <button class="hd-burger" id="burger" aria-label="Ouvrir la navigation">☰</button>
+      <button class="hd-burger" id="burger" data-navopen aria-label="Ouvrir la navigation">☰</button>
       <nav class="crumbs" id="crumbs" aria-label="Fil d'Ariane"></nav>
       <div class="hd-right">
-        <button class="searchbtn" id="openCmd" aria-label="Rechercher">
+        <button class="searchbtn" id="openCmd" data-act="cmd" aria-label="Rechercher">
           <span aria-hidden="true">⌕</span><span>Rechercher…</span><kbd id="kbdHint">⌘K</kbd>
         </button>
         <button class="hd-stat hide-sm dim" id="syncBadge" data-syncinfo title="État de la synchronisation" style="display:none"></button>
         <span class="hd-stat hide-sm" title="Série de jours consécutifs">🔥 <b id="hdStreak">0</b></span>
         <span class="hd-stat hide-sm" title="Points d'expérience">✦ <b id="hdXp">0</b></span>
-        <button class="iconbtn" id="toggleTheme" aria-label="Changer de thème" title="Thème clair ou sombre">◐</button>
-        <button class="iconbtn" id="openHelp" aria-label="Raccourcis clavier" title="Raccourcis clavier">?</button>
+        <button class="iconbtn" id="toggleTheme" data-act="theme-toggle" aria-label="Changer de thème" title="Thème clair ou sombre">◐</button>
+        <button class="iconbtn" id="openHelp" data-act="help" aria-label="Raccourcis clavier" title="Raccourcis clavier">?</button>
       </div>
     </header>
 
@@ -1192,7 +1255,8 @@ quiz:[
  {q:"Le BFR passe de 800 à 1 000. Quel est l'impact sur le flux d'exploitation ?",o:["- 200","+ 200","+ 1 000","Aucun"],a:0,e:"Une augmentation du BFR immobilise du cash. C'est une sortie de 200 dans le tableau de flux."},
  {q:"Pourquoi ajoute-t-on les dotations aux amortissements au résultat net ?",o:["Parce qu'elles n'ont donné lieu à aucun décaissement","Parce qu'elles sont déductibles fiscalement","Parce qu'elles augmentent l'actif","Pour lisser le résultat"],a:0,e:"L'amortissement est une charge calculée. Le décaissement a eu lieu lors de l'investissement, pas à chaque exercice."},
  {q:"Une société affiche un capex de 120 pour des dotations de 320 pendant quatre ans. Que faut-il en conclure ?",o:["Un besoin de rattrapage d'investissement pèse sur l'acquéreur","La société est très rentable","Les amortissements sont mal calculés","Le BFR est maîtrisé"],a:0,e:"L'outil de production se déprécie plus vite qu'il n'est renouvelé. Le futur propriétaire devra investir, ce qui réduit les flux disponibles et donc la valeur."}
-],
+,
+ {q:"Résultat net 420, dotations aux amortissements 260, plus-value de cession d'un actif 60, besoin en fonds de roulement passé de 800 à 950. Quel est le flux net de trésorerie d'exploitation ?",o:["470","590","830","350"],a:0,e:"420 + 260 - 60 - 150 = 470. Les dotations se réintègrent car elles ne sortent pas de caisse. La plus-value de cession se retranche : elle est bien dans le résultat net, mais l'encaissement correspondant appartient aux flux d'investissement. La hausse de 150 du besoin en fonds de roulement est une immobilisation de trésorerie, donc un flux négatif."}],
 src:["IAS 7, tableau des flux de trésorerie","Damodaran, Cash Flow Estimation"]};
 
 LESSONS["liaison-3-etats"] = {
@@ -1433,8 +1497,10 @@ html:`
 key:["La cascade des SIG se récite dans l'ordre, sans hésitation","EBE, EBITDA et résultat d'exploitation ne sont pas synonymes","Le partage de la valeur ajoutée révèle la structure de coûts","Toujours préciser la base du multiple dans une discussion de prix"],
 quiz:[
  {q:"Charges de personnel sur valeur ajoutée à 82 %. Quelle lecture ?",o:["Très peu de valeur reste pour rémunérer le capital","La société est très rentable","Le BFR est faible","Les stocks sont élevés"],a:0,e:"Au-delà de 75 à 80 %, la structure laisse une marge d'EBE mince et rend le résultat très sensible à toute variation d'activité."},
+ {q:"Dans la cascade des soldes, la valeur ajoutée s'obtient après déduction de quoi ?",o:["Des consommations externes","Des charges de personnel","Des impôts et taxes","Des dotations aux amortissements"],a:0,e:"Marge commerciale ou production, moins les consommations externes, donne la valeur ajoutée. Les charges de personnel et les impôts et taxes se retranchent ensuite pour obtenir l'excédent brut d'exploitation, les dotations n'intervenant qu'au résultat d'exploitation."},
  {q:"Quelle différence principale entre EBE et EBITDA ?",o:["L'EBITDA intègre généralement les autres produits et charges d'exploitation","L'EBITDA déduit les amortissements","L'EBE inclut le résultat financier","Aucune, ce sont des synonymes exacts"],a:0,e:"L'EBE est un solde normé du PCG. L'EBITDA, notion de marché, est plus large et sa définition varie selon les praticiens, d'où la nécessité de la préciser."}
-],
+,
+ {q:"Production de l'exercice 3 200, consommations externes 1 400, subventions d'exploitation 40, impôts et taxes 90, charges de personnel 1 100, dotations 300. Quel est l'excédent brut d'exploitation ?",o:["650","610","350","710"],a:0,e:"Valeur ajoutée = 3 200 - 1 400 = 1 800. Excédent brut d'exploitation = 1 800 + 40 - 90 - 1 100 = 650. Les subventions d'exploitation entrent dans l'excédent brut, les dotations n'interviennent qu'au résultat d'exploitation, un cran plus bas dans la cascade."}],
 src:["Plan comptable général, soldes intermédiaires de gestion","Banque de France, ratios sectoriels"]};
 
 /* ── Phase 2 ── */
@@ -1478,7 +1544,8 @@ key:["Bleu pour les saisies, noir pour les formules, vert pour les liens interne
 quiz:[
  {q:"Vous ouvrez un modèle reçu et voyez du texte rouge. Que faut-il en déduire ?",o:["Il existe des liens vers un autre classeur, à traiter avant diffusion","Il y a une erreur de calcul","Les cellules sont protégées","C'est une hypothèse à modifier"],a:0,e:"Le rouge signale un lien externe. À la diffusion, ce lien casse ou, pire, remonte une valeur périmée sans alerte visible."},
  {q:"Pourquoi proscrire =B12*1,03 dans une ligne de projection ?",o:["L'hypothèse de croissance devient invisible et non modifiable centralement","La formule est trop lente","Excel refuse les décimales","Cela crée une référence circulaire"],a:0,e:"Une hypothèse enfouie dans une formule échappe à l'auditeur et aux analyses de sensibilité. Toute hypothèse vit dans une cellule bleue identifiée."}
-],
+,
+ {q:"Dans un modèle reçu, une cellule affichée en noir contient la formule =Hypotheses!B12. Que faut-il en conclure ?",o:["La convention de couleurs n'est pas respectée : un lien vers une autre feuille doit se distinguer d'une formule locale, sinon l'audit ne sait plus où sont les saisies","Que la cellule est une saisie et doit passer en bleu","Que la formule est fausse, une référence externe s'écrit toujours entre crochets","Rien, le noir est la couleur normale de toute formule"],a:0,e:"Le noir signale une formule calculée sur place. Un lien vers une autre feuille porte sa propre couleur, précisément pour qu'on puisse cartographier les dépendances d'un coup d'œil. Une couleur fausse n'est pas un détail esthétique : elle fait perdre la seule information de structure disponible sans ouvrir chaque cellule."}],
 src:["FAST Standard","Macabacus, Modeling Best Practices"]};
 
 LESSONS["tables-sensibilite"] = {
@@ -1545,7 +1612,8 @@ key:["Six étapes, dans l'ordre, sans exception","Toute constante dans une zone 
 quiz:[
  {q:"Quel raccourci affiche toutes les formules d'une feuille ?",o:["Ctrl + accent grave","Ctrl + F","F9","Alt + F11"],a:0,e:"Ctrl + accent grave bascule l'affichage entre valeurs et formules. C'est le premier geste d'un audit visuel."},
  {q:"Vous trouvez une constante 1,25 au milieu d'une formule de projection. Que faire ?",o:["L'extraire vers une cellule d'hypothèse et interroger le constructeur sur son origine","La supprimer","La remplacer par 1","Ignorer, c'est une pratique courante"],a:0,e:"Une hypothèse enfouie échappe à toute sensibilité et à tout audit. Il faut connaître sa source avant de la déplacer."}
-],
+,
+ {q:"Vous recevez un classeur de quatorze feuilles à auditer en une heure. Quel enchaînement donne le plus vite la carte des risques ?",o:["Afficher les formules feuille par feuille, relever les constantes en dur et les références externes, puis remonter les antécédents des cellules de sortie","Recalculer le classeur et vérifier que le bilan s'équilibre","Contrôler d'abord la cohérence des couleurs et de la mise en forme","Reconstruire le modèle depuis les hypothèses pour comparer les résultats"],a:0,e:"L'affichage des formules révèle en quelques minutes les deux défauts qui invalident un modèle, la constante enfouie et le lien vers un fichier absent. Remonter les antécédents depuis les sorties cible ensuite le chemin qui porte réellement le résultat. Un bilan équilibré ne prouve rien sur la justesse des hypothèses, et reconstruire le modèle prend dix fois le temps disponible."}],
 src:["ICAEW, Twenty Principles for Good Spreadsheet Practice","EuSpRIG, spreadsheet risk"]};
 
 /* ── Phase 3 ── */
@@ -1586,7 +1654,8 @@ key:["Douze feuilles, un rôle chacune, numérotées","Une ligne de calendrier u
 quiz:[
  {q:"À quoi sert le drapeau historique ou projeté sur la ligne de calendrier ?",o:["Permettre d'allonger la période en tirant une colonne, sans réécrire de formule","Colorer les cellules","Calculer le WACC","Contrôler l'équilibre du bilan"],a:0,e:"Toutes les formules testent le drapeau. La bascule est automatique, ce qui rend le modèle extensible sans reconstruction."},
  {q:"Pour une première approche de valeur en phase de qualification, quelle granularité ?",o:["Trois exercices historiques, trois projetés, sans bilan détaillé","Modèle mensuel sur cinq ans","Modèle intégré complet avec covenants","Aucun modèle"],a:0,e:"La précision doit être proportionnée à l'information disponible et à l'enjeu. Le raffinement vient avec l'avancement du deal."}
-],
+,
+ {q:"Vous devez couvrir cinq ans de projection avec trois exercices d'historique, en pas mensuel sur la première année seulement. Comment structurer le calendrier du modèle ?",o:["Une seule ligne de dates en haut, reprise par référence sur toutes les feuilles, un drapeau projeté par colonne, et l'agrégation trimestrielle et annuelle prévue dès l'origine","Une ligne de dates par feuille, adaptée aux calculs de chacune","Des colonnes annuelles uniquement, la mensualisation se fera plus tard en divisant par douze","Deux classeurs séparés, l'un mensuel pour l'année 1, l'autre annuel pour la suite"],a:0,e:"Une seule ligne de dates garantit qu'un décalage de période se corrige en un seul endroit. Le drapeau projeté permet la bascule historique vers projection sans dupliquer les formules. Et l'agrégation doit être prévue au départ : la reconstruire après coup sur un modèle mensuel de soixante colonnes est un chantier, pas une retouche."}],
 src:["FAST Standard","Modèle financier Triactis (interne)"]};
 
 LESSONS["schema-dette"] = {
@@ -1902,7 +1971,8 @@ key:["Le multiple de transaction inclut prime de contrôle et partage de synergi
 quiz:[
  {q:"Pourquoi un multiple de transaction est-il en général supérieur à un multiple boursier du même secteur ?",o:["Il intègre la prime de contrôle et une part des synergies","Les transactions sont plus récentes","Les sociétés cédées sont plus grandes","Les bases de données sont fausses"],a:0,e:"Acheter le contrôle et capter des synergies justifie de payer plus cher que le cours d'une participation minoritaire."},
  {q:"Le prix d'une opération n'est pas publié. Quelle reconstruction est la plus fiable ?",o:["Goodwill en annexe des comptes consolidés de l'acquéreur, plus actif net acquis","Une estimation de la presse","Le multiple moyen du secteur","Le chiffre d'affaires multiplié par un"],a:0,e:"L'annexe des comptes consolidés est une source nommée et opposable. La reconstruction est traçable, même si elle reste approchée."}
-],
+,
+ {q:"Vous disposez de trois transactions comparables : la première avec un prix publié par communiqué, la deuxième reconstituée depuis une augmentation de capital déposée au greffe, la troisième citée par la presse sans source. Comment les traiter ?",o:["Pondérer selon la qualité de la source, et signaler la troisième comme indicative sans la faire entrer dans le calcul de la fourchette","Les retenir à poids égal : la médiane corrige les écarts de fiabilité","Ne conserver que la première, les deux autres n'étant pas vérifiables","Pondérer par la taille des cibles, seul critère objectif disponible"],a:0,e:"Un multiple transactionnel vaut ce que vaut sa source. Le communiqué est opposable, le dépôt au greffe est vérifiable mais partiel, la citation de presse n'est ni l'un ni l'autre. La faire entrer dans une médiane lui donne le même poids qu'une donnée vérifiée, ce qui contamine le résultat sans que personne puisse le tracer ensuite. Elle garde en revanche une valeur d'orientation, à condition d'être affichée comme telle."}],
 src:["Argos Index mid-market","Comptes consolidés déposés, annexes de regroupement","Base de transactions du cabinet"]};
 
 LESSONS["wacc"] = {
@@ -2286,7 +2356,8 @@ key:["Test de l'anonymat : un concurrent ne doit pas pouvoir nommer la cible","U
 quiz:[
  {q:"Quelle information est à proscrire dans un teaser ?",o:["La liste des principaux clients","La région d'implantation","Le chiffre d'affaires en fourchette","Le contexte de cession"],a:0,e:"Une liste de clients identifie immédiatement la société pour un concurrent, et rompt la confidentialité avant toute signature de NDA."},
  {q:"Quelle est la longueur cible d'un teaser ?",o:["Une à deux pages","Dix pages","Une ligne","Vingt pages"],a:0,e:"Le teaser sert au tri. Au-delà de deux pages, il ne sera pas lu, et il empiète sur le rôle du mémorandum d'information."}
-],
+,
+ {q:"La cible est le seul acteur de son marché en France, réalise 14 M€ de chiffre d'affaires et exploite deux sites identifiables. Comment rédiger le teaser ?",o:["Élargir la description sectorielle, donner le chiffre d'affaires en fourchette, ne mentionner ni le nombre de sites ni la région : l'anonymat prime, quitte à réduire le nombre de réponses","Donner tous les chiffres : sur un marché étroit, l'anonymat n'est de toute façon pas tenable","Ne donner aucun chiffre et se limiter à une description qualitative","Nommer la région pour crédibiliser le dossier, sans préciser le secteur"],a:0,e:"Sur un marché étroit, chaque précision rapproche de l'identification, et une identification prématurée peut coûter au cédant ses salariés, ses clients ou sa position de négociation. Un teaser moins précis attire moins de réponses : c'est le prix de l'anonymat, et il est assumé. Supprimer tout chiffre est l'excès inverse, le teaser ne sert alors plus à filtrer."}],
 src:["Pratique du cabinet, modèles internes","Mergers & Inquisitions, Deal Documents"]};
 
 LESSONS["nda"] = {
@@ -2321,7 +2392,8 @@ key:["La non-sollicitation du personnel est souvent la clause décisive","Durée
 quiz:[
  {q:"Un concurrent direct demande la suppression de la clause de non-sollicitation. Que faire ?",o:["Refuser, c'est la protection principale dans ce cas de figure","Accepter pour ne pas ralentir","Réduire la durée à un mois","Signer sans lire"],a:0,e:"L'approche d'un concurrent expose surtout au débauchage des équipes. Sans cette clause, le risque devient disproportionné par rapport à l'intérêt de la discussion."},
  {q:"À quel moment du process signe-t-on le NDA ?",o:["Entre le teaser et le mémorandum d'information","Avant le teaser","Au closing","Après la LOI"],a:0,e:"Le teaser est anonyme et ne nécessite pas de NDA. Celui-ci conditionne l'accès à l'information nominative du mémorandum."}
-],
+,
+ {q:"Un acquéreur industriel demande à ramener la durée de confidentialité de trois ans à six mois et à supprimer la clause de non-débauchage. Que faire ?",o:["Refuser les deux : leur conjonction signale un intérêt pour l'information et les équipes plus que pour l'acquisition","Accepter la durée réduite et refuser le non-débauchage","Accepter les deux : un accord de confidentialité est de toute façon difficile à faire respecter","Refuser la durée et accepter le non-débauchage"],a:0,e:"Prise isolément, chacune des deux demandes se discute. Ensemble, elles dessinent un scénario précis : consulter le dossier, ne pas acquérir, et recruter deux personnes clés dans l'année. C'est la combinaison qui est révélatrice, pas chaque clause."}],
 src:["Modèles de NDA du cabinet","Pratique des accords de confidentialité en M&A"]};
 
 LESSONS["im"] = {
@@ -2358,7 +2430,8 @@ key:["Neuf sections, résumé exécutif lisible seul","Ne pas mettre dans un mé
 quiz:[
  {q:"Un litige prud'homal important est en cours. Que faire dans le mémorandum ?",o:["Ne pas le détailler dans le document diffusé, le présenter oralement au bon stade","L'omettre définitivement","Le détailler intégralement en première page","Le mentionner après le closing"],a:0,e:"Le mémorandum circule largement, y compris chez des concurrents. Le sujet se traite en entretien puis en audit, avec sa provision et son analyse. Le taire jusqu'au bout détruit la confiance."},
  {q:"Le premier client représente 32 % du chiffre d'affaires. Comment le présenter ?",o:["Tel quel, avec l'ancienneté et l'historique de la relation","Le diluer dans une catégorie « autres »","Ne pas parler de concentration","Le présenter à 15 %"],a:0,e:"La concentration apparaîtra en audit. La présenter avec son contexte permet de la valoriser comme une relation solide plutôt que de la subir comme une mauvaise surprise."}
-],
+,
+ {q:"Un conflit entre associés est en cours, l'un d'eux contestant le mandat. Où cela figure-t-il ?",o:["Nulle part dans le mémorandum : c'est un sujet à régler avant le shoot, et à traiter en direct avec l'acquéreur retenu une fois le NDA signé","Dans la partie juridique du mémorandum, au nom de la transparence","Dans une annexe confidentielle du mémorandum, remise sur demande","Dans le teaser, pour filtrer les acquéreurs dès l'origine"],a:0,e:"Un mémorandum est un document diffusé à des dizaines d'acquéreurs, dont des concurrents. Un conflit d'associés y figurant devient une information de marché, et il rend le dossier non finançable avant même la première offre. La règle n'est pas de cacher mais de recontextualiser au bon moment : le conflit se règle en amont, ou il se présente en direct, avec son plan de résolution, à l'acquéreur qui a signé le NDA. Une annexe dite confidentielle dans un document diffusé n'est pas une protection."}],
 src:["Modèles de mémorandum du cabinet","Pratique de la documentation sell side"]};
 
 LESSONS["loi"] = {
@@ -2441,7 +2514,8 @@ key:["Segmenter avant d'approcher, séquencer du plus offrant vers le plus bas",
 quiz:[
  {q:"Sur 40 teasers envoyés, 4 NDA signés. Quel diagnostic ?",o:["Teaser mal ciblé ou mal rédigé","Le marché est fermé","Le prix est trop bas","C'est un taux normal"],a:0,e:"Un taux de 10 % est très inférieur au repère de 30 %. Le problème se situe en amont : ciblage ou accroche du teaser."},
  {q:"Pourquoi approcher les consolidateurs avant les repreneurs individuels ?",o:["Pour éviter qu'une référence de prix basse ne contamine le process","Parce qu'ils répondent plus vite","Par courtoisie","Il n'y a pas d'ordre"],a:0,e:"Une offre basse arrivée tôt devient un point d'ancrage psychologique, pour le cédant comme pour les autres acquéreurs si l'information circule."}
-],
+,
+ {q:"Sur un shoot : 60 cibles contactées, 45 teasers envoyés, 15 NDA signés, 15 mémorandums envoyés, 3 rendez-vous acquéreur-vendeur obtenus. Quel indicateur décroche, et où chercher ?",o:["Le passage du mémorandum au rendez-vous, à 20 % contre 40 % attendus : c'est le mémorandum ou le prix affiché qu'il faut examiner, pas la liste d'acquéreurs","Le taux de signature des NDA, à 33 % des teasers","Le taux d'envoi des teasers, à 75 % des cibles contactées","Rien : le tunnel est conforme aux ordres de grandeur usuels"],a:0,e:"Les deux premiers ratios sont dans la norme, 75 % de teasers envoyés et 33 % de NDA signés. La rupture est en aval : quinze acquéreurs ont signé un accord de confidentialité, donc se sont déclarés intéressés, puis trois seulement ont demandé un rendez-vous après lecture du dossier. Le point de perte est le document ou l'attente de prix qu'il porte, et refaire un shoot plus large ne corrigerait rien."}],
 src:["Pratique du cabinet, suivi de shoot","Mergers & Inquisitions, Sell Side Process"]};
 
 LESSONS["ebitda-normatif"] = {
@@ -2900,11 +2974,17 @@ const BRIEFS = {};
 /* ── Phase 1, comptabilité ── */
 BRIEFS["compte-resultat"]={why:"Le compte de résultat raconte la formation du résultat sur une période. C'est la base de tout multiple.",
 pts:["Trois blocs : exploitation, financier, exceptionnel. Le M&A ne s'intéresse presque qu'au premier.","Charges par nature en PCG français, par fonction en présentation anglo-saxonne. Les deux ne se comparent pas directement.","Le chiffre d'affaires se ventile toujours par activité et par client avant toute analyse.","Le résultat exceptionnel se retraite systématiquement : par définition il ne se reproduira pas.","La marge d'EBE est le premier ratio à calculer, avant toute autre chose."],
-q:{q:"Pourquoi retraiter le résultat exceptionnel avant de calculer un multiple ?",o:["Parce qu'il ne se reproduira pas et fausse la récurrence","Parce qu'il est non déductible","Parce qu'il est toujours négatif","Il ne se retraite jamais"],a:0,e:"Un multiple capitalise un résultat récurrent. Y inclure un élément non récurrent revient à le payer à l'infini."}};
+q:[{q:"Pourquoi retraiter le résultat exceptionnel avant de calculer un multiple ?",o:["Parce qu'il ne se reproduira pas et fausse la récurrence","Parce qu'il est non déductible","Parce qu'il est toujours négatif","Il ne se retraite jamais"],a:0,e:"Un multiple capitalise un résultat récurrent. Y inclure un élément non récurrent revient à le payer à l'infini."},
+   {q:"Une cible française présente ses charges par nature, son acquéreur anglo-saxon les présente par fonction. Quelle conséquence pour la comparaison ?",o:["Les deux présentations ne se comparent pas ligne à ligne, il faut retraiter avant tout benchmark","Aucune, les totaux sont identiques donc les lignes le sont aussi","La présentation par fonction interdit de calculer un EBE","Il suffit de convertir les montants en devise de l'acquéreur"],a:0,e:"Charges par nature en PCG français, par fonction en présentation anglo-saxonne : le résultat final est le même, mais aucune ligne intermédiaire n'est directement comparable. Un benchmark de marge brute entre les deux présentations est faux tant que le retraitement n'est pas fait."},
+   {q:"Chiffre d'affaires de 8 M€, excédent brut d'exploitation de 640 k€. Quelle est la marge d'EBE ?",o:["8 %","12,5 %","6,4 %","Impossible à dire sans le résultat net"],a:0,e:"640 / 8 000 = 8 %. C'est le premier ratio à calculer sur un compte de résultat, avant toute autre analyse, parce que c'est lui qui portera le multiple."},
+   {q:"Chiffre d'affaires 5 000, achats consommés 2 100, autres charges externes 900, impôts et taxes 80, charges de personnel 1 500, dotations aux amortissements 200. Quel est l'excédent brut d'exploitation ?",o:["420","220","500","620"],a:0,e:"5 000 - 2 100 - 900 - 80 - 1 500 = 420. Les dotations sont exclues par construction : l'excédent brut se calcule avant amortissements, c'est précisément ce qui en fait l'agrégat porteur du multiple."}]};
 
 BRIEFS["immos-amortissements"]={why:"L'âge de l'outil de production conditionne le capex que l'acquéreur devra engager.",
 pts:["Valeur brute, amortissements cumulés, valeur nette comptable : les trois se lisent ensemble.","Ratio d'usure = amortissements cumulés / valeur brute. Au-delà de 70 %, l'outil est en fin de vie.","Amortissement linéaire, dégressif ou par composants : le choix affecte le résultat, pas la trésorerie.","Une immobilisation totalement amortie mais toujours utilisée signale un actif sous-évalué au bilan.","Le tableau 2055 de la liasse donne acquisitions et cessions de l'exercice."],
-q:{q:"Amortissements cumulés de 820 sur une valeur brute de 1 000. Que conclure ?",o:["Ratio d'usure de 82 %, un rattrapage d'investissement est probable","L'outil est neuf","La société est rentable","Le BFR est élevé"],a:0,e:"Un ratio d'usure élevé annonce des remplacements à financer, donc des flux futurs réduits pour l'acquéreur."}};
+q:[{q:"Amortissements cumulés de 820 sur une valeur brute de 1 000. Que conclure ?",o:["Ratio d'usure de 82 %, un rattrapage d'investissement est probable","L'outil est neuf","La société est rentable","Le BFR est élevé"],a:0,e:"Un ratio d'usure élevé annonce des remplacements à financer, donc des flux futurs réduits pour l'acquéreur."},
+   {q:"Une machine totalement amortie est toujours en production. Que faut-il en déduire ?",o:["Un actif sous-évalué au bilan : sa valeur nette comptable est nulle alors qu'il produit encore","Que la machine doit être cédée sans délai","Que le résultat de l'exercice est surévalué","Que le BFR va augmenter"],a:0,e:"La valeur nette comptable est nulle mais la valeur d'usage ne l'est pas. C'est un cas fréquent en PME industrielle : le bilan sous-estime l'outil, et l'acquéreur doit chercher la valeur ailleurs que dans les comptes."},
+   {q:"Une société passe d'un amortissement linéaire à un amortissement dégressif. Quel effet ?",o:["Le résultat baisse les premières années, la trésorerie ne change pas","Le résultat et la trésorerie baissent tous les deux","La trésorerie baisse, le résultat est inchangé","L'EBE baisse à due concurrence"],a:0,e:"Une dotation est une charge sans sortie de caisse : elle déplace du résultat entre exercices sans toucher à la trésorerie. L'EBE, calculé avant dotations, est également inchangé."},
+   {q:"Valeur brute des immobilisations 4 000, amortissements cumulés 3 000, dotation annuelle 400, investissements réalisés 150 par an depuis trois ans. Que retenir pour la valorisation ?",o:["Ratio d'usure de 75 % et sous-investissement de 250 par an : un capex de rattrapage réduira les flux futurs","Outil de production récent, investissement maîtrisé","Ratio d'usure de 25 %, la situation est saine","Les dotations sont surévaluées, il faut les retraiter à la hausse de l'excédent brut"],a:0,e:"3 000 / 4 000 = 75 % d'usure, et 150 investis contre 400 amortis chaque année, soit 250 de sous-investissement annuel. L'acquéreur héritera d'un rattrapage à financer : c'est un argument de négociation sur le prix, pas une simple observation comptable."}]};
 
 BRIEFS["provisions"]={why:"Une provision insuffisante est un passif caché. Une provision excessive est une réserve latente.",
 pts:["Provision pour risques et charges au passif, dépréciation d'actif en diminution de l'actif.","Trois conditions : obligation à la clôture, sortie de ressources probable, montant estimable.","Les provisions pour créances douteuses se testent en comparant à la balance âgée.","Les provisions pour litiges se recoupent avec les courriers d'avocat et le tableau 2056.","Une reprise de provision non justifiée gonfle artificiellement le résultat de l'exercice."],
@@ -2920,7 +3000,10 @@ q:{q:"Une dépréciation de goodwill de 500 k€ a quel effet sur la trésorerie
 
 BRIEFS["capitaux-propres"]={why:"Le tableau de variation des capitaux propres révèle la politique de distribution et les opérations sur capital.",
 pts:["Capital, primes, réserves, report à nouveau, résultat de l'exercice, subventions, provisions réglementées.","Capitaux propres d'ouverture + résultat - dividendes + apports = capitaux propres de clôture.","Des capitaux propres inférieurs à la moitié du capital social déclenchent une obligation légale de régularisation.","Une distribution supérieure au résultat traduit une décapitalisation, souvent en préparation de cession.","Les comptes courants d'associés ne sont pas des capitaux propres, sauf convention de blocage."],
-q:{q:"Distribution de 400 k€ pour un résultat de 250 k€. Que faut-il en déduire ?",o:["Une décapitalisation, à examiner avant la cession","Une forte rentabilité","Une erreur comptable","Une augmentation de capital"],a:0,e:"On distribue des réserves accumulées. Le mouvement est légitime mais réduit les fonds propres livrés à l'acquéreur."}};
+q:[{q:"Distribution de 400 k€ pour un résultat de 250 k€. Que faut-il en déduire ?",o:["Une décapitalisation, à examiner avant la cession","Une forte rentabilité","Une erreur comptable","Une augmentation de capital"],a:0,e:"On distribue des réserves accumulées. Le mouvement est légitime mais réduit les fonds propres livrés à l'acquéreur."},
+   {q:"Capitaux propres d'ouverture de 1 200, résultat de 300, dividendes versés de 500, aucun apport. Quels sont les capitaux propres de clôture ?",o:["1 000","1 400","1 500","900"],a:0,e:"1 200 + 300 - 500 = 1 000. La distribution excède le résultat de 200 : la société se décapitalise, mouvement à documenter avant une cession."},
+   {q:"Les capitaux propres d'une SARL tombent sous la moitié du capital social. Quelle conséquence ?",o:["Une obligation légale de régularisation, à traiter avant la cession","Une interdiction de distribuer des dividendes pendant cinq ans","Aucune, il s'agit d'un simple indicateur de gestion","La transformation automatique en société par actions simplifiée"],a:0,e:"Les associés doivent être consultés sur la poursuite de l'activité et la situation régularisée dans les délais légaux. Un acquéreur découvrant le point en audit exigera qu'il soit purgé avant signature."},
+   {q:"Capital social 500, capitaux propres d'ouverture 620, perte de l'exercice 200, aucun dividende, apport en capital de 50. Où en est-on de l'obligation de régularisation ?",o:["Capitaux propres de 470, supérieurs à la moitié du capital : aucune obligation","Capitaux propres de 470, inférieurs à la moitié du capital : régularisation obligatoire","Capitaux propres de 420, régularisation obligatoire","Impossible de conclure sans le montant du report à nouveau"],a:0,e:"620 - 200 + 50 = 470. La moitié du capital social vaut 250, et 470 lui reste supérieur : le seuil légal n'est pas franchi. La question suppose de faire le calcul puis de le comparer au bon seuil, les deux étapes étant nécessaires."}]};
 
 BRIEFS["leases-ifrs16"]={why:"IFRS 16 déplace les loyers de l'EBITDA vers l'amortissement et les intérêts, ce qui rend les multiples incomparables.",
 pts:["Tout contrat de location entre au bilan : droit d'utilisation à l'actif, dette de loyer au passif.","L'EBITDA augmente du montant des loyers annuels, la dette nette augmente de la valeur actualisée des loyers restants.","Le PCG français n'impose pas ce traitement : une PME reste en charge de loyer classique.","Comparer un multiple IFRS et un multiple PCG sans retraitement est une erreur méthodologique.","Retraitement rapide : dette de loyer estimée à cinq à huit fois le loyer annuel."],
@@ -2936,20 +3019,29 @@ q:{q:"Deux sociétés du même groupe se facturent 400 k€ par an. Effet sur le
 
 BRIEFS["qualite-resultat"]={why:"La qualité du résultat mesure à quel point le bénéfice affiché est converti en trésorerie durable.",
 pts:["Ratio de conversion = flux d'exploitation / EBITDA. En dessous de 70 % durablement, alerte.","Croissance du chiffre d'affaires portée par l'allongement des délais clients : signal négatif.","Marge qui progresse alors que le secteur se dégrade : chercher l'explication comptable avant l'explication opérationnelle.","Charges capitalisées en hausse, provisions en baisse, produits exceptionnels récurrents : trois marqueurs classiques.","Un changement de méthode comptable non signalé est le signal le plus fort."],
-q:{q:"Flux d'exploitation de 380 pour un EBITDA de 900 sur trois exercices consécutifs. Quelle lecture ?",o:["Conversion faible et persistante, la qualité du résultat est en cause","Excellente performance","Situation normale","Le BFR se réduit"],a:0,e:"Une conversion durablement inférieure à 50 % signale que le résultat ne devient pas de la trésorerie : BFR qui dérive, produits non encaissés, ou habillage."}};
+q:[{q:"Flux d'exploitation de 380 pour un EBITDA de 900 sur trois exercices consécutifs. Quelle lecture ?",o:["Conversion faible et persistante, la qualité du résultat est en cause","Excellente performance","Situation normale","Le BFR se réduit"],a:0,e:"Une conversion durablement inférieure à 50 % signale que le résultat ne devient pas de la trésorerie : BFR qui dérive, produits non encaissés, ou habillage."},
+   {q:"Le chiffre d'affaires progresse de 15 % et le délai de règlement clients passe de 45 à 75 jours. Quelle lecture ?",o:["Une croissance partiellement financée par l'allongement des délais clients, donc de moindre qualité","Une amélioration de la performance commerciale sans réserve","Un effet mécanique sans conséquence sur la trésorerie","Une baisse du besoin en fonds de roulement"],a:0,e:"Vendre en payant plus tard n'est pas vendre mieux. La croissance consomme du cash et une partie du chiffre d'affaires nouveau peut n'être jamais encaissée. C'est un des marqueurs classiques d'un résultat de faible qualité."},
+   {q:"EBITDA de 1 200, flux net de trésorerie d'exploitation de 1 020. Quelle conclusion ?",o:["Conversion de 85 %, satisfaisante","Conversion de 85 %, insuffisante","Conversion de 118 %, anormale","La conversion ne se calcule pas ainsi"],a:0,e:"1 020 / 1 200 = 85 %. Le seuil d'alerte usuel se situe autour de 70 % : au-dessus, le résultat se transforme correctement en trésorerie. En dessous durablement, il faut chercher où le cash se perd."},
+   {q:"Sur trois exercices : chiffre d'affaires + 18 %, EBITDA + 22 %, délai clients de 40 à 68 jours, flux d'exploitation stable, charges capitalisées passées de 30 à 210. Quelle conclusion ?",o:["La progression affichée ne se convertit pas en trésorerie : crédit clients allongé et charges capitalisées croissantes expliquent l'écart, la qualité du résultat est en cause","Une performance solide, la trésorerie suivra mécaniquement l'année suivante","Une réduction du besoin en fonds de roulement, favorable à l'acquéreur","Un simple effet de périmètre, sans incidence sur la valorisation"],a:0,e:"Trois marqueurs convergent. L'EBITDA progresse plus vite que le chiffre d'affaires alors que le flux d'exploitation stagne : l'écart est financé par les clients, qui paient 28 jours plus tard, et gonflé par des charges capitalisées multipliées par sept. Aucun des trois indices ne suffirait seul, leur convergence, si."}]};
 
 /* ── Phase 2, Excel et outils ── */
 BRIEFS["raccourcis"]={why:"Le temps gagné au clavier se réinvestit en réflexion. C'est la différence entre subir un modèle et le piloter.",
 pts:["Navigation : Ctrl + flèches, Ctrl + Maj + flèches pour sélectionner jusqu'au bord d'une plage.","Édition : F2 modifier, F4 basculer les ancrages, Alt + = somme automatique.","Collage spécial : Alt puis E, S, V pour les valeurs, Alt E S T pour les formats.","Audit : Ctrl + accent grave pour afficher les formules, Ctrl + crochet pour suivre un antécédent.","Feuilles : Ctrl + Page suivante et précédente, Maj + F11 nouvelle feuille."],
-q:{q:"Quel raccourci bascule les ancrages d'une référence entre relatif et absolu ?",o:["F4","F2","F9","Ctrl + F"],a:0,e:"F4 fait défiler A1, dollar A dollar 1, A dollar 1, dollar A 1. C'est le raccourci le plus utilisé en modélisation."}};
+q:[{q:"Quel raccourci bascule les ancrages d'une référence entre relatif et absolu ?",o:["F4","F2","F9","Ctrl + F"],a:0,e:"F4 fait défiler A1, dollar A dollar 1, A dollar 1, dollar A 1. C'est le raccourci le plus utilisé en modélisation."},
+   {q:"Vous devez sélectionner une colonne de 12 000 lignes jusqu'à sa dernière valeur renseignée. Quelle combinaison ?",o:["Ctrl + Maj + flèche bas","Ctrl + A","Maj + clic sur la dernière cellule visible à l'écran","F4 puis flèche bas maintenue"],a:0,e:"Ctrl étend jusqu'au bord de la plage, Maj sélectionne au passage. C'est le geste qui remplace le défilement à la souris, et il est fiable quel que soit le nombre de lignes."},
+   {q:"Vous voulez coller uniquement les valeurs d'une plage copiée, puis vérifier visuellement toutes les formules de la feuille. Quelle séquence ?",o:["Alt puis E, S, V, puis Ctrl + accent grave","Ctrl + V puis F2","Alt puis E, S, T, puis Ctrl + crochet","F4 puis Ctrl + Maj + V"],a:0,e:"Alt E S V est le collage spécial des valeurs, Alt E S T celui des formats. Ctrl + accent grave bascule l'affichage des formules sur toute la feuille, Ctrl + crochet remonte un antécédent cellule par cellule. La séquence enchaîne donc le collage puis le contrôle d'ensemble."}]};
 
 BRIEFS["recherche-index"]={why:"Une recherche mal construite est la première cause d'erreur silencieuse dans un modèle.",
 pts:["RECHERCHEX remplace avantageusement RECHERCHEV : recherche à gauche, valeur si absent, correspondance exacte par défaut.","INDEX combiné à EQUIV reste la solution la plus robuste sur les versions anciennes.","RECHERCHEV sans le quatrième argument FAUX effectue une recherche approximative et renvoie silencieusement une valeur fausse.","Toujours prévoir la gestion du cas non trouvé, jamais laisser un code d'erreur circuler.","Une recherche sur une clé texte impose de normaliser la casse et les espaces au préalable."],
-q:{q:"Une RECHERCHEV renvoie une valeur plausible mais fausse. Cause la plus probable ?",o:["Recherche approximative, quatrième argument omis","La plage est trop grande","La colonne est masquée","Le fichier est corrompu"],a:0,e:"Sans FAUX, Excel renvoie la valeur immédiatement inférieure trouvée dans une liste supposée triée. L'erreur est invisible car le résultat semble cohérent."}};
+q:[{q:"Une RECHERCHEV renvoie une valeur plausible mais fausse. Cause la plus probable ?",o:["Recherche approximative, quatrième argument omis","La plage est trop grande","La colonne est masquée","Le fichier est corrompu"],a:0,e:"Sans FAUX, Excel renvoie la valeur immédiatement inférieure trouvée dans une liste supposée triée. L'erreur est invisible car le résultat semble cohérent."},
+   {q:"Pourquoi RECHERCHEX est-elle préférable à RECHERCHEV lorsque la clé de recherche n'est pas dans la première colonne du tableau ?",o:["Elle cherche indifféremment à gauche ou à droite et impose la correspondance exacte par défaut","Elle est plus rapide sur les grands tableaux","Elle accepte plusieurs critères de recherche simultanés","Elle renvoie automatiquement zéro si la valeur est absente"],a:0,e:"RECHERCHEV impose que la clé soit à gauche de la valeur cherchée et effectue une recherche approximative si l'on omet son quatrième argument. RECHERCHEX lève les deux contraintes, et sa gestion explicite du cas non trouvé évite qu'un code d'erreur circule dans le modèle."},
+   {q:"Vous devez récupérer le chiffre d'affaires d'une société identifiée par son SIREN, dans un tableau où la colonne SIREN se trouve à droite de celle du chiffre d'affaires, sur une version d'Excel dépourvue de RECHERCHEX. Quelle construction ?",o:["INDEX sur la colonne du chiffre d'affaires, EQUIV sur la colonne SIREN avec le type de correspondance 0","RECHERCHEV avec le quatrième argument VRAI","RECHERCHEV après avoir inversé les deux colonnes du tableau source","SOMME.SI avec le SIREN comme critère"],a:0,e:"INDEX désigne la colonne d'où extraire, EQUIV trouve la ligne, et le type 0 force la correspondance exacte. C'est la seule des quatre propositions qui fonctionne sans modifier la source : inverser des colonnes dans un fichier reçu est exactement ce qu'un audit reproche."}]};
 
 BRIEFS["fonctions-logiques"]={why:"La gestion des erreurs distingue un modèle qui circule d'un modèle qui embarrasse.",
 pts:["SI imbriqués au-delà de trois niveaux : passer à SI.CONDITIONS ou à une table de correspondance.","SIERREUR masque l'erreur, il ne la corrige pas. À n'utiliser qu'après avoir compris sa cause.","ET et OU se combinent dans le test logique d'un SI, jamais séparément.","SOMME.SI.ENS et NB.SI.ENS remplacent la plupart des formules matricielles complexes.","Un drapeau 1 ou 0 multiplié vaut souvent mieux qu'un SI : plus lisible, plus rapide, plus auditable."],
-q:{q:"Pourquoi préférer un drapeau 1 ou 0 multiplié à un SI dans une ligne de projection ?",o:["Plus lisible, plus rapide et plus facile à auditer","Le SI est interdit","Le drapeau est plus précis","Aucune différence"],a:0,e:"Une multiplication par un drapeau rend la condition visible dans la ligne d'hypothèses, plutôt que cachée dans une formule."}};
+q:[{q:"Pourquoi préférer un drapeau 1 ou 0 multiplié à un SI dans une ligne de projection ?",o:["Plus lisible, plus rapide et plus facile à auditer","Le SI est interdit","Le drapeau est plus précis","Aucune différence"],a:0,e:"Une multiplication par un drapeau rend la condition visible dans la ligne d'hypothèses, plutôt que cachée dans une formule."},
+   {q:"Dans quel cas l'usage de SIERREUR est-il légitime ?",o:["Une fois la cause de l'erreur identifiée et la valeur de repli choisie en connaissance de cause","Systématiquement, autour de toute formule de recherche","Jamais, la fonction est à proscrire","Uniquement dans les cellules de saisie"],a:0,e:"SIERREUR masque, il ne corrige pas. Posé par réflexe, il transforme une erreur visible en zéro silencieux qui se propage dans tout le modèle. Posé après diagnostic, il documente une décision."},
+   {q:"Vous projetez un chiffre d'affaires qui ne doit croître qu'à partir de la troisième année. Quelle écriture est la plus auditable ?",o:["Une ligne de drapeau valant 0 ou 1 par année, multipliée par le taux de croissance","Des SI imbriqués testant le numéro de l'année dans chaque colonne","Un SIERREUR englobant la formule de croissance","Le taux saisi en dur dans la formule à partir de la colonne de l'année 3"],a:0,e:"Le drapeau isole l'hypothèse sur une ligne visible, lisible d'un coup d'œil et modifiable sans toucher aux formules. Les SI imbriqués enfouissent la règle dans chaque cellule, et la constante en dur la rend introuvable."}]};
 
 BRIEFS["dates-decalages"]={why:"Un calendrier de modèle mal construit condamne à réécrire toutes les formules à chaque changement d'horizon.",
 pts:["Une seule ligne de dates, en haut, reprise par toutes les feuilles par référence.","FIN.MOIS et MOIS.DECALER génèrent les périodes sans saisie manuelle.","Un drapeau historique ou projeté par colonne pilote la bascule des formules.","Les décalages de paiement se modélisent par DECALER ou par des colonnes de retard explicites.","Pour un modèle mensuel, prévoir dès l'origine l'agrégation trimestrielle et annuelle par SOMME.SI.ENS."],
@@ -2961,7 +3053,9 @@ q:{q:"Quel fichier permet de reconstituer le chiffre d'affaires par client sans 
 
 BRIEFS["mfc"]={why:"Un contrôle qui ne se voit pas n'existe pas. La mise en forme conditionnelle rend l'erreur visible.",
 pts:["Un jeu de règles standard : erreur en rouge, alerte en orange, contrôle validé en vert.","Les barres de données visualisent une distribution sans créer de graphique.","Les règles se posent sur des plages nommées pour survivre à l'insertion de lignes.","Une seule règle par contrôle, jamais de superposition de règles contradictoires.","Un indicateur global unique en haut de chaque feuille, alimenté par la feuille de contrôles."],
-q:{q:"Où placer l'indicateur global de contrôle d'un modèle ?",o:["En haut de chaque feuille, alimenté par la feuille de contrôles","Uniquement sur la feuille de contrôles","Dans un commentaire","Nulle part, c'est superflu"],a:0,e:"Un contrôle visible uniquement sur une feuille que personne n'ouvre ne protège de rien."}};
+q:[{q:"Où placer l'indicateur global de contrôle d'un modèle ?",o:["En haut de chaque feuille, alimenté par la feuille de contrôles","Uniquement sur la feuille de contrôles","Dans un commentaire","Nulle part, c'est superflu"],a:0,e:"Un contrôle visible uniquement sur une feuille que personne n'ouvre ne protège de rien."},
+   {q:"Pourquoi poser les règles de mise en forme conditionnelle sur des plages nommées ?",o:["Pour qu'elles survivent à l'insertion de lignes dans le modèle","Pour accélérer le recalcul du classeur","Parce que les règles ne fonctionnent pas sur des références directes","Pour pouvoir superposer plusieurs règles sur la même cellule"],a:0,e:"Une règle posée sur une référence directe se décale ou se fragmente dès qu'on insère une ligne, et personne ne s'en aperçoit. Sur une plage nommée, elle suit la structure."},
+   {q:"Un modèle comporte quatorze contrôles répartis sur six feuilles, dont un seul échoue. Comment rendre l'information immédiatement lisible ?",o:["Un indicateur global unique en haut de chaque feuille, alimenté par la feuille de contrôles, qui passe au rouge dès qu'un contrôle échoue","Colorer en rouge les quatorze cellules de contrôle","Ajouter une règle de mise en forme par feuille, indépendante des autres","Placer un commentaire sur la cellule fautive"],a:0,e:"Le lecteur d'un modèle ne doit pas avoir à parcourir six feuilles pour savoir si le classeur est sain. Un agrégat unique, répété en haut de chaque feuille et alimenté par une seule source, donne la réponse en une seconde et pointe ensuite vers le détail."}]};
 
 BRIEFS["circulaires"]={why:"Une circularité non maîtrisée transforme un modèle en boîte noire instable.",
 pts:["Cause la plus fréquente : intérêts calculés sur un solde moyen qui dépend du résultat, qui dépend des intérêts.","Solution 1 : calcul itératif activé, précision réglée, avec un interrupteur pour couper la boucle.","Solution 2 : intérêts calculés sur le solde d'ouverture, sans circularité, moins exact mais robuste.","Un interrupteur de coupure permet de repartir d'un état sain après une erreur en chaîne.","Ne jamais diffuser un modèle itératif sans avertir le destinataire, l'option est désactivée par défaut."],
@@ -2977,24 +3071,34 @@ q:{q:"Quel avantage principal de Power Query sur un nettoyage manuel ?",o:["La t
 
 BRIEFS["graphiques-banking"]={why:"Un graphique de banque doit se comprendre en trois secondes, sans légende à déchiffrer.",
 pts:["Waterfall pour un pont : évolution d'un agrégat décomposée en contributions positives et négatives.","Football field pour une synthèse de valorisation : une barre horizontale par méthode, avec la fourchette.","Bridge d'EBITDA pour expliquer un écart entre deux exercices ou entre présenté et normatif.","Étiquettes de données directement sur le graphique, jamais de légende séparée quand on peut l'éviter.","Deux couleurs maximum plus une couleur d'accentuation. La couleur porte une information, jamais une décoration."],
-q:{q:"Quel graphique présente une synthèse de valorisation par méthode ?",o:["Le football field","Le waterfall","Le camembert","La courbe cumulée"],a:0,e:"Le football field superpose les fourchettes de chaque méthode sur un axe de valeur commun, ce qui rend la zone de recoupement immédiatement visible."}};
+q:[{q:"Quel graphique présente une synthèse de valorisation par méthode ?",o:["Le football field","Le waterfall","Le camembert","La courbe cumulée"],a:0,e:"Le football field superpose les fourchettes de chaque méthode sur un axe de valeur commun, ce qui rend la zone de recoupement immédiatement visible."},
+   {q:"Combien de couleurs au maximum sur un graphique de livrable, et pour quel usage ?",o:["Deux, plus une couleur d'accentuation, chacune portant une information","Une par série, sans limite, pour distinguer les données","Quatre au minimum, pour rendre la lecture agréable","Autant que de catégories, avec une légende séparée"],a:0,e:"La couleur est un porteur d'information rare : dès qu'elle décore, elle cesse d'informer. Deux couleurs plus un accent suffisent à distinguer réalisé et projeté, ou base et écart, et à pointer l'élément que le lecteur doit regarder."},
+   {q:"Vous devez montrer comment une valeur d'entreprise de 12 M€ devient un prix des titres de 9,4 M€, en détaillant dette financière, trésorerie et compte courant d'associé. Quel graphique, et quelle règle d'étiquetage ?",o:["Un waterfall, étiquettes de données posées directement sur chaque barre, sans légende séparée","Un football field, avec une barre par élément du pont","Un histogramme empilé, avec légende sous le graphique","Un tableau, le pont ne se représente pas graphiquement"],a:0,e:"Le waterfall est fait pour décomposer le passage d'un agrégat à un autre en contributions positives et négatives : c'est exactement un pont valeur d'entreprise vers prix. Le football field sert à comparer des fourchettes de valorisation entre méthodes, ce n'est pas le même objet. Les étiquettes sur les barres évitent au lecteur l'aller-retour vers une légende."}]};
 
 BRIEFS["restitution-slides"]={why:"Un livrable mal présenté fait douter des calculs qu'il contient.",
 pts:["Un message par page, écrit dans le titre. Le titre affirme, le corps prouve.","Tableaux plats et filtrables, jamais de bandeaux fusionnés qui empêchent le tri.","Chiffres au format français : virgule décimale, espace insécable pour les milliers, unité rappelée en en-tête.","Une source nommée sous chaque tableau et chaque graphique, sans exception.","La densité vient du fond, pas de la mise en forme. Pas de gras à outrance."],
-q:{q:"Que doit contenir le titre d'une page de livrable ?",o:["Le message à retenir, sous forme d'affirmation","Le nom de la section","Un titre neutre","La date"],a:0,e:"Un titre affirmatif permet de lire la conclusion d'un document en parcourant seulement les titres. C'est la règle la plus efficace de la présentation professionnelle."}};
+q:[{q:"Que doit contenir le titre d'une page de livrable ?",o:["Le message à retenir, sous forme d'affirmation","Le nom de la section","Un titre neutre","La date"],a:0,e:"Un titre affirmatif permet de lire la conclusion d'un document en parcourant seulement les titres. C'est la règle la plus efficace de la présentation professionnelle."},
+   {q:"Comment présenter un montant de 1 234 567 euros dans un livrable destiné à un cédant français ?",o:["1 234 567 €, milliers séparés par une espace insécable et unité rappelée en en-tête de colonne","1,234,567 €","1.234.567 EUR","1234567€"],a:0,e:"La virgule sépare les décimales en français, jamais les milliers, et l'espace insécable évite qu'un montant se coupe en fin de ligne. Rappeler l'unité en en-tête plutôt que sur chaque cellule allège le tableau sans perdre l'information."},
+   {q:"Un tableau de synthèse comporte des bandeaux fusionnés par phase et ne porte aucune source. Quelles corrections, et pourquoi dans cet ordre ?",o:["Nommer la source d'abord, car sans elle le tableau n'est pas opposable, puis remettre à plat pour qu'il redevienne triable et filtrable","Remettre à plat d'abord, la source étant un détail de forme","Conserver les bandeaux, qui structurent la lecture, et ajouter la source en note de bas de page","Remplacer le tableau par un graphique, qui n'exige pas de source"],a:0,e:"Un chiffre sans source nommée ne peut pas être défendu en réunion : c'est le défaut qui disqualifie le document, donc le premier à corriger. La fusion de cellules, elle, empêche le destinataire de trier et de filtrer, ce qui est le seul usage réel qu'il fera du tableau."}]};
 
 /* ── Phase 3, modélisation ── */
 BRIEFS["hypotheses-drivers"]={why:"Un modèle vaut ce que valent ses inducteurs. Le reste n'est que de l'arithmétique.",
 pts:["Un inducteur est une variable qui explique un agrégat et sur laquelle on a une observation historique.","Chiffre d'affaires par volume et prix vaut mieux qu'un taux de croissance global.","Chaque hypothèse porte trois informations : valeur, source, plage de variation raisonnable.","Une hypothèse sans historique de référence est une conviction, à identifier comme telle.","Le nombre d'hypothèses se limite : au-delà de trente inducteurs, plus personne ne les pilote."],
-q:{q:"Quelle projection de chiffre d'affaires est la plus défendable ?",o:["Volume multiplié par prix, chacun projeté séparément","Un taux de croissance global de 5 pour cent","La moyenne des trois dernières années","Le budget du dirigeant"],a:0,e:"Décomposer permet de discuter séparément l'effet volume et l'effet prix, et de confronter chacun à une réalité observable."}};
+q:[{q:"Quelle projection de chiffre d'affaires est la plus défendable ?",o:["Volume multiplié par prix, chacun projeté séparément","Un taux de croissance global de 5 pour cent","La moyenne des trois dernières années","Le budget du dirigeant"],a:0,e:"Décomposer permet de discuter séparément l'effet volume et l'effet prix, et de confronter chacun à une réalité observable."},
+   {q:"Qu'est-ce qui distingue un inducteur d'une hypothèse ordinaire ?",o:["Il explique un agrégat et l'on dispose d'une observation historique pour le calibrer","Il est saisi en bleu dans le modèle","Il porte toujours sur le chiffre d'affaires","Il est validé par le cédant"],a:0,e:"Sans historique, on ne calibre rien : on postule. Cela reste parfois nécessaire, mais il faut alors l'appeler une conviction et l'assortir d'une plage de variation, pas la présenter comme un inducteur."},
+   {q:"Votre modèle compte quarante-six inducteurs, dont trois n'ont aucun historique de référence. Quelle décision ?",o:["Réduire le nombre d'inducteurs pour que le modèle reste pilotable, et identifier explicitement les trois sans historique comme des convictions, avec leur plage de variation","Conserver les quarante-six : la précision augmente avec le nombre d'inducteurs","Supprimer les trois sans historique, qui ne sont pas modélisables","Remplacer les trois par une moyenne sectorielle, sans le mentionner dans les hypothèses"],a:0,e:"Au-delà d'une trentaine d'inducteurs, plus personne ne les pilote et le modèle devient une boîte noire : la précision apparente augmente pendant que la fiabilité baisse. Quant aux trois sans historique, les supprimer appauvrit le modèle et les déguiser en moyenne sectorielle non signalée est le seul choix véritablement fautif des quatre."}]};
 
 BRIEFS["projection-ca"]={why:"Le chiffre d'affaires est la première ligne du modèle et la source de toutes les autres erreurs.",
 pts:["Décomposer par activité, par segment client ou par zone selon ce qui pilote réellement l'activité.","Distinguer la base récurrente du nouveau : leurs taux de croissance n'ont rien à voir.","Pour une base contractuelle : chiffre d'affaires récurrent = base précédente x (1 - attrition) x (1 + indexation) + affaires nouvelles.","Le carnet de commandes ou le portefeuille en cours donne la visibilité sur les douze premiers mois.","Toute projection supérieure à la croissance historique doit s'appuyer sur un fait, pas sur un espoir."],
-q:{q:"Base récurrente de 1 000, attrition de 6 %, indexation de 2 %, affaires nouvelles de 80. Chiffre d'affaires projeté ?",o:["1 038","1 080","1 040","960"],a:0,e:"1 000 x 0,94 x 1,02 = 958,8, plus 80 d'affaires nouvelles = 1 038,8."}};
+q:[{q:"Base récurrente de 1 000, attrition de 6 %, indexation de 2 %, affaires nouvelles de 80. Chiffre d'affaires projeté ?",o:["1 038","1 080","1 040","960"],a:0,e:"1 000 x 0,94 x 1,02 = 958,8, plus 80 d'affaires nouvelles = 1 038,8."},
+   {q:"Base récurrente de 2 400, attrition de 8 %, indexation de 3 %, affaires nouvelles de 150. Quel chiffre d'affaires récurrent l'année suivante ?",o:["2 424","2 550","2 358","2 274"],a:0,e:"2 400 x 0,92 x 1,03 = 2 274, puis + 150 = 2 424. L'ordre compte : l'indexation s'applique à la base qui reste après attrition, pas à la base de départ. Et les affaires nouvelles s'ajoutent après, sans être indexées puisqu'elles arrivent en cours d'année."},
+   {q:"Une projection retient une croissance de 12 % quand l'historique des trois derniers exercices s'établit à 4 %. Qu'exige cette hypothèse ?",o:["Un fait documenté : contrat signé, carnet de commandes, ouverture d'un site, recrutement commercial déjà réalisé","L'accord écrit du cédant sur le chiffre retenu","Une note de synthèse expliquant la stratégie de l'entreprise","Rien de particulier, une projection est par nature une hypothèse"],a:0,e:"Toute projection supérieure à la tendance observée doit s'appuyer sur un fait, pas sur une intention. La différence est opérationnelle : un fait se vérifie en audit, une intention se renégocie."}]};
 
 BRIEFS["projection-couts"]={why:"Modéliser tous les coûts en pourcentage du chiffre d'affaires fait disparaître le levier opérationnel.",
 pts:["Classer chaque poste : variable, fixe, semi-variable. Le classement se fait sur l'historique, par régression simple.","Les coûts variables se projettent en pourcentage du chiffre d'affaires ou du volume.","Les coûts fixes se projettent en valeur, indexés sur l'inflation.","Les coûts semi-variables se projettent par paliers : un palier par tranche d'activité.","Le levier opérationnel est ce qui rend la marge sensible à la croissance. L'écraser rend le modèle inutile."],
-q:{q:"Pourquoi ne pas projeter les loyers en pourcentage du chiffre d'affaires ?",o:["Ce sont des coûts fixes : le pourcentage efface le levier opérationnel","Parce que la TVA s'applique","Parce qu'ils sont déductibles","Aucune raison particulière"],a:0,e:"Un coût fixe modélisé en pourcentage augmente automatiquement avec l'activité, ce qui supprime l'effet d'échelle qui fait la valeur de la croissance."}};
+q:[{q:"Pourquoi ne pas projeter les loyers en pourcentage du chiffre d'affaires ?",o:["Ce sont des coûts fixes : le pourcentage efface le levier opérationnel","Parce que la TVA s'applique","Parce qu'ils sont déductibles","Aucune raison particulière"],a:0,e:"Un coût fixe modélisé en pourcentage augmente automatiquement avec l'activité, ce qui supprime l'effet d'échelle qui fait la valeur de la croissance."},
+   {q:"Historique d'un poste de charges : 600 pour un chiffre d'affaires de 4 000, puis 660 pour 5 000, puis 690 pour 5 500. Comment le classer et le projeter ?",o:["Semi-variable : environ 360 de part fixe, plus 6 % du chiffre d'affaires","Variable, à 15 % du chiffre d'affaires","Fixe, à indexer sur l'inflation","Variable, à 12,5 % du chiffre d'affaires"],a:0,e:"Entre les deux premiers exercices, le chiffre d'affaires progresse de 1 000 et la charge de 60, soit un taux marginal de 6 %, confirmé sur la période suivante (+ 500 et + 30). La part fixe s'en déduit : 600 - 6 % x 4 000 = 360. Retenir 15 %, soit 600 / 4 000, revient à traiter la part fixe comme variable et gonfle mécaniquement les charges projetées."},
+   {q:"Pourquoi le levier opérationnel disparaît-il si l'on projette toutes les charges en pourcentage du chiffre d'affaires ?",o:["Parce que la marge devient constante par construction, alors que c'est la part fixe qui la fait varier avec la croissance","Parce que les charges variables sont surestimées","Parce que le chiffre d'affaires n'est pas un bon inducteur","Il ne disparaît pas, il devient simplement plus régulier"],a:0,e:"Si toute charge suit le chiffre d'affaires, la marge est la même à 5 M€ et à 15 M€. Or c'est exactement l'inverse qui intéresse un acquéreur : savoir combien de marge supplémentaire produit un euro de croissance. Un modèle sans part fixe ne répond plus à cette question."}]};
 
 BRIEFS["masse-salariale"]={why:"En société de services, la masse salariale représente 50 à 70 % des charges. Elle mérite sa propre feuille.",
 pts:["Modéliser par effectif et par coût moyen chargé, jamais par un montant global indexé.","Distinguer les catégories : production, commercial, support. Leurs évolutions diffèrent.","Prévoir l'augmentation générale, l'augmentation individuelle et l'effet de noria séparément.","Le taux de charges patronales se calcule sur l'historique réel, pas sur un barème théorique.","Les recrutements se positionnent au mois près la première année, l'effet année pleine se voit la seconde."],
@@ -3002,7 +3106,9 @@ q:{q:"Un recrutement en juillet à 60 k€ chargés annuels. Coût de l'année e
 
 BRIEFS["schema-amortissement"]={why:"L'échéancier d'immobilisations relie capex, dotations et valeur nette comptable de façon cohérente.",
 pts:["Un bloc par catégorie d'immobilisation, avec sa durée d'amortissement propre.","Amortir l'existant selon sa durée résiduelle, le nouveau capex selon sa durée normale.","Valeur nette de clôture = valeur nette d'ouverture + capex - dotations - valeur nette des cessions.","La dotation projetée alimente le compte de résultat et se neutralise dans le tableau de flux.","En régime permanent, capex et dotations convergent. Un écart durable signale une erreur d'hypothèse."],
-q:{q:"VNC d'ouverture 1 200, capex 300, dotations 250, aucune cession. VNC de clôture ?",o:["1 250","1 750","1 150","900"],a:0,e:"1 200 + 300 - 250 = 1 250. L'actif progresse car l'investissement dépasse la dépréciation."}};
+q:[{q:"VNC d'ouverture 1 200, capex 300, dotations 250, aucune cession. VNC de clôture ?",o:["1 250","1 750","1 150","900"],a:0,e:"1 200 + 300 - 250 = 1 250. L'actif progresse car l'investissement dépasse la dépréciation."},
+   {q:"Un actif existant présente une valeur nette de 900 et une durée résiduelle de 3 ans. Vous investissez 600 en année 1, amortissables sur 5 ans. Quelle dotation en année 2 ?",o:["420","300","120","500"],a:0,e:"900 / 3 = 300 sur l'existant, amorti selon sa durée résiduelle et non selon une durée neuve. 600 / 5 = 120 sur le nouveau capex, amorti selon sa durée normale. Total 420. Confondre les deux durées est l'erreur classique : elle étale l'existant sur trop d'années et sous-estime les dotations des premiers exercices."},
+   {q:"En régime permanent, capex et dotations convergent. Que signale un écart durable entre les deux ?",o:["Une erreur d'hypothèse dans le modèle, à corriger avant toute conclusion","Une politique d'investissement dynamique, à valoriser","Un changement de méthode d'amortissement","Rien : les deux grandeurs sont indépendantes"],a:0,e:"À l'équilibre, une entreprise renouvelle ce qu'elle consomme : les investissements rejoignent les dotations. Un écart qui persiste sur tout l'horizon signifie soit un capex projeté irréaliste, soit un échéancier d'amortissement mal construit. Dans les deux cas, la trésorerie projetée est fausse."}]};
 
 BRIEFS["capex"]={why:"Confondre capex de maintenance et capex de croissance conduit à surévaluer les flux disponibles.",
 pts:["Capex de maintenance : ce qu'il faut dépenser pour maintenir la capacité actuelle. Proche des dotations en régime permanent.","Capex de croissance : ce qui augmente la capacité. Doit s'accompagner d'une hausse d'activité modélisée.","Le flux disponible normatif retient le capex de maintenance, jamais le capex de croissance seul.","Historique du ratio capex sur chiffre d'affaires sur cinq ans : première référence de calibrage.","Un capex de croissance sans effet chiffré sur le chiffre d'affaires est une incohérence de modèle."],
@@ -3010,7 +3116,9 @@ q:{q:"Un plan prévoit 500 k€ de capex de croissance sans hausse d'activité a
 
 BRIEFS["controles-equilibre"]={why:"Un modèle sans contrôles est un modèle dont personne ne peut garantir les résultats, à commencer par son auteur.",
 pts:["Contrôle 1 : actif moins passif égale zéro, sur chaque colonne.","Contrôle 2 : trésorerie du bilan égale trésorerie du tableau de flux.","Contrôle 3 : trésorerie jamais inférieure au plancher défini.","Contrôle 4 : soldes de dette jamais négatifs, jamais supérieurs aux montants autorisés.","Contrôle 5 : somme des pourcentages de répartition égale cent, partout où c'est applicable."],
-q:{q:"Quel contrôle détecte une liaison manquante entre le tableau de flux et le bilan ?",o:["Trésorerie du bilan comparée à celle du tableau de flux","Le contrôle des pourcentages","Le plancher de trésorerie","Le solde de dette"],a:0,e:"Si les deux trésoreries divergent, un flux n'est pas reporté ou une variation de bilan n'a pas de contrepartie."}};
+q:[{q:"Quel contrôle détecte une liaison manquante entre le tableau de flux et le bilan ?",o:["Trésorerie du bilan comparée à celle du tableau de flux","Le contrôle des pourcentages","Le plancher de trésorerie","Le solde de dette"],a:0,e:"Si les deux trésoreries divergent, un flux n'est pas reporté ou une variation de bilan n'a pas de contrepartie."},
+   {q:"Pourquoi contrôler que la somme des pourcentages de répartition vaut exactement cent ?",o:["Parce qu'une répartition incomplète fait disparaître silencieusement une part du montant réparti","Parce qu'Excel refuse les répartitions incomplètes","Pour respecter la convention de couleurs du modèle","Parce que le bilan ne s'équilibre pas sinon"],a:0,e:"Une répartition à 97 % ne produit aucune erreur visible : elle réduit simplement le total de 3 %, sur toutes les périodes, sans qu'aucune cellule ne s'affiche en rouge. C'est le type d'écart qu'on ne trouve jamais par relecture, seulement par contrôle automatique."},
+   {q:"Le bilan s'équilibre sur les cinq années projetées, mais la trésorerie du bilan diffère de celle du tableau de flux à partir de l'année 3. Que faut-il en conclure ?",o:["La trésorerie du bilan n'est pas alimentée par le tableau de flux : l'équilibre est probablement obtenu par une variable d'ajustement qui masque l'erreur","Une simple accumulation d'arrondis, sans conséquence","Le bilan étant équilibré, il n'y a pas d'erreur à chercher","Il manque un contrôle de plancher de trésorerie"],a:0,e:"Un bilan équilibré ne prouve rien si le bouclage passe par une ligne d'ajustement : c'est justement son rôle d'absorber l'erreur. Le seul contrôle qui la révèle est la comparaison des deux trésoreries, et le fait que l'écart apparaisse à partir d'une année précise désigne la période où la liaison a été rompue."}]};
 
 BRIEFS["scenarios-cas"]={why:"Un seul cas est une prévision. Trois cas sont une analyse.",
 pts:["Cas bas, central, haut. Le cas central n'est pas la moyenne des deux autres, c'est le plus probable.","Faire varier deux à quatre inducteurs seulement, cohérents entre eux.","Le cas bas doit rester réaliste : un scénario de faillite n'apporte rien à une discussion de prix.","Documenter en une ligne l'histoire de chaque cas, en langage courant.","Le cas bas sert au banquier, le cas central à la valorisation, le cas haut à la discussion d'earn out."],
@@ -3022,16 +3130,22 @@ q:{q:"Le modèle renvoie une erreur quand on met la croissance à zéro. Que fau
 
 BRIEFS["modele-express"]={why:"En qualification, on a une heure et une liasse. Il faut produire une fourchette défendable.",
 pts:["Trois exercices historiques saisis depuis la liasse, EBE calculé, retraitements évidents identifiés.","Projection sur trois ans avec deux inducteurs seulement : croissance et marge.","Dette nette approchée depuis le bilan, sans recherche exhaustive des assimilés.","Valorisation par multiple uniquement, fourchette large assumée.","Le livrable est une page : fourchette, hypothèses, points à vérifier. Jamais un modèle complet."],
-q:{q:"Quel est le livrable d'un modèle express de qualification ?",o:["Une page : fourchette, hypothèses, points à vérifier","Un modèle intégré complet","Un mémorandum","Une LOI"],a:0,e:"La précision doit rester proportionnée à l'information disponible. Afficher trois décimales sur une liasse seule est trompeur."}};
+q:[{q:"Quel est le livrable d'un modèle express de qualification ?",o:["Une page : fourchette, hypothèses, points à vérifier","Un modèle intégré complet","Un mémorandum","Une LOI"],a:0,e:"La précision doit rester proportionnée à l'information disponible. Afficher trois décimales sur une liasse seule est trompeur."},
+   {q:"En qualification, vous disposez d'une heure et de trois liasses fiscales. Quels choix de modélisation ?",o:["Deux inducteurs seulement, croissance et marge, dette nette approchée depuis le bilan, valorisation par multiple avec une fourchette large assumée, et un livrable d'une page","Un modèle à trois états complet sur cinq ans, quitte à dépasser largement l'heure","Un flux de trésorerie actualisé simplifié, plus rigoureux qu'un multiple","Attendre les données de gestion mensuelles avant de produire la moindre estimation"],a:0,e:"L'objet d'un modèle express est de décider s'il faut aller plus loin, pas de fixer un prix. Deux inducteurs suffisent à cadrer un ordre de grandeur, et une fourchette large annoncée comme telle est plus honnête qu'une valeur unique obtenue en trois fois plus de temps. Un flux actualisé sur des hypothèses non vérifiées donne une fausse précision."},
+   {q:"Pourquoi la dette nette est-elle seulement approchée dans un modèle express ?",o:["Parce que la recherche exhaustive des assimilés se fait après le NDA, avec les pièces, et qu'elle ne changerait pas la décision d'aller plus loin ou non","Parce que la dette nette n'a pas d'effet sur la valeur d'entreprise","Parce que le bilan ne permet jamais de la calculer","Parce qu'elle est du ressort de l'acquéreur, pas du conseil du cédant"],a:0,e:"Crédit-bail, comptes courants, engagements de retraite, dettes sociales différées : les assimilés se documentent sur pièces, et les pièces arrivent après l'accord de confidentialité. À ce stade, une dette nette approchée suffit pour situer une fourchette ; la précision viendrait cadrer un prix, ce qui n'est pas encore l'objet."}]};
 
 BRIEFS["revue-modele"]={why:"Relire son propre modèle avec les yeux d'un tiers est la dernière étape avant diffusion.",
 pts:["Les vingt points : équilibre du bilan, trésorerie positive, cohérence capex et dotations, convergence en fin d'horizon.","Vérifier que chaque hypothèse bleue est utilisée au moins une fois, et qu'aucune cellule noire n'est saisie en dur.","Tester deux valeurs extrêmes sur les trois inducteurs principaux.","Recouper trois chiffres clés avec la source externe : liasse, contrat, relevé bancaire.","Faire relire par quelqu'un qui n'a pas construit le modèle. C'est le seul contrôle qui trouve les erreurs de raisonnement."],
-q:{q:"Quel contrôle détecte le mieux une erreur de raisonnement, par opposition à une erreur de formule ?",o:["Une relecture par une personne qui n'a pas construit le modèle","Le contrôle d'équilibre du bilan","Le test de croissance nulle","La vérification des ancrages"],a:0,e:"Les contrôles automatiques détectent les incohérences internes. Une hypothèse fausse mais cohérente ne se voit qu'avec un regard extérieur."}};
+q:[{q:"Quel contrôle détecte le mieux une erreur de raisonnement, par opposition à une erreur de formule ?",o:["Une relecture par une personne qui n'a pas construit le modèle","Le contrôle d'équilibre du bilan","Le test de croissance nulle","La vérification des ancrages"],a:0,e:"Les contrôles automatiques détectent les incohérences internes. Une hypothèse fausse mais cohérente ne se voit qu'avec un regard extérieur."},
+   {q:"Pourquoi vérifier qu'aucune cellule noire ne contient une valeur saisie en dur ?",o:["Parce qu'une constante enfouie dans une formule échappe à toute analyse de sensibilité","Parce que le noir est réservé aux liens vers d'autres feuilles","Parce que les constantes ralentissent le recalcul du classeur","Parce qu'Excel ne les prend pas en compte dans les tables de données"],a:0,e:"Une hypothèse doit être visible pour être discutée et testée. Un 1,25 posé au milieu d'une formule ne figure dans aucune liste d'hypothèses, ne bouge dans aucun scénario, et personne ne se souvient d'où il vient trois semaines plus tard."},
+   {q:"Vous relisez un modèle qui passe tous les contrôles d'équilibre, dont les hypothèses sont correctement isolées, et dont la marge d'excédent brut atteint 34 % en année 5 contre 19 % en historique. Que faites-vous ?",o:["L'erreur n'est pas technique mais de raisonnement : demander le fait qui justifie le doublement de marge, et refaire tourner le modèle sans lui","Rien : les contrôles sont verts, le modèle est valide","Ramener la marge à 19 % et poursuivre la revue","Ajouter un contrôle d'équilibre supplémentaire sur la marge"],a:0,e:"Aucun contrôle automatique ne détecte une hypothèse invraisemblable : ils vérifient la cohérence interne, pas la vraisemblance. Corriger le chiffre sans en parler est pire encore, car cela efface la question au lieu de la poser. C'est exactement ce qu'un relecteur qui n'a pas construit le modèle est le seul à voir."}]};
 
 /* ── Phase 4, valorisation ── */
 BRIEFS["multiples-ca-per"]={why:"Quand l'EBE n'est pas significatif, d'autres multiples prennent le relais, avec leurs limites propres.",
 pts:["Multiple de chiffre d'affaires : utile en forte croissance ou en perte, mais ignore totalement la rentabilité.","PER : rapporte le prix au résultat net, donc sensible à la structure financière et à la fiscalité.","Multiples sectoriels : par encours en gestion de patrimoine, par commission en courtage, par mandat en administration de biens.","Un multiple sectoriel est une convention de marché : il faut connaître la base exacte utilisée par les praticiens.","Croiser au moins deux multiples : un écart important entre eux est une information en soi."],
-q:{q:"Pourquoi le PER est-il peu utilisé en small cap non cotée ?",o:["Il dépend de la structure financière et de la politique de rémunération du dirigeant","Il est trop complexe","Il n'existe pas de comparables","Il est interdit"],a:0,e:"Le résultat net d'une PME reflète des choix personnels du dirigeant. L'EBE retraité neutralise ces effets et se compare mieux."}};
+q:[{q:"Pourquoi le PER est-il peu utilisé en small cap non cotée ?",o:["Il dépend de la structure financière et de la politique de rémunération du dirigeant","Il est trop complexe","Il n'existe pas de comparables","Il est interdit"],a:0,e:"Le résultat net d'une PME reflète des choix personnels du dirigeant. L'EBE retraité neutralise ces effets et se compare mieux."},
+   {q:"Un cabinet de gestion de patrimoine gère 120 M€ d'encours et facture 1,1 M€ de commissions. Le marché retient 2,5 % des encours ou 3,2 fois les commissions. Quelle fourchette, et que conclure de l'écart ?",o:["3,0 à 3,5 M€ : l'écart vient d'un taux de commissionnement supérieur à celui qu'implique la convention de marché, ce qui est une information sur la cible et non une erreur de méthode","3,0 M€ : le multiple d'encours prime toujours en gestion de patrimoine","3,5 M€ : le multiple de commissions prime toujours, étant plus proche du résultat","Les deux méthodes se contredisant, aucune n'est exploitable"],a:0,e:"120 x 2,5 % = 3,0 M€, et 1,1 x 3,2 = 3,5 M€. Les deux conventions sont cohérentes entre elles pour un taux de commissionnement de 0,78 % des encours, soit 2,5 divisé par 3,2. Ici le cabinet facture 0,92 %, donc plus cher que la moyenne : c'est précisément ce que l'écart entre les deux multiples révèle, et c'est un argument de valorisation à documenter."},
+   {q:"Pourquoi croiser au moins deux multiples plutôt que de s'en tenir au plus pertinent ?",o:["Parce qu'un écart important entre deux multiples est en soi une information sur la cible","Parce que la moyenne de deux multiples est plus fiable qu'un seul","Parce que les acquéreurs exigent deux méthodes","Parce qu'un multiple unique n'est jamais publié par les praticiens"],a:0,e:"Deux multiples qui convergent confirment la lecture. Deux multiples qui divergent désignent l'endroit où la cible s'écarte de son secteur, et c'est souvent là que se trouve l'argument de négociation. Faire la moyenne, à l'inverse, efface l'information."}]};
 
 BRIEFS["echantillon-comps"]={why:"Un échantillon choisi pour arriver au bon chiffre se voit immédiatement et discrédite tout le travail.",
 pts:["Écrire les critères de sélection avant de regarder les multiples obtenus.","Documenter les exclusions autant que les inclusions : pourquoi telle société n'est pas retenue.","Cinq à dix comparables. En dessous, l'échantillon est fragile ; au-dessus, il perd sa cohérence.","Afficher toujours minimum, quartiles, médiane et maximum, jamais la seule médiane.","Tester la robustesse : retirer le plus haut et le plus bas et vérifier que la conclusion tient."],
@@ -3043,7 +3157,9 @@ q:{q:"Prime de contrôle et décote de minorité sont :",o:["Deux formulations s
 
 BRIEFS["fcff"]={why:"Le flux disponible pour la firme est ce qui revient à l'ensemble des apporteurs de capitaux.",
 pts:["FCFF = EBIT après impôt + dotations - capex - variation de BFR.","Avant charges financières : le coût de la dette est pris en compte par le WACC, pas dans les flux.","L'impôt se calcule sur l'EBIT, pas sur le résultat net, pour rester cohérent avec l'absence de charges financières.","Une variation de BFR positive est une sortie de trésorerie, donc un flux négatif.","Le FCFF sert avec le WACC et donne une valeur d'entreprise, jamais directement une valeur des titres."],
-q:{q:"Pourquoi calculer l'impôt sur l'EBIT et non sur le résultat courant dans un FCFF ?",o:["Pour rester cohérent avec l'exclusion des charges financières","Parce que c'est la règle fiscale","Pour réduire l'impôt","Aucune raison technique"],a:0,e:"Le FCFF ignore la structure financière. Utiliser un impôt calculé après charges financières y réintroduirait l'économie d'impôt liée à la dette, déjà prise en compte dans le WACC."}};
+q:[{q:"Pourquoi calculer l'impôt sur l'EBIT et non sur le résultat courant dans un FCFF ?",o:["Pour rester cohérent avec l'exclusion des charges financières","Parce que c'est la règle fiscale","Pour réduire l'impôt","Aucune raison technique"],a:0,e:"Le FCFF ignore la structure financière. Utiliser un impôt calculé après charges financières y réintroduirait l'économie d'impôt liée à la dette, déjà prise en compte dans le WACC."},
+   {q:"EBIT de 1 400, taux d'impôt de 25 %, dotations aux amortissements de 320, capex de 260, besoin en fonds de roulement passé de 540 à 610. Quel est le flux disponible pour la firme ?",o:["1 040","1 110","1 390","970"],a:0,e:"1 400 x 0,75 = 1 050, puis + 320 de dotations réintégrées, - 260 de capex, - 70 de variation du besoin en fonds de roulement, soit 1 040. Oublier la variation du besoin en fonds de roulement donne 1 110, et oublier le capex donne 1 390 : les deux erreurs surestiment le flux, donc la valeur."},
+   {q:"Pourquoi un flux disponible pour la firme ne donne-t-il jamais directement une valeur des titres ?",o:["Parce qu'il est calculé avant charges financières et actualisé au coût moyen pondéré du capital : il produit une valeur d'entreprise, dont il reste à déduire la dette nette","Parce qu'il ne tient pas compte de l'impôt","Parce qu'il faut lui appliquer une décote d'illiquidité","Parce qu'il ignore la valeur terminale"],a:0,e:"Le coût de la dette est déjà pris en compte dans le taux d'actualisation, pas dans les flux. Actualiser des flux avant frais financiers à un taux qui intègre la dette donne la valeur de l'ensemble des actifs économiques, donc la valeur d'entreprise. Le passage au prix des titres est l'étape suivante, celle du pont."}]};
 
 BRIEFS["fcfe"]={why:"Le flux disponible pour l'actionnaire donne directement la valeur des titres, sans passer par le pont.",
 pts:["FCFE = Résultat net + dotations - capex - variation de BFR + variation nette de dette.","S'actualise au coût des fonds propres, jamais au WACC.","Utile pour les établissements financiers, où la dette fait partie de l'exploitation.","Plus volatil que le FCFF, car sensible au calendrier de remboursement de la dette.","Donne directement la valeur des titres : ne pas y retrancher la dette une seconde fois."],
@@ -3051,7 +3167,9 @@ q:{q:"À quel taux actualiser un FCFE ?",o:["Le coût des fonds propres","Le WAC
 
 BRIEFS["cout-fonds-propres"]={why:"Le coût des fonds propres est le rendement exigé par un actionnaire pour supporter le risque de l'entreprise.",
 pts:["MEDAF : taux sans risque + bêta x prime de risque de marché.","En non coté, on ajoute une prime de taille et une prime spécifique documentée.","Le taux sans risque se prend sur une maturité longue, cohérente avec l'horizon d'investissement.","La prime de risque de marché se cite avec sa source et sa date, elle varie dans le temps.","Un coût des fonds propres inférieur à 10 % pour une PME française est difficile à défendre."],
-q:{q:"Rf 3 %, bêta 1,2, prime de marché 6 %, prime de taille 3 %. Coût des fonds propres ?",o:["13,2 %","10,2 %","9,0 %","12,0 %"],a:0,e:"3 + 1,2 x 6 + 3 = 3 + 7,2 + 3 = 13,2 %."}};
+q:[{q:"Rf 3 %, bêta 1,2, prime de marché 6 %, prime de taille 3 %. Coût des fonds propres ?",o:["13,2 %","10,2 %","9,0 %","12,0 %"],a:0,e:"3 + 1,2 x 6 + 3 = 3 + 7,2 + 3 = 13,2 %."},
+   {q:"Coût des fonds propres de 12,6 %, coût de la dette avant impôt de 4 %, impôt sur les sociétés à 25 %, structure cible de 70 % de fonds propres et 30 % de dette. Quel coût moyen pondéré du capital ?",o:["9,72 %","10,02 %","11,02 %","9,00 %"],a:0,e:"0,70 x 12,6 % = 8,82 %, et 0,30 x 4 % x (1 - 0,25) = 0,90 %, soit 9,72 %. L'erreur la plus fréquente consiste à oublier l'économie d'impôt sur les charges financières, ce qui donne 10,02 % et sous-évalue la valeur de plusieurs points."},
+   {q:"Pourquoi pondérer par une structure financière cible et non par la structure comptable observée ?",o:["Parce que la structure comptable reflète l'histoire du financement du cédant, pas celle que retiendra un acquéreur","Parce que la structure comptable n'est pas connue avant l'audit","Parce que les normes imposent une structure de marché","Parce que la dette comptable inclut le besoin en fonds de roulement"],a:0,e:"Une société sur-endettée par son histoire afficherait un coût du capital artificiellement bas, donc une valeur artificiellement haute, alors qu'un acquéreur refinancera à sa propre structure. La structure cible est celle du secteur ou celle de l'acquéreur type, et elle doit être annoncée comme une hypothèse."}]};
 
 BRIEFS["beta"]={why:"Le bêta mesure la sensibilité au risque de marché. Il se retraite avant d'être utilisé.",
 pts:["Bêta observé d'une cotée intègre son propre endettement : c'est un bêta endetté.","Désendetter : bêta désendetté = bêta endetté / (1 + (1 - t) x D / CP).","Réendetter à la structure cible de la société valorisée avec la formule inverse.","Prendre la médiane des bêtas désendettés de l'échantillon, jamais un bêta individuel.","Un bêta n'existe pas pour une société non cotée : il s'emprunte au secteur, ce qui est une approximation assumée."],
@@ -3063,7 +3181,9 @@ q:{q:"Comment présenter le résultat d'un DCF à un cédant ?",o:["Une fourchet
 
 BRIEFS["football-field"]={why:"La synthèse de valorisation est souvent la seule page que lira le décideur.",
 pts:["Une barre horizontale par méthode : DCF, comparables boursiers, comparables transactionnels, approche patrimoniale, prix maximum LBO.","Chaque barre porte sa fourchette basse et haute, avec les hypothèses en note.","La zone de recoupement des méthodes constitue la fourchette de valeur retenue.","Une méthode isolée très éloignée des autres doit être expliquée ou retirée, jamais laissée sans commentaire.","Ajouter une barre indicative des attentes du cédant permet de situer l'écart à combler."],
-q:{q:"Que représente la zone de recoupement d'un football field ?",o:["La fourchette de valeur retenue, corroborée par plusieurs méthodes","La valeur maximale","La moyenne des méthodes","Le prix final"],a:0,e:"Une valeur confirmée par plusieurs approches indépendantes est plus robuste qu'un chiffre issu d'une seule méthode."}};
+q:[{q:"Que représente la zone de recoupement d'un football field ?",o:["La fourchette de valeur retenue, corroborée par plusieurs méthodes","La valeur maximale","La moyenne des méthodes","Le prix final"],a:0,e:"Une valeur confirmée par plusieurs approches indépendantes est plus robuste qu'un chiffre issu d'une seule méthode."},
+   {q:"Sur un football field, le flux actualisé ressort entre 14 et 17 M€, les comparables boursiers entre 9 et 11 M€, les transactionnels entre 10 et 13 M€, le prix maximum LBO entre 11 et 12 M€. Que retenez-vous, et que faites-vous du flux actualisé ?",o:["La zone de recoupement, soit 11 à 13 M€, et le flux actualisé est expliqué ou retiré : isolé et supérieur, il signale des hypothèses de croissance ou de valeur terminale à justifier","La moyenne des quatre méthodes, soit environ 12,3 M€","La fourchette la plus large, soit 9 à 17 M€, pour ne rien exclure","Le flux actualisé, méthode la plus rigoureuse des quatre"],a:0,e:"Trois méthodes sur quatre se recoupent entre 11 et 13 M€ : c'est la fourchette défendable. La quatrième, seule et nettement au-dessus, ne prouve pas que le marché se trompe, elle indique presque toujours une valeur terminale trop généreuse ou une croissance perpétuelle trop élevée. Une méthode isolée s'explique ou se retire, elle ne se laisse jamais sans commentaire sur un livrable."},
+   {q:"Pourquoi ajouter au football field une barre indiquant les attentes du cédant ?",o:["Pour situer l'écart à combler et le rendre discutable avant d'entrer en négociation","Pour montrer au cédant que ses attentes sont excessives","Parce que les attentes du cédant constituent une méthode de valorisation","Pour respecter l'usage des banques d'affaires"],a:0,e:"L'écart entre les méthodes et l'attente est le véritable sujet du rendez-vous. Le poser sur le même graphique le transforme en question mesurable, discutée sur des hypothèses, au lieu d'un désaccord de principe découvert au moment de l'offre."}]};
 
 /* ── Phase 5, analyse stratégique ── */
 BRIEFS["business-model"]={why:"Si on ne sait pas expliquer comment la société gagne de l'argent en trois phrases, on ne peut pas la valoriser.",
@@ -3105,23 +3225,33 @@ q:{q:"Le cédant suit personnellement 70 % du chiffre d'affaires. Quelle conséq
 /* ── Phase 6, process ── */
 BRIEFS["typologie-operations"]={why:"Ce qui est cédé détermine la fiscalité, les garanties et le prix. C'est la première question du dossier.",
 pts:["Cession de titres : l'acquéreur reprend la société avec son passé, d'où la garantie d'actif et de passif.","Cession de fonds de commerce : reprise des actifs sans le passé, mais formalisme lourd et solidarité fiscale temporaire.","Cession de portefeuille ou de clientèle : usuel en courtage et en expertise comptable, prix exprimé en multiple de commissions ou d'honoraires.","Apport ou fusion : opérations à effet de levier fiscal, plus complexes, souvent entre professionnels.","Le choix a un effet fiscal majeur pour le cédant : plus-value sur titres contre plus-value professionnelle."],
-q:{q:"Quelle différence majeure entre cession de titres et cession de fonds de commerce ?",o:["La reprise ou non du passif antérieur","Le prix","Le délai","La confidentialité"],a:0,e:"En cession de titres, la société conserve tout son passé, y compris ses passifs inconnus. C'est la raison d'être de la garantie d'actif et de passif."}};
+q:[{q:"Quelle différence majeure entre cession de titres et cession de fonds de commerce ?",o:["La reprise ou non du passif antérieur","Le prix","Le délai","La confidentialité"],a:0,e:"En cession de titres, la société conserve tout son passé, y compris ses passifs inconnus. C'est la raison d'être de la garantie d'actif et de passif."},
+   {q:"Le cédant dirige une SARL et cherche à optimiser sa fiscalité personnelle. L'acquéreur veut éviter de reprendre un litige prud'homal en cours. Comment traiter cette opposition ?",o:["Les deux intérêts s'opposent structurellement : l'arbitrage se règle par le prix et par la garantie d'actif et de passif, pas par le choix de structure seul","La cession de fonds de commerce satisfait les deux parties","La cession de titres satisfait les deux parties dès lors qu'une provision est constituée","Le litige interdit toute opération avant son dénouement"],a:0,e:"La cession de titres est fiscalement favorable au cédant mais transfère le passé, donc le litige. La cession de fonds de commerce protège l'acquéreur mais bascule le cédant en plus-value professionnelle et impose un formalisme lourd. Aucune structure ne satisfait les deux : ce qui se négocie, c'est le prix, le périmètre de la garantie et éventuellement un séquestre dédié au litige."},
+   {q:"Comment s'exprime usuellement le prix d'une cession de portefeuille en courtage ?",o:["En multiple de commissions","En multiple d'EBITDA","En pourcentage de la valeur d'entreprise","En valeur nette comptable des contrats"],a:0,e:"Le portefeuille se valorise sur ce qu'il produit de façon récurrente, donc les commissions. Il faut connaître la base exacte retenue par les praticiens du segment : commissions de l'année écoulée, moyenne sur trois ans, ou commissions nettes de rétrocessions, l'écart entre ces conventions étant loin d'être négligeable."}]};
 
 BRIEFS["sell-buy-side"]={why:"Les deux mandats n'ont ni le même rythme, ni les mêmes livrables, ni les mêmes critères de succès.",
 pts:["Sell side : maximiser le prix et la sécurité d'exécution, créer de la concurrence entre acquéreurs.","Buy side : trouver la cible, éviter le processus compétitif, sécuriser une exclusivité tôt.","Le sell side produit teaser, mémorandum, data room. Le buy side produit une liste de cibles et une thèse.","Le rythme du sell side est imposé par le calendrier du process, celui du buy side par la disponibilité des cibles.","Le taux de succès d'un mandat vendeur bien préparé est nettement supérieur à celui d'un mandat acquéreur."],
-q:{q:"Quel est l'objectif principal d'un acquéreur conseillé en buy side ?",o:["Éviter le processus compétitif et sécuriser une exclusivité tôt","Faire monter les enchères","Publier un teaser","Créer une data room"],a:0,e:"La concurrence fait monter le prix. Un acquéreur cherche à traiter en bilatéral, un vendeur cherche l'inverse."}};
+q:[{q:"Quel est l'objectif principal d'un acquéreur conseillé en buy side ?",o:["Éviter le processus compétitif et sécuriser une exclusivité tôt","Faire monter les enchères","Publier un teaser","Créer une data room"],a:0,e:"La concurrence fait monter le prix. Un acquéreur cherche à traiter en bilatéral, un vendeur cherche l'inverse."},
+   {q:"Pourquoi le taux de succès d'un mandat vendeur bien préparé dépasse-t-il nettement celui d'un mandat acquéreur ?",o:["Parce que le vendeur maîtrise le calendrier et l'information, alors que l'acquéreur dépend de la disponibilité de cibles qu'il ne contrôle pas","Parce que les acquéreurs sont plus nombreux que les vendeurs","Parce que les honoraires de succès sont plus élevés en sell side","Parce que le vendeur accepte plus facilement de baisser son prix"],a:0,e:"En sell side, l'objet du mandat existe : l'entreprise est là, le calendrier se décide. En buy side, l'objet est à trouver, et une cible ne devient disponible que si son dirigeant le décide. C'est une différence de nature, pas d'effort."},
+   {q:"Vous conseillez un consolidateur en buy side. Une cible intéressante vient d'être mise en vente par une banque d'affaires, avec cinq acquéreurs déjà en concurrence. Quelle stratégie ?",o:["Tenter de sortir du processus compétitif en proposant tôt une offre ferme contre une exclusivité, ou renoncer : dans un processus organisé, l'avantage structurel est au vendeur","Entrer dans le processus et surenchérir jusqu'à l'emporter","Attendre l'échec du processus pour se positionner ensuite à un prix plus bas","Approcher le cédant en direct, sans passer par la banque d'affaires"],a:0,e:"Un processus compétitif est construit pour faire monter le prix : y entrer sans avantage revient à financer la concurrence. La sortie par le haut consiste à échanger de la vitesse et de la certitude contre de l'exclusivité. Contourner le conseil du vendeur, en revanche, est une faute qui ferme durablement la relation avec un intermédiaire que l'on retrouvera sur d'autres dossiers."}]};
 
 BRIEFS["mandat"]={why:"Le mandat encadre la relation, la rémunération et le périmètre. Ce qui n'y figure pas se discute mal ensuite.",
 pts:["Exclusivité, durée, périmètre géographique et sectoriel des acquéreurs approchés.","Rémunération : forfait de préparation, honoraires de succès, barème dégressif ou progressif.","Clause de survie : commission due si l'opération se réalise dans les mois suivant la fin du mandat, avec un acquéreur présenté.","Liste des acquéreurs exclus, généralement ceux déjà en contact avec le cédant.","Obligations réciproques : le cédant s'engage à fournir l'information et à ne pas négocier en direct."],
-q:{q:"À quoi sert la clause de survie d'un mandat ?",o:["Protéger le conseil si l'opération se conclut peu après la fin du mandat avec un acquéreur qu'il a présenté","Prolonger l'exclusivité","Fixer les honoraires","Limiter la responsabilité"],a:0,e:"Sans cette clause, il suffirait d'attendre l'expiration du mandat pour conclure sans payer les honoraires de succès."}};
+q:[{q:"À quoi sert la clause de survie d'un mandat ?",o:["Protéger le conseil si l'opération se conclut peu après la fin du mandat avec un acquéreur qu'il a présenté","Prolonger l'exclusivité","Fixer les honoraires","Limiter la responsabilité"],a:0,e:"Sans cette clause, il suffirait d'attendre l'expiration du mandat pour conclure sans payer les honoraires de succès."},
+   {q:"Un cédant refuse l'exclusivité : il veut pouvoir négocier en direct avec deux acquéreurs qu'il connaît déjà. Comment traiter la demande ?",o:["Acquérir la liste nominative des acquéreurs exclus, par écrit, et maintenir l'exclusivité sur tous les autres avec clause de survie","Accepter un mandat sans exclusivité : la clause de survie protège suffisamment","Refuser le mandat, l'exclusivité étant non négociable","Accepter l'exclusivité totale en renonçant à la clause de survie"],a:0,e:"La demande est légitime et se traite par une liste d'exclusion nommée, pas par l'abandon de l'exclusivité. Sans exclusivité, tout le travail de préparation, valorisation, teaser, mémorandum, devient non rémunérable : le cédant peut conclure avec n'importe qui sans honoraires. La clause de survie protège d'un contournement dans le temps, pas d'une absence d'exclusivité."},
+   {q:"Que couvre la rémunération de préparation, distincte des honoraires de succès ?",o:["Le travail réalisé avant tout contact acquéreur : valorisation, teaser, mémorandum, liste de cibles","Les frais de déplacement et les frais de dossier","La rémunération de l'avocat rédacteur du protocole","Une avance sur les honoraires de succès, remboursable en cas d'échec"],a:0,e:"Ce travail a lieu quoi qu'il arrive et représente l'essentiel de l'effort initial. Le facturer séparément protège les deux parties : le conseil n'avance pas plusieurs semaines de travail à fonds perdus, et le cédant mesure ce qu'il achète avant de s'engager sur un succès hypothétique."}]};
 
 BRIEFS["origination"]={why:"Sans dossier, pas de métier. La qualification évite de travailler six mois sur une opération qui ne se fera pas.",
 pts:["Trois questions de qualification : le cédant est-il décidé, l'entreprise est-elle cessible, les attentes de prix sont-elles réalistes ?","Un cédant qui ne peut pas dire pourquoi il vend maintenant n'est pas prêt.","Vérifier l'actionnariat réel : un associé minoritaire opposé bloque toute opération.","Établir une fourchette de valeur avant de signer le mandat, et la partager.","Consigner immédiatement la qualification dans l'outil de suivi, avec la date et le verbatim des attentes de prix."],
-q:{q:"Quel signal indique qu'un cédant n'est pas prêt ?",o:["Il ne peut pas expliquer pourquoi il vend maintenant","Il demande un prix élevé","Il veut réfléchir une semaine","Il consulte plusieurs conseils"],a:0,e:"L'absence de déclencheur clair signale une réflexion inaboutie. Le process s'arrêtera au premier obstacle, souvent après plusieurs mois de travail."}};
+q:[{q:"Quel signal indique qu'un cédant n'est pas prêt ?",o:["Il ne peut pas expliquer pourquoi il vend maintenant","Il demande un prix élevé","Il veut réfléchir une semaine","Il consulte plusieurs conseils"],a:0,e:"L'absence de déclencheur clair signale une réflexion inaboutie. Le process s'arrêtera au premier obstacle, souvent après plusieurs mois de travail."},
+   {q:"Un cédant est décidé, l'entreprise est cessible, mais il attend 12 fois l'EBITDA quand le secteur se traite entre 5 et 7 fois. Que faites-vous ?",o:["Partager la fourchette de valeur avant de signer, et consigner le verbatim des attentes avec sa date : soit l'écart se réduit et le mandat est signable, soit il ne l'est pas","Signer le mandat : le marché ramènera le cédant à la raison au fil des retours","Refuser et clore la relation, l'écart étant rédhibitoire","Signer en affichant une fourchette haute, quitte à la corriger plus tard"],a:0,e:"Un mandat signé sur un écart de valeur non traité échoue presque toujours, après plusieurs mois de travail et en abîmant la relation. Partager la fourchette avant signature est inconfortable mais décisif. Et consigner le verbatim daté sert à deux choses : mesurer le chemin parcouru, et éviter la réécriture de l'histoire au moment de la première offre."},
+   {q:"Pourquoi vérifier l'actionnariat réel dès la qualification, avant même la valorisation ?",o:["Parce qu'un associé minoritaire opposé bloque l'opération, quelle que soit la qualité du dossier","Parce que la répartition du capital détermine le multiple applicable","Parce que l'acquéreur exigera la liste des associés dans le teaser","Parce que le mandat doit être signé par le seul actionnaire majoritaire"],a:0,e:"Un pacte, un droit de préemption, une clause d'agrément ou simplement un minoritaire hostile suffisent à rendre l'opération impossible. C'est la vérification la moins coûteuse et la plus rentable de toute la phase de qualification."}]};
 
 BRIEFS["dataroom"]={why:"La data room est le lieu de la transparence organisée. Sa qualité conditionne le rythme de la transaction.",
 pts:["Arborescence standard : juridique, financier, fiscal, social, commercial, opérationnel, immobilier, assurances.","Nommage uniforme des fichiers, avec date et version. Aucun document sans date.","Journal des accès et des téléchargements, utile en cas de contentieux ultérieur.","Les questions se centralisent dans un tableau unique : question, date, auteur, réponse, pièce jointe, statut.","Aucune réponse orale sans consignation écrite dans le tableau."],
-q:{q:"Pourquoi centraliser les questions dans un tableau unique ?",o:["Traçabilité, cohérence des réponses et preuve de l'information communiquée","Pour gagner du temps","Parce que la loi l'impose","Pour limiter le nombre de questions"],a:0,e:"En cas de litige sur une garantie, la question est de savoir ce qui a été communiqué et quand. Le tableau en est la preuve."}};
+q:[{q:"Pourquoi centraliser les questions dans un tableau unique ?",o:["Traçabilité, cohérence des réponses et preuve de l'information communiquée","Pour gagner du temps","Parce que la loi l'impose","Pour limiter le nombre de questions"],a:0,e:"En cas de litige sur une garantie, la question est de savoir ce qui a été communiqué et quand. Le tableau en est la preuve."},
+   {q:"Pourquoi tenir un journal des accès et des téléchargements de la data room ?",o:["Parce qu'il établit qui a eu accès à quoi et à quelle date, ce qui est décisif en cas de contentieux ultérieur","Parce que la réglementation impose cette traçabilité","Pour facturer l'accès aux acquéreurs","Pour mesurer l'intérêt réel de chaque acquéreur"],a:0,e:"En cas de réclamation post-closing, la question devient : cette information avait-elle été mise à disposition ? Le journal y répond. Il renseigne accessoirement sur l'intérêt de chacun, mais ce n'est pas sa fonction première."},
+   {q:"Un acquéreur obtient en visioconférence une réponse orale sur un point de garantie. Que faites-vous ?",o:["Consigner la question et la réponse dans le tableau unique, datées et attribuées à leur auteur","Rien : la réponse a été donnée, l'acquéreur en a pris note","Envoyer un courriel de confirmation à l'acquéreur, sans autre formalité","Demander à l'acquéreur de reformuler sa question par écrit avant toute réponse"],a:0,e:"Une réponse orale non consignée n'existe pas dans le dossier, et c'est précisément celle qui réapparaît dans une réclamation, chacun se souvenant d'une version différente. La consigner dans le tableau unique la rend opposable aux deux parties. Exiger une reformulation écrite avant de répondre est excessif et ralentit inutilement l'audit : ce qui compte, c'est la trace après."}]};
 
 BRIEFS["dd-juridique"]={why:"Les risques juridiques, fiscaux et sociaux se transforment en garanties spécifiques ou en réduction de prix.",
 pts:["Juridique : statuts, pactes, titres, contrats significatifs, contentieux, propriété intellectuelle, baux.","Fiscal : conformité des déclarations, contrôles passés, positions agressives, prix de transfert le cas échéant.","Social : contrats de travail, conventions collectives, heures supplémentaires, requalifications, représentation du personnel.","Le risque social est souvent le plus sous-estimé en PME française : temps de travail, forfaits jours, statut des cadres.","Chaque risque identifié se chiffre en probabilité fois impact, puis se traite en prix, garantie ou condition suspensive."],
@@ -4088,7 +4218,7 @@ const mmss = s => String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padS
 /* ── 2. Persistance ───────────────────────────────────────── */
 let KEY = "hub-ma-triactis-v2";   // remplacee par "hubma:state:<profil>" a l'ouverture de session
 const DEFAULT_STATE = {
-  v:3,
+  v:4,
   tasks:{},          // id -> {st, fav, mastery, notes, time, seen, xpDone}
   quiz:{},           // id -> {best, tries, xpPass, xpPerfect}
   srs:{},            // cardId -> {ef, iv, reps, due, lapses}
@@ -4117,7 +4247,7 @@ function warnStorage(){
   setTimeout(()=>toast("Stockage local indisponible : la progression ne sera pas conservée après fermeture.","err"),900);
 }
 
-const APP_BUILD = "1.8-2026-07-28";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
+const APP_BUILD = "1.20-lot7g-2026-07-29";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
 console.log("Hub M&A Triactis · build "+APP_BUILD);
 /** Clone profond sans dépendance à structuredClone : notre état est un objet
     purement JSON, donc round-trip JSON suffit et fonctionne partout. */
@@ -4260,7 +4390,9 @@ function content(id){
     kind:"brief", why:b.why,
     obj:["Maîtriser les points clés du module","Savoir les réutiliser en situation de dossier"],
     html:"<h2 id=\"points\">Points clés</h2><ul>"+b.pts.map(p=>"<li>"+H(p)+"</li>").join("")+"</ul>",
-    key:b.pts.slice(0,3), quiz:b.q?[b.q]:[], src:[]
+    /* Le champ q d'un brief accepte une question seule, format d'origine, ou un
+       tableau de questions. Les deux coexistent sans migration de donnees. */
+    key:b.pts.slice(0,3), quiz:b.q?(Array.isArray(b.q)?b.q:[b.q]):[], src:[]
   };
   return { kind:"empty", why:"Module en cours de rédaction.", obj:[],
     html:"<h2 id=\"apropos\">À propos de ce module</h2><p>Le contenu détaillé de "+T(t?t.nom:id)+" n'est pas encore rédigé. Utilisez la zone de notes pour consigner vos propres synthèses : elles sont conservées localement.</p>",
@@ -4282,6 +4414,139 @@ function stats(){
   const mast = TASKS.reduce((a,t)=>a+meta(t.id).mastery,0);
   return { done, doing, fav, min, due, neufs, restantes, seen, total:TASKS.length, pctDone:pct(done,TASKS.length), mastery:pct(mast,TASKS.length*3) };
 }
+/* ═══ Noyau obligatoire ═══════════════════════════════════════
+   Perimetre arrete le 29 juillet 2026 : les cinq phases ci-dessous, et dans
+   chacune les modules Fondamentaux et Application M&A, a l'exclusion des
+   modules Avances.
+   Aucune liste d'identifiants en dur, volontairement : le noyau se deduit des
+   donnees. Ajouter un module Fondamentaux a l'une de ces phases l'y fait
+   entrer automatiquement, et changer le perimetre tient en une ligne.
+   Etat au 29 juillet 2026 : 52 modules sur 108, 2 290 minutes annoncees. */
+const CORE = {
+  phases:["comptabilite","excel-outils","modelisation-financiere","valorisation","process-ma-dd"],
+  cats:["Fondamentaux","Application M&A"]
+};
+const isCore      = t => CORE.phases.indexOf(t.phase)>=0 && CORE.cats.indexOf(t.cat)>=0;
+const coreModules = () => TASKS.filter(isCore);
+function coreStat(){
+  const ts=coreModules(), d=ts.filter(t=>meta(t.id).st==="done");
+  const min=ts.reduce((a,t)=>a+t.min,0), minDone=d.reduce((a,t)=>a+t.min,0);
+  return { total:ts.length, done:d.length, pct:pct(d.length,ts.length),
+           min:min, minDone:minDone, minLeft:min-minDone,
+           quiz:ts.reduce((a,t)=>a+quizOf(t.id).length,0),
+           cards:CARDS.filter(c=>c.l && ts.some(t=>t.id===c.l)).length };
+}
+const coreStatOf = pid => { const ts=coreModules().filter(t=>t.phase===pid),
+  d=ts.filter(t=>meta(t.id).st==="done").length;
+  return { total:ts.length, done:d, pct:pct(d,ts.length) }; };
+/* Prochain module du noyau. L'ordre pédagogique est celui des données :
+   phase par phase, puis ordre de redaction a l'interieur d'une phase. */
+const nextCore = () => coreModules().find(t=>meta(t.id).st==="doing")
+                    || coreModules().find(t=>meta(t.id).st!=="done");
+
+/* ═══ Attestations ════════════════════════════════════════════
+   Trois niveaux arrêtés le 29 juillet 2026 :
+     1. intégration : jalon court, atteignable en une semaine ;
+     2. noyau       : les modules obligatoires des cinq phases prioritaires ;
+     3. intégral    : l'ensemble des contenus de la formation.
+
+   Le jalon d'intégration est défini par une règle entière : phase Comptabilité,
+   catégorie Fondamentaux. Un plafond de six modules avait été envisagé, il a été
+   écarté le 29 juillet 2026 au profit de la règle, pour qu'aucun nombre arbitraire
+   ne définisse un périmètre d'attestation. Neuf modules, 380 minutes annoncées,
+   soit environ six jours à une heure par jour. */
+const onboardingModules = () =>
+  coreModules().filter(t => t.phase === "comptabilite" && t.cat === "Fondamentaux");
+
+const TIERS = [
+  { id:"integration", ico:"◔", nom:"Attestation d'intégration",
+    court:"Intégration", obj:"Lire un bilan, un compte de résultat et un tableau de flux, et les relier entre eux.",
+    mods:onboardingModules },
+  { id:"noyau", ico:"◕", nom:"Certificat du noyau obligatoire",
+    court:"Noyau obligatoire", obj:"Tenir les fondamentaux et les applications M&A des cinq phases prioritaires.",
+    mods:coreModules },
+  { id:"integral", ico:"●", nom:"Certificat intégral",
+    court:"Formation intégrale", obj:"Avoir travaillé l'intégralité des contenus de la formation.",
+    mods:() => TASKS.slice() }
+];
+const tierOf = id => TIERS.filter(t => t.id === id)[0];
+
+/* Pondération du score. C'est un choix éditorial : il est écrit ici en un seul
+   endroit, et reproduit tel quel sur l'attestation avec les trois composantes
+   chiffrées, pour qu'un lecteur puisse refaire le calcul.
+   La maîtrise auto-évaluée n'entre PAS dans le score : elle est déclarative,
+   elle n'atteste de rien. Le temps passé non plus : il est affiché comme
+   information, il ne rapporte pas de points. */
+/* Pondération arrêtée le 29 juillet 2026, après passage du seuil de quiz à 0,7 :
+   le quiz cessant d'être un bonus pour devenir un prérequis, il pèse désormais
+   plus que la simple complétion. */
+const SCORE_W = { modules:40, quiz:45, revision:15 };
+
+/* Part de bonnes réponses exigée au quiz d'un module pour que ce module compte
+   comme validé dans une attestation.
+   Fixée à 0,7 le 29 juillet 2026, soit le seuil de réussite déjà utilisé par les
+   quiz de l'application. Marquer un module terminé ne suffit donc plus : sans
+   quiz réussi, le module ne compte dans aucune attestation. La valeur 0
+   rétablirait l'ancien comportement, où la composante « modules » s'obtenait
+   en cliquant « terminé » sans répondre à une seule question. */
+const VALID_QUIZ_MIN = 0.7;
+
+/* Un module compte-t-il comme validé pour une attestation ? */
+function estValide(t){
+  if(meta(t.id).st !== "done") return false;
+  if(VALID_QUIZ_MIN <= 0) return true;
+  const n = quizOf(t.id).length; if(!n) return true;
+  const r = S.quiz[t.id];
+  return !!r && (r.best || 0) >= Math.ceil(n * VALID_QUIZ_MIN);
+}
+
+function tierStat(tier){
+  const ts   = tier.mods();
+  const done = ts.filter(estValide);
+
+  /* Quiz : meilleur score obtenu, rapporté au total des questions du niveau.
+     Un module jamais tenté compte zéro, sans être exclu du dénominateur. */
+  let qOk = 0, qTot = 0, qMods = 0;
+  ts.forEach(t => {
+    const n = quizOf(t.id).length; if(!n) return;
+    qTot += n;
+    const r = S.quiz[t.id];
+    if(r){ qOk += Math.min(r.best || 0, n); qMods++; }
+  });
+
+  /* Révision : fiches rattachées aux modules du niveau et réellement étudiées,
+     c'est-à-dire sorties de l'état « neuve » dans la répétition espacée. */
+  const cds = CARDS.filter(c => c.l && ts.some(t => t.id === c.l));
+  const cvu = cds.filter(c => !isNew(c.id)).length;
+
+  const pMod  = pct(done.length, ts.length);
+  const pQuiz = pct(qOk, qTot);
+  const pRev  = pct(cvu, cds.length);
+  const score = Math.round((pMod*SCORE_W.modules + pQuiz*SCORE_W.quiz + pRev*SCORE_W.revision) / 100);
+
+  return {
+    total:ts.length, done:done.length, pctMod:pMod,
+    /* « terminés » est le geste de l'utilisateur, « validés » ajoute le quiz.
+       L'écart entre les deux est affiché, sinon un utilisateur verrait sa barre
+       de progression à 100 % et son attestation refusée sans comprendre. */
+    termines:ts.filter(t => meta(t.id).st === "done").length,
+    quizOk:qOk, quizTot:qTot, quizMods:qMods, pctQuiz:pQuiz,
+    cards:cds.length, cardsVues:cvu, pctRev:pRev,
+    score:score, acquis:ts.length > 0 && done.length >= ts.length,
+    minAnnonce:ts.reduce((a,t) => a + t.min, 0),
+    minReel:Math.round(ts.reduce((a,t) => a + (meta(t.id).time || 0), 0) / 60),
+    modules:ts, faits:done
+  };
+}
+/* Niveau le plus élevé atteint, ou null. Les niveaux sont ordonnés du plus
+   petit au plus grand, on parcourt donc à l'envers. */
+function tierAtteint(){
+  for(let i = TIERS.length - 1; i >= 0; i--) if(tierStat(TIERS[i]).acquis) return TIERS[i];
+  return null;
+}
+/* Prochain niveau à viser : le premier non acquis. */
+const tierVise = () => TIERS.filter(t => !tierStat(t).acquis)[0] || null;
+
 const phaseStat = pid => {
   const ts=byPhase(pid), d=ts.filter(t=>meta(t.id).st==="done").length;
   return { total:ts.length, done:d, pct:pct(d,ts.length) };
@@ -4384,22 +4649,48 @@ function toggleFav(id){ const m=meta(id); m.fav=!m.fav; save(); }
    EXTENSIONS DU MOTEUR · succès, objectif du jour, records
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Migration depuis la version 2 ────────────────────────── */
+/* ── Migrations de l'état ─────────────────────────────────────
+   Chaque palier de version s'exécute une fois et une seule. Les paliers ne
+   doivent jamais être fusionnés ni court-circuités par un retour anticipé,
+   sans quoi un état déjà en version N ne recevrait pas le palier N+1. */
 function migrate(){
   if(!S.tasks) S.tasks={};
   if(!S.quiz) S.quiz={};
   if(!S.prefs) S.prefs=deepClone(DEFAULT_STATE.prefs);
   if(!S.prefs.tips) S.prefs.tips=[];
-  if(S.v===3) return;
-  S.games=S.games||{}; S.glFav=S.glFav||[]; S.read=S.read||[]; S.badges=S.badges||[];
-  Object.keys(S.tasks).forEach(k=>{ const m=S.tasks[k]; if(m.xpDone===undefined) m.xpDone=(m.st==="done"); });
-  Object.keys(S.quiz).forEach(k=>{ const q=S.quiz[k]; if(q.xpPass===undefined){ q.xpPass=q.best>0; q.xpPerfect=false; } });
-  if(S.prefs.vertical===undefined) S.prefs.vertical=null;
-  /* un import ou un état ancien ne doit pas faire perdre la verticale du profil */
-  if(!S.prefs.vertical && typeof ME!=="undefined" && ME && ME.vertical) S.prefs.vertical=ME.vertical;
-  if(!S.prefs.glView) S.prefs.glView="detail";
-  if(!S.prefs.resView) S.prefs.resView="grid";
-  S.v=3; save();
+  const depart = S.v || 0;
+
+  /* Palier 3 : champs ajoutés après la version 2. */
+  if(depart < 3){
+    S.games=S.games||{}; S.glFav=S.glFav||[]; S.read=S.read||[]; S.badges=S.badges||[];
+    Object.keys(S.tasks).forEach(k=>{ const m=S.tasks[k]; if(m.xpDone===undefined) m.xpDone=(m.st==="done"); });
+    Object.keys(S.quiz).forEach(k=>{ const q=S.quiz[k]; if(q.xpPass===undefined){ q.xpPass=q.best>0; q.xpPerfect=false; } });
+    if(S.prefs.vertical===undefined) S.prefs.vertical=null;
+    /* un import ou un état ancien ne doit pas faire perdre la verticale du profil */
+    if(!S.prefs.vertical && typeof ME!=="undefined" && ME && ME.vertical) S.prefs.vertical=ME.vertical;
+    if(!S.prefs.glView) S.prefs.glView="detail";
+    if(!S.prefs.resView) S.prefs.resView="grid";
+    S.v=3;
+  }
+
+  /* Palier 4, 29 juillet 2026 : remise à zéro des scores de quiz.
+     Jusqu'au correctif d'intégrité de ce jour, les options d'un quiz étaient
+     présentées dans l'ordre des données, où la bonne réponse est toujours
+     écrite en premier. Répondre « A » donnait donc 100 % à tous les quiz. Les
+     meilleurs scores enregistrés avant ce correctif ne prouvent rien et ne
+     peuvent pas servir de base à une attestation : ils sont effacés une fois.
+     Ce qui est conservé : les modules marqués terminés, le temps passé, les
+     favoris, la progression de révision, les points d'expérience et les succès
+     déjà obtenus. Ces derniers n'entrent pas dans le calcul des attestations,
+     les effacer punirait sans rien assainir. */
+  if(depart < 4){
+    const n = Object.keys(S.quiz).length;
+    S.quiz = {};
+    S.v = 4;
+    if(n) console.info("Hub M&A : "+n+" score(s) de quiz remis à zéro, correctif d'intégrité du 29 juillet 2026.");
+  }
+
+  if(depart !== S.v) save();
 }
 migrate();
 
@@ -5369,7 +5660,8 @@ const TOOL_NAV = [
   { h:"#/referentiel", i:"§", n:"Référentiel", badge:()=>S.glFav.length },
   { h:"#/process",     i:"⌗", n:"Process M&A" },
   { h:"#/ressources",  i:"↗", n:"Bibliothèque" },
-  { h:"#/stats",       i:"▚", n:"Statistiques" }
+  { h:"#/stats",       i:"▚", n:"Statistiques" },
+  { h:"#/portfolio",   i:"◔", n:"Portfolio" }
 ];
 const BOT_NAV = [
   { h:"#/",            i:"◈", n:"Accueil" },
@@ -5467,10 +5759,16 @@ function paintNav(){
     } else me.style.display="none";
   }
 
-  const g=stats();
+  /* La barre permanente suit le noyau obligatoire, pas les 108 modules : c'est
+     le denominateur qui a un sens pour un nouvel analyste, et celui de
+     l'attestation. La progression sur l'ensemble du parcours reste lisible
+     dans l'anneau du tableau de bord et dans la page Statistiques. */
+  const cs=coreStat();
   const pc=$("#sbPct"), bar=$("#sbBar");
-  if(pc) pc.textContent = g.pctDone+" %";
-  if(bar) bar.style.width = g.pctDone+"%";
+  if(pc) pc.textContent = cs.pct+" %";
+  if(bar) bar.style.width = cs.pct+"%";
+  const lbl=$("#sbProgLbl");
+  if(lbl) lbl.textContent = "Noyau obligatoire";
 }
 
 function paintHeader(){
@@ -5550,7 +5848,7 @@ function renderCmd(q){
   let out="",g=null;
   list.forEach((it,n)=>{
     if(it.g!==g){ g=it.g; out+="<div class=\"cmd-grp\">"+H(g)+"</div>"; }
-    out+="<div class=\"cmd-it"+(n===0?" sel":"")+"\" data-n=\""+n+"\">"+
+    out+="<div class=\"cmd-it"+(n===0?" sel":"")+"\" data-cmdrun=\""+n+"\">"+
       "<span class=\"ci\">"+it.ic+"</span><span class=\"ct\">"+T(it.t)+"</span>"+
       (it.s?"<span class=\"cs\">"+T(it.s)+"</span>":"")+"</div>";
   });
@@ -5569,7 +5867,7 @@ function runCmd(n){
 function moveCmd(d){
   if(!cmdItems.length) return;
   cmdSel=(cmdSel+d+cmdItems.length)%cmdItems.length;
-  $$(".cmd-it").forEach(e=>e.classList.toggle("sel", +e.dataset.n===cmdSel));
+  $$(".cmd-it").forEach(e=>e.classList.toggle("sel", +e.dataset.cmdrun===cmdSel));
   const el=$(".cmd-it.sel"); if(el) el.scrollIntoView({block:"nearest"});
 }
 
@@ -5645,16 +5943,192 @@ function resetData(){
 const V = $("#main");
 const setView = (html,cls) => { V.className="view"+(cls?" "+cls:""); V.innerHTML=html; V.scrollTop=0; window.scrollTo(0,0); };
 
+/* ── Portfolio et attestations ─────────────────────────────── */
+function viewPortfolio(params){
+  crumbs([{n:"Portfolio et attestations"}]);
+  const moi = ME || {nom:"", vertical:"tous"};
+  const vert = moi.vertical && moi.vertical !== "tous" ? vertOf(moi.vertical) : null;
+  const atteint = tierAtteint(), vise = tierVise();
+  /* Le niveau imprimé est celui demandé dans l'adresse s'il est acquis, sinon
+     le plus élevé acquis. On n'imprime jamais une attestation non acquise. */
+  const demande = params && params.get("n") ? tierOf(params.get("n")) : null;
+  const imprime = (demande && tierStat(demande).acquis) ? demande : atteint;
+
+  let h = "<div class=\"no-print\">"+
+    "<div class=\"spread wrap\" style=\"gap:16px\">"+
+      "<div><div class=\"eyebrow\">Portfolio</div>"+
+      "<h1 class=\"h1 mt8\">"+H(moi.nom)+"</h1>"+
+      "<p class=\"lead mt8\">"+(atteint
+        ? "Niveau atteint : "+H(atteint.nom)+"."
+        : "Aucune attestation n'est encore acquise. Chaque niveau demande que tous ses modules soient marqués terminés.")+"</p></div>"+
+    "</div>";
+
+  /* Les trois niveaux, chacun avec ses composantes chiffrées */
+  h += "<div class=\"grid g3 mt24\">"+TIERS.map(t=>{
+    const s = tierStat(t);
+    const encours = !s.acquis;
+    return "<div class=\"card\""+(s.acquis?" style=\"border-color:var(--accent)\"":"")+">"+
+      "<div class=\"spread\"><span class=\"eyebrow\">"+t.ico+" "+H(t.court)+"</span>"+
+        "<span class=\"tag soft "+(s.acquis?"c-green":"dim")+"\" style=\"font-size:10px\">"+
+        (s.acquis?"acquis":"en cours")+"</span></div>"+
+      "<div class=\"h2 mt12 num\">"+s.score+" <span class=\"dim\" style=\"font-size:14px\">/ 100</span></div>"+
+      "<div class=\"dim mt8\" style=\"font-size:12.5px\">"+H(t.obj)+"</div>"+
+      "<div class=\"stack sp8 mt16\" style=\"font-size:12px\">"+
+        "<div class=\"spread\"><span class=\"dim\">Modules validés</span>"+
+          "<span class=\"num\">"+s.done+" / "+s.total+"</span></div>"+
+        (s.termines>s.done
+          ? "<div class=\"spread\"><span class=\"dim\">dont marqués terminés sans quiz réussi</span>"+
+            "<span class=\"num c-amber\">"+(s.termines-s.done)+"</span></div>" : "")+
+        "<div class=\"spread\"><span class=\"dim\">Réponses de quiz justes</span>"+
+          "<span class=\"num\">"+s.quizOk+" / "+s.quizTot+"</span></div>"+
+        "<div class=\"spread\"><span class=\"dim\">Fiches étudiées</span>"+
+          "<span class=\"num\">"+s.cardsVues+" / "+s.cards+"</span></div>"+
+        "<div class=\"spread\"><span class=\"dim\">Temps annoncé</span>"+
+          "<span class=\"num\">"+dur(s.minAnnonce)+"</span></div>"+
+        "<div class=\"spread\"><span class=\"dim\">Temps réellement passé</span>"+
+          "<span class=\"num\">"+(s.minReel>0?dur(s.minReel):"non mesuré")+"</span></div>"+
+      "</div>"+
+      "<div class=\"bar mt16\"><i style=\"width:"+s.pctMod+"%\"></i></div>"+
+      (s.acquis
+        ? "<a class=\"btn sm mt16 block\" href=\"#/portfolio?n="+t.id+"\">Voir l'attestation →</a>"
+        : "<div class=\"dim mt16\" style=\"font-size:12px\">Il reste "+(s.total-s.done)+" module"+
+          ((s.total-s.done)>1?"s":"")+", soit "+dur(s.minAnnonce-s.faits.reduce((a,x)=>a+x.min,0))+" annoncées.</div>")+
+    "</div>";
+  }).join("")+"</div>";
+
+  /* Composition du score, pour qu'il soit vérifiable */
+  h += "<div class=\"card mt24\"><div class=\"eyebrow\">Comment le score est calculé</div>"+
+    "<p class=\"dim mt8\" style=\"font-size:12.5px\">Trois composantes, pondérées comme suit : "+
+    "modules terminés "+SCORE_W.modules+" %, réponses de quiz justes "+SCORE_W.quiz+" %, "+
+    "fiches étudiées "+SCORE_W.revision+" %. Chaque composante est un rapport entre deux nombres "+
+    "affichés ci-dessus, le calcul est donc reproductible. "+
+    "La maîtrise que vous vous attribuez vous-même dans les modules n'entre pas dans le score : "+
+    "elle est déclarative. Le temps passé non plus.</p></div>";
+
+  if(!atteint){
+    h += "<div class=\"card mt24\"><div class=\"eyebrow\">Prochain objectif</div>"+
+      (vise ? "<div class=\"h4 mt8\">"+H(vise.nom)+"</div>"+
+        "<p class=\"dim mt8\" style=\"font-size:12.5px\">"+H(vise.obj)+"</p>"+
+        (nextCore() ? "<a class=\"btn sm primary mt16\" href=\"#/module/"+nextCore().id+"\">Continuer : "+
+          T(short(nextCore().nom,40))+" →</a>" : "")
+        : "")+"</div>";
+  }
+  h += "</div>";
+
+  /* ── Attestation imprimable ──────────────────────────────────
+     Elle n'apparaît que si le niveau est réellement acquis. Aucun chiffre
+     n'y figure qui ne soit calculé sur la progression enregistrée. */
+  if(imprime){
+    const s = tierStat(imprime);
+    const parPhase = PHASES.map(p=>{
+      const ts = s.modules.filter(t=>t.phase===p.id);
+      if(!ts.length) return null;
+      const d = ts.filter(t=>meta(t.id).st==="done").length;
+      let qo=0,qt=0; ts.forEach(t=>{ const n=quizOf(t.id).length; if(!n) return; qt+=n;
+        const r=S.quiz[t.id]; if(r) qo+=Math.min(r.best||0,n); });
+      return {p:p, total:ts.length, done:d, qo:qo, qt:qt, min:ts.reduce((a,t)=>a+t.min,0)};
+    }).filter(Boolean);
+
+    h += "<div class=\"att mt32\">"+
+      "<div class=\"att-hd\">"+
+        "<div><div class=\"att-ey\">Triactis · Hub M&amp;A</div>"+
+        "<div class=\"att-t\">"+H(imprime.nom)+"</div></div>"+
+        "<div class=\"att-score\"><b class=\"num\">"+s.score+"</b><span>/ 100</span></div>"+
+      "</div>"+
+      "<div class=\"att-b\">"+
+        "<p class=\"att-p\">Cette attestation est établie au nom de <b>"+H(moi.nom)+"</b>"+
+        (vert?", verticale "+H(vert.nom):"")+", le "+new Date(todayISO()+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})+".</p>"+
+        "<p class=\"att-p\">Elle atteste que l'ensemble des <b>"+s.total+" modules</b> du niveau "+
+        "« "+H(imprime.court)+" » ont été travaillés et validés, chacun par un quiz réussi à "+
+        Math.round(VALID_QUIZ_MIN*100)+" % au moins, pour un volume annoncé de "+dur(s.minAnnonce)+". "+
+        "Objectif du niveau : "+H(imprime.obj)+"</p>"+
+
+        "<div class=\"att-sec\">Détail par phase</div>"+
+        "<table class=\"tbl att-tbl\"><thead><tr><th>Phase</th><th class=\"n\">Modules</th>"+
+        "<th class=\"n\">Quiz</th><th class=\"n\">Volume annoncé</th></tr></thead><tbody>"+
+        parPhase.map(x=>"<tr><td>"+T(x.p.nom)+"</td><td class=\"n\">"+x.done+" / "+x.total+"</td>"+
+          "<td class=\"n\">"+(x.qt?x.qo+" / "+x.qt:"—")+"</td><td class=\"n\">"+dur(x.min)+"</td></tr>").join("")+
+        "</tbody></table>"+
+
+        "<div class=\"att-sec\">Composition du score</div>"+
+        "<table class=\"tbl att-tbl\"><thead><tr><th>Composante</th><th class=\"n\">Mesure</th>"+
+        "<th class=\"n\">Résultat</th><th class=\"n\">Poids</th></tr></thead><tbody>"+
+        "<tr><td>Modules validés, quiz réussi à "+Math.round(VALID_QUIZ_MIN*100)+" % au moins</td>"+
+          "<td class=\"n\">"+s.done+" / "+s.total+"</td>"+
+          "<td class=\"n\">"+s.pctMod+" %</td><td class=\"n\">"+SCORE_W.modules+" %</td></tr>"+
+        "<tr><td>Réponses de quiz justes, meilleur essai</td><td class=\"n\">"+s.quizOk+" / "+s.quizTot+"</td>"+
+          "<td class=\"n\">"+s.pctQuiz+" %</td><td class=\"n\">"+SCORE_W.quiz+" %</td></tr>"+
+        "<tr><td>Fiches de révision étudiées</td><td class=\"n\">"+s.cardsVues+" / "+s.cards+"</td>"+
+          "<td class=\"n\">"+s.pctRev+" %</td><td class=\"n\">"+SCORE_W.revision+" %</td></tr>"+
+        "</tbody></table>"+
+        "<p class=\"att-fine\">Le score est la moyenne des trois composantes ci-dessus, pondérée par "+
+        "les poids indiqués. La maîtrise auto-évaluée et le temps passé n'entrent pas dans le calcul. "+
+        "Temps effectivement mesuré dans l'application sur ce périmètre : "+
+        (s.minReel>0?dur(s.minReel):"non mesuré")+".</p>"+
+        "<p class=\"att-fine\">Document produit par le Hub M&amp;A Triactis à partir de la progression "+
+        "enregistrée sur ce profil. Il rend compte du travail effectué dans l'application et ne constitue "+
+        "pas un diplôme.</p>"+
+      "</div>"+
+    "</div>";
+
+    h += "<div class=\"row wrap mt24 no-print\" style=\"gap:12px\">"+
+      "<button class=\"btn primary\" data-act=\"print-att\">Générer le PDF</button>"+
+      "<span class=\"dim\" style=\"font-size:12px\">La fenêtre d'impression du navigateur s'ouvre : "+
+      "choisissez « Enregistrer au format PDF ». Sur iPhone, passez par Partager puis Imprimer.</span></div>";
+  }
+  setView(h,"portfolio");
+}
+
 /* ── Tableau de bord ──────────────────────────────────────── */
 function viewDashboard(){
   crumbs([{n:"Tableau de bord"}]);
   const g=stats(), lp=levelProgress(S.xp);
-  const next = TASKS.find(t=>meta(t.id).st==="doing") || TASKS.find(t=>meta(t.id).st==="todo");
+  /* La reprise propose d'abord un module du noyau : c'est lui qui conditionne
+     l'attestation de fin de formation. A defaut, on retombe sur le parcours
+     complet, pour ne pas laisser la carte vide une fois le noyau termine. */
+  const next = nextCore()
+            || TASKS.find(t=>meta(t.id).st==="doing") || TASKS.find(t=>meta(t.id).st==="todo");
   const nph  = next ? phaseOf(next.phase) : null;
   const recent = TASKS.filter(t=>meta(t.id).seen).sort((a,b)=> meta(b.id).seen.localeCompare(meta(a.id).seen)).slice(0,5);
   const favs = TASKS.filter(t=>meta(t.id).fav).slice(0,5);
 
-  let h = "<div class=\"hero\">"+
+  const cs=coreStat(), nc=nextCore();
+
+  /* Tant qu'aucun module du noyau n'est terminé, l'accueil répond d'abord aux
+     quatre questions d'un nouvel arrivant : ce que c'est, pour qui, ce que
+     cela represente, par ou commencer. Le tableau de bord detaille reste
+     entierement en place juste en dessous. Tous les chiffres affiches sont
+     calcules sur les donnees, aucun n'est ecrit en dur. */
+  let h = "";
+  if(cs.done===0){
+    h += "<div class=\"card\" style=\"padding:26px\">"+
+      "<div class=\"eyebrow\">Parcours d'intégration</div>"+
+      "<h1 class=\"h1 mt8\">Devenir opérationnel sur les fondamentaux du M&amp;A.</h1>"+
+      "<p class=\"lead mt12\" style=\"max-width:660px\">Une plateforme d'entraînement pour les analystes "+
+        "qui débutent en fusions-acquisitions. Chaque module suit la même structure : pourquoi cela compte, "+
+        "la méthode, un cas chiffré, les pièges, puis un quiz dont chaque réponse est expliquée. "+
+        "La révision espacée prend ensuite le relais pour que cela reste acquis.</p>"+
+      "<div class=\"grid g3 mt24\">"+
+        "<div><div class=\"eyebrow\">Pour qui</div>"+
+          "<p class=\"dim mt8\" style=\"font-size:13px\">Nouveaux analystes, juniors, et toute personne "+
+          "du cabinet qui veut tenir un dossier de cession. "+VERTICALES.length+" verticales métier couvertes.</p></div>"+
+        "<div><div class=\"eyebrow\">Ce que couvre le noyau</div>"+
+          "<p class=\"dim mt8\" style=\"font-size:13px\">"+
+          CORE.phases.map(p=>T(phaseOf(p).nom)).join(", ")+".</p></div>"+
+        "<div><div class=\"eyebrow\">Ce que cela représente</div>"+
+          "<p class=\"dim mt8\" style=\"font-size:13px\">"+cs.total+" modules obligatoires sur "+TASKS.length+", "+
+          dur(cs.min)+" annoncées, "+cs.quiz+" questions de quiz et "+cs.cards+" fiches de révision liées.</p></div>"+
+      "</div>"+
+      (nc ? "<div class=\"row wrap mt24\" style=\"gap:12px\">"+
+        "<a class=\"btn lg primary\" href=\"#/module/"+nc.id+"\">Commencer : "+T(short(nc.nom,44))+" →</a>"+
+        "<span class=\"dim\" style=\"font-size:12.5px\">"+dur(nc.min)+" · "+T(phaseOf(nc.phase).nom)+
+        " · "+T(nc.cat)+"</span></div>" : "")+
+      "<p class=\"dim mt16\" style=\"font-size:12px\">Votre progression est enregistrée automatiquement. "+
+      "Le détail de votre activité apparaît ci-dessous dès le premier module terminé.</p>"+
+    "</div>";
+  }
+
+  h += "<div class=\"hero"+(cs.done===0?" mt32":"")+"\">"+
     ring(g.pctDone,104,7,g.pctDone+"%","du parcours")+
     "<div class=\"hero-txt\">"+
       "<div class=\"eyebrow\">Hub M&amp;A · Triactis</div>"+
@@ -5664,6 +6138,23 @@ function viewDashboard(){
         "<span class=\"dim\" style=\"font-size:12px\">Niveau "+lp.level+"</span>"+
         "<span class=\"dim num\" style=\"font-size:12px\">"+lp.cur+" / "+lp.need+" XP</span></div>"+
         "<div class=\"bar\"><i style=\"width:"+lp.pct+"%\"></i></div></div>"+
+      /* Le noyau obligatoire est le dénominateur qui compte pour un nouvel
+         analyste : il est rappele des que le parcours a commence. */
+      (cs.done>0 ? "<div class=\"mt16\" style=\"max-width:400px\"><div class=\"spread\" style=\"margin-bottom:6px\">"+
+        "<span class=\"dim\" style=\"font-size:12px\">Noyau obligatoire</span>"+
+        "<span class=\"dim num\" style=\"font-size:12px\">"+cs.done+" / "+cs.total+" · "+cs.pct+" %</span></div>"+
+        "<div class=\"bar\"><i style=\"width:"+cs.pct+"%\"></i></div>"+
+        "<div class=\"dim mt8\" style=\"font-size:12px\">"+
+          (cs.done>=cs.total ? "Noyau terminé. Le portfolio de fin de formation devient disponible."
+            : "Il reste "+(cs.total-cs.done)+" module"+((cs.total-cs.done)>1?"s":"")+", soit "+dur(cs.minLeft)+" annoncées.")+
+        (function(){ const ns=tierStat(tierOf("noyau"));
+          return ns.termines>ns.done
+            ? "<div class=\"c-amber mt8\" style=\"font-size:12px\">"+(ns.termines-ns.done)+
+              " module"+((ns.termines-ns.done)>1?"s":"")+" marqué"+((ns.termines-ns.done)>1?"s":"")+
+              " terminé"+((ns.termines-ns.done)>1?"s":"")+" sans quiz réussi : "+
+              "il ne"+((ns.termines-ns.done)>1?" sont":" est")+" pas encore validé"+((ns.termines-ns.done)>1?"s":"")+
+              " pour le certificat.</div>" : ""; })()+
+        "</div></div>" : "")+
     "</div></div>";
 
   /* Reprise et révision */
@@ -5713,6 +6204,19 @@ function viewDashboard(){
         (g.neufs>0?"<a class=\"btn sm primary\" href=\"#/revision?m=neuf\">Apprendre →</a>":"")+
       "</div>"+
     "</div></div>";
+
+  /* Attestation disponible : la porte de sortie de la formation doit se voir
+     depuis l'accueil des qu'un niveau est reellement acquis, jamais avant. */
+  const ta=tierAtteint();
+  if(ta){
+    const ts=tierStat(ta);
+    h += "<a class=\"card mt16 spread wrap\" href=\"#/portfolio?n="+ta.id+"\" style=\"gap:16px;border-color:var(--accent)\">"+
+      "<div><div class=\"eyebrow\">"+ta.ico+" Attestation disponible</div>"+
+      "<div class=\"h4 mt8\">"+H(ta.nom)+"</div>"+
+      "<div class=\"dim mt8\" style=\"font-size:12.5px\">"+ts.total+" modules terminés · score "+ts.score+" sur 100 · "+
+      "PDF téléchargeable</div></div>"+
+      "<span class=\"btn sm primary\">Voir mon portfolio →</span></a>";
+  }
 
   /* Objectif du jour et succès */
   const gd=goalToday(), lastB=BADGES.filter(b=>S.badges.indexOf(b.id)>=0).slice(-6);
@@ -5781,7 +6285,7 @@ function viewDashboard(){
   }
 
   /* Phases */
-  h += "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Les 7 phases</h2>"+
+  h += "<div class=\"sec\"><div class=\"sec-hd\"><h2 class=\"h3\">Les "+PHASES.length+" phases</h2>"+
        "<a class=\"btn sm ghost\" href=\"#/parcours\">Voir les 108 modules →</a></div>"+
        "<div class=\"grid g4\">"+PHASES.map(p=>{
     const st=phaseStat(p.id);
@@ -5967,7 +6471,7 @@ function viewModule(id){
     "</div>"+
     "<div class=\"row\" style=\"gap:8px\">"+
       "<button class=\"iconbtn starbtn"+(m.fav?" on":"")+"\" data-fav=\""+id+"\" title=\"Ajouter aux favoris\">"+(m.fav?"★":"☆")+"</button>"+
-      "<button class=\"btn sm\" id=\"timerBtn\">▶ Chrono</button>"+
+      "<button class=\"btn sm\" id=\"timerBtn\" data-timer>▶ Chrono</button>"+
       "<button class=\"btn sm"+(m.st==="done"?" primary":"")+"\" data-done=\""+id+"\">"+(m.st==="done"?"✓ Terminé":"Marquer terminé")+"</button>"+
     "</div></div>"+
    "<p class=\"lead mt16\">"+T(c.why)+"</p>";
@@ -6040,8 +6544,20 @@ function buildToc(){
 
 /* ── Quiz ─────────────────────────────────────────────────── */
 let qz={list:[],i:0,score:0,lives:3,done:false,id:null};
+/* Les options d'une question doivent être présentées dans un ordre aléatoire.
+   Dans les données, la bonne réponse est écrite en première position pour la
+   totalité des 176 questions de modules, vérifié le 29 juillet 2026. Sans ce
+   mélange, répondre « A » à chaque question valide tous les quiz de
+   l'application, et le seuil de validation des attestations ne protège rien.
+   Le mélange se fait à l'ouverture du quiz, sur une copie : les données
+   d'origine ne sont jamais modifiées, et une reprise du quiz redonne un ordre
+   différent. */
+function melangeOptions(q){
+  const ordre = q.o.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  return { q:q.q, o:ordre.map(i=>q.o[i]), a:ordre.indexOf(q.a), e:q.e };
+}
 function startQuiz(id){
-  qz={list:quizOf(id),i:0,score:0,lives:3,done:false,id:id};
+  qz={list:quizOf(id).map(melangeOptions),i:0,score:0,lives:3,done:false,id:id};
   paintQuiz();
 }
 function paintQuiz(){
@@ -6195,7 +6711,7 @@ function paintGlossary(){
     const fav=isGlFav(g.t);
     const mod=g.l?anyMod(g.l):null;
     out+="<div class=\"gitem"+(compact?" compact":"")+"\" style=\"margin-bottom:7px\">"+
-      "<div class=\"spread\" style=\"align-items:flex-start;gap:10px\">"+
+      "<div class=\"spread wrap\" style=\"align-items:flex-start;gap:10px\">"+
         "<button class=\"gt\" data-glterm=\""+esc(g.t)+"\" style=\"text-align:left\">"+typo(hl(g.t))+
           (synOf(g.t)?"<span class=\"dim\" style=\"font-weight:400;font-size:11.5px\"> · "+T(synOf(g.t).split(" ").slice(0,3).join(" "))+"</span>":"")+"</button>"+
         "<span class=\"row\" style=\"gap:6px;flex:0 0 auto\">"+
@@ -6464,8 +6980,8 @@ function viewReglages(){
       "<div class=\"card\"><div class=\"h4\">Apparence</div>"+
         "<p class=\"dim mt8\" style=\"font-size:13px\">Le thème est conservé dans ce navigateur.</p>"+
         "<div class=\"pillrow mt16\">"+
-          "<button class=\"pill"+(S.prefs.theme==="dark"?" on":"")+"\" data-theme=\"dark\">Sombre</button>"+
-          "<button class=\"pill"+(S.prefs.theme==="light"?" on":"")+"\" data-theme=\"light\">Clair</button></div></div>"+
+          "<button class=\"pill"+(S.prefs.theme==="dark"?" on":"")+"\" data-settheme=\"dark\">Sombre</button>"+
+          "<button class=\"pill"+(S.prefs.theme==="light"?" on":"")+"\" data-settheme=\"light\">Clair</button></div></div>"+
       "<div class=\"card\"><div class=\"h4\">Stockage</div>"+
         "<p class=\"dim mt8\" style=\"font-size:13px\">Toutes les données restent dans ce navigateur. Rien n'est envoyé sur un serveur. "+
         (storageOK?"":"<strong class=\"c-red\">Le stockage local est indisponible dans ce contexte : la progression sera perdue à la fermeture. Ouvrez le fichier directement dans un navigateur pour la conserver.</strong> ")+
@@ -6586,7 +7102,7 @@ function paintCard(){
       "<span class=\"dim\" style=\"font-size:12px\">"+(seen?"Revoir le "+(st.due<=todayISO()?"jour même":st.due):"Jamais révisée")+"</span>"+
     "</div>"+
     "<div class=\"bar thin\" style=\"margin-bottom:14px\"><i style=\"width:"+pct(fc.i+1,deck.list.length)+"%\"></i></div>"+
-    "<div class=\"fc"+(fc.flip?" flip":"")+"\" id=\"fcCard\" tabindex=\"0\" role=\"button\" aria-label=\"Retourner la fiche\">"+
+    "<div class=\"fc"+(fc.flip?" flip":"")+"\" id=\"fcCard\" data-fcflip tabindex=\"0\" role=\"button\" aria-label=\"Retourner la fiche\">"+
       "<div class=\"fc-in\">"+
         "<div class=\"fc-f\"><span class=\"fc-cat\">"+T(c.c)+" · "+c.kind+"</span>"+
           "<div class=\"fc-q\">"+T(c.q)+"</div><span class=\"fc-hint\">Cliquez ou appuyez sur Espace</span></div>"+
@@ -6996,7 +7512,7 @@ function paintRev(){
       "<span class=\"eyebrow\">Révision · "+(rv.i+1)+" / "+rv.queue.length+"</span>"+
       "<span class=\"dim\" style=\"font-size:12px\">Facilité "+st.ef.toFixed(2)+" · "+st.reps+" révision"+(st.reps>1?"s":"")+"</span></div>"+
     "<div class=\"bar thin\" style=\"margin-bottom:14px\"><i style=\"width:"+pct(rv.i,rv.queue.length)+"%\"></i></div>"+
-    "<div class=\"fc"+(rv.flip?" flip":"")+"\" id=\"fcCard\" tabindex=\"0\" role=\"button\">"+
+    "<div class=\"fc"+(rv.flip?" flip":"")+"\" id=\"fcCard\" data-fcflip tabindex=\"0\" role=\"button\">"+
       "<div class=\"fc-in\">"+
         "<div class=\"fc-f\"><span class=\"fc-cat\">"+T(c.c)+"</span><div class=\"fc-q\">"+T(c.q)+"</div>"+
           "<span class=\"fc-hint\">Espace pour révéler</span></div>"+
@@ -7094,7 +7610,7 @@ function viewVerticale(params){
      "<span class=\"dim\" style=\"font-size:12px\">cliquez pour déplier</span></div>"+
      "<div class=\"stack sp8\">"+V.kpi.map((k,i)=>
       "<div class=\"acc\" data-acc=\"kpi"+i+"\">"+
-        "<button class=\"acc-h\"><span class=\"acc-t\">"+T(k.n)+"</span>"+
+        "<button class=\"acc-h\" data-accordion><span class=\"acc-t\">"+T(k.n)+"</span>"+
           "<span class=\"dim\" style=\"font-size:11.5px\">"+T(k.r)+"</span><span class=\"acc-c\">▾</span></button>"+
         "<div class=\"acc-b\"><div class=\"formula\" style=\"margin:0 0 10px\"><span class=\"fl\">Définition</span>"+T(k.f)+"</div>"+
           "<div class=\"callout warn\" style=\"margin:0\"><div class=\"ct\">Point de vigilance</div>"+T(k.p)+"</div></div>"+
@@ -7160,7 +7676,7 @@ function viewProcess(params){
       "<span class=\"dim\" style=\"font-size:12px\">cliquez pour déplier</span></div>"+
       "<div class=\"stack sp8\">"+METRICS.map((m,i)=>
         "<div class=\"acc\" data-acc=\"met"+i+"\">"+
-          "<button class=\"acc-h\"><span class=\"acc-t\">"+T(m.n)+"</span>"+
+          "<button class=\"acc-h\" data-accordion><span class=\"acc-t\">"+T(m.n)+"</span>"+
             "<span class=\"tag soft dim\" style=\"font-size:10px\">"+T(m.c)+"</span><span class=\"acc-c\">▾</span></button>"+
           "<div class=\"acc-b\">"+
             "<div class=\"formula\" style=\"margin:0 0 10px\"><span class=\"fl\">Formule</span>"+T(m.f)+"</div>"+
@@ -7811,7 +8327,7 @@ function route(){
   const params=new URLSearchParams(parts[1]||"");
   const seg=parts[0].split("/").filter(Boolean);
   document.body.classList.remove("nav-open");
-  stopTimer();
+  stopTimer(); stopFiltre();   /* un filtrage en attente ne peint pas dans la vue suivante */
   if(mtcTimer){ clearInterval(mtcTimer); mtcTimer=null; }
   if(seg[0]!=="revision") rv.started=false;
 
@@ -7826,6 +8342,7 @@ function route(){
     case "ressources":  viewRessources(params); break;
     case "process":     viewProcess(params); break;
     case "verticale":   params.get("pick") ? viewVertPicker() : viewVerticale(params); break;
+    case "portfolio":   viewPortfolio(params); break;
     case "stats":       viewStats(); break;
     case "reglages":    viewReglages(); break;
     case "admin":       viewAdmin(); break;
@@ -7843,225 +8360,290 @@ document.addEventListener("click", e=>{
   try{ handleClick(e); }
   catch(err){ reportError(err,"clic"); }
 });
-function handleClick(e){
-  const t = (e.target && e.target.closest) ? e.target
-          : (e.target && e.target.parentElement) ? e.target.parentElement : null;
-  if(!t) return;                       /* cible sans closest : rien à faire */
-  const hit = s => { try{ return t.closest(s); }catch(x){ return null; } };
-  const val = s => { const el=t.closest(s); return el?el.getAttribute(s.replace(/[\[\]]/g,"")):null; };
+/* ═══════════════════════════════════════════════════════════
+   TABLE DES INTENTIONS DE CLIC
 
-  if(hit("[data-close]")){
+   Une intention est un attribut data-* porté par l'élément cliqué ou par
+   l'un de ses ancêtres. La résolution remonte jusqu'au plus proche ancêtre
+   porteur d'une intention connue, et s'arrête AVANT <body> : aucun attribut
+   d'état posé sur <body> ou sur <html> ne peut donc être pris pour une
+   intention.
+
+   Il n'y a plus d'ordre de priorité implicite. Ajouter une intention ne
+   peut plus en masquer une autre écrite plus haut dans le fichier. C'était
+   exactement la panne du 29 juillet 2026 : applyTheme() posant data-theme
+   sur <html>, la branche du thème captait tout clic non traité avant elle,
+   et rendait inertes la présentation d'accueil, les réglages, l'export, les
+   listes déroulantes et les champs de recherche.
+
+   Une action qui retourne exactement false n'est pas considérée comme
+   traitée : la remontée continue vers l'ancêtre suivant. C'est ce qui
+   reproduit fidèlement les anciennes branches gardées, où un élément
+   verrouillé ou désactivé laissait le clic poursuivre son chemin.
+   ═══════════════════════════════════════════════════════════ */
+const INTENT = {
+
+  /* ── Fenêtres ── */
+  close(){
     /* Sur la présentation, le fond ne doit pas être une zone morte :
        il vaut abandon explicite, et l'utilisateur retrouve la navigation. */
     if(document.querySelector("[data-ob]")) obDismiss();
     else { closeModal(); closeCmd(); }
-    return;
-  }
+  },
 
   /* ── Connexion serveur ── */
-  const cm=hit("[data-cmode]"); if(cm){ cg.mode=cm.dataset.cmode; cg.err=""; cg.info=""; renderCloudGate(); return; }
-  if(hit("[data-csignin]")){ doSignIn(); return; }
-  if(hit("[data-csignup]")){ doSignUp(); return; }
-  if(hit("[data-crecover]")){ doRecover(); return; }
-  if(hit("[data-syncinfo]")){ syncModal(); return; }
-  if(hit("[data-forcesync]")){ syncDirty=true; cloudFlush().then(()=>{ closeModal(); toast("Synchronisation effectuée.","ok"); }); return; }
+  cmode(el){ cg.mode=el.dataset.cmode; cg.err=""; cg.info=""; renderCloudGate(); },
+  csignin(){ doSignIn(); },
+  csignup(){ doSignUp(); },
+  crecover(){ doRecover(); },
+  syncinfo(){ syncModal(); },
+  forcesync(){ syncDirty=true; cloudFlush().then(()=>{ closeModal(); toast("Synchronisation effectuée.","ok"); }); },
 
   /* ── Écran d'entrée et profils ── */
-  const gp=hit("[data-gpick]");
-  if(gp){
-    const id=gp.dataset.gpick, p=profileOf(id);
+  gpick(el){
+    const id=el.dataset.gpick, p=profileOf(id);
     gate.err="";
     if(p && p.pin){ gate.mode="pin"; gate.sel=id; renderGate(); }
     else if(openSession(id)){ hideGate(); startApp(); }
-    return;
-  }
-  const gfo=hit("[data-gforgot]"); if(gfo){ gate.mode="forgot"; gate.sel=gfo.dataset.gforgot; gate.err=""; renderGate(); return; }
-  const gdl=hit("[data-gdelete]");
-  if(gdl){
-    const id=gdl.dataset.gdelete, pr=profileOf(id);
-    if(gdl.dataset.armed==="1"){ deleteProfile(id); gate={mode:"list",sel:null,err:""}; renderGate(); return; }
-    gdl.dataset.armed="1"; gdl.textContent="Confirmer la suppression de "+(pr?pr.nom:"ce profil");
-    return;
-  }
-  const gm=hit("[data-gmode]"); if(gm){ gate.mode=gm.dataset.gmode; gate.err=""; renderGate(); return; }
-  if(hit("[data-gcreate]")){
+  },
+  gforgot(el){ gate.mode="forgot"; gate.sel=el.dataset.gforgot; gate.err=""; renderGate(); },
+  gdelete(el){
+    const id=el.dataset.gdelete, pr=profileOf(id);
+    if(el.dataset.armed==="1"){ deleteProfile(id); gate={mode:"list",sel:null,err:""}; renderGate(); return; }
+    el.dataset.armed="1"; el.textContent="Confirmer la suppression de "+(pr?pr.nom:"ce profil");
+  },
+  gmode(el){ gate.mode=el.dataset.gmode; gate.err=""; renderGate(); },
+  gcreate(){
     const n=$("#gName"), v=$("#gVert"), pin=$("#gPin");
     createProfile(n?n.value:"", v?v.value:"tous", pin?pin.value:"").then(r=>{
       if(!r.ok){ gate.err=r.err; renderGate(); return; }
       gate.err=""; hideGate(); startApp();
     });
-    return;
-  }
-  if(hit("[data-gunlock]")){
+  },
+  gunlock(){
     const inp=$("#gPinIn"), code=inp?inp.value:"";
     checkPin(gate.sel,code).then(ok=>{
       if(!ok){ gate.err="Code incorrect."; renderGate(); return; }
       if(openSession(gate.sel)){ gate.err=""; hideGate(); startApp(); }
     });
-    return;
-  }
-  if(hit("[data-profmenu]")){ profileMenu(); return; }
-  if(hit("[data-logout]")){ if(cloudReady()&&SB.user) doSignOut(); else { closeModal(); closeSession(); } return; }
-  const sw=hit("[data-switch]"); if(sw){ if(cloudReady()&&SB.user){ doSignOut(); return; }
-    closeModal(); STORE.del(SKEY); ME=null; gate={mode:"list",sel:null,err:""}; renderGate(); return; }
+  },
+  profmenu(){ profileMenu(); },
+  logout(){ if(cloudReady()&&SB.user) doSignOut(); else { closeModal(); closeSession(); } },
+  switch(){
+    if(cloudReady()&&SB.user){ doSignOut(); return; }
+    closeModal(); STORE.del(SKEY); ME=null; gate={mode:"list",sel:null,err:""}; renderGate();
+  },
 
   /* ── Astuces ── */
-  const tc=hit("[data-tipclose]"); if(tc){ closeTip(tc.dataset.tipclose); return; }
+  tipclose(el){ closeTip(el.dataset.tipclose); },
 
   /* ── Administration ── */
-  const admx=hit("[data-admx]"); if(admx){ admExtra(admx.dataset.admx); return; }
-  if(hit("[data-diagcopy]")){ copyDiag(); return; }
-  const adm=hit("[data-adm]");
-  if(adm){ admAction(adm.dataset.adm); return; }
-  const up=hit("[data-unplan]"); if(up){ delete PLAN.modules[up.dataset.unplan]; savePlan(); route(); return; }
-  const pr=hit("[data-promote]"); if(pr){ const p=profileOf(pr.dataset.promote); if(p){ p.role="admin"; saveProfiles(); toast("Rôle administrateur accordé à "+p.nom+".","ok"); route(); } return; }
-  const dm=hit("[data-demote]");  if(dm){ const p=profileOf(dm.dataset.demote);
-    if(p){ if(PROFILES.filter(x=>x.role==="admin").length<=1){ toast("Il doit rester au moins un administrateur.","err"); return; }
-      p.role="membre"; saveProfiles(); if(ME&&ME.id===p.id) ME=p; toast("Rôle retiré à "+p.nom+"."); route(); } return; }
-  const dp=hit("[data-delprof]"); if(dp){ confirmDeleteProfile(dp.dataset.delprof); return; }
-  if(hit("[data-rvnext]")){ startRev(false); return; }
-  if(hit("[data-confirm]")){ runConfirm(); return; }
-  if(hit("[data-pinsave]")){ savePinFromModal(); return; }
+  admx(el){ admExtra(el.dataset.admx); },
+  diagcopy(){ copyDiag(); },
+  adm(el){ admAction(el.dataset.adm); },
+  unplan(el){ delete PLAN.modules[el.dataset.unplan]; savePlan(); route(); },
+  promote(el){
+    const p=profileOf(el.dataset.promote);
+    if(p){ p.role="admin"; saveProfiles(); toast("Rôle administrateur accordé à "+p.nom+".","ok"); route(); }
+  },
+  demote(el){
+    const p=profileOf(el.dataset.demote); if(!p) return;
+    if(PROFILES.filter(x=>x.role==="admin").length<=1){ toast("Il doit rester au moins un administrateur.","err"); return; }
+    p.role="membre"; saveProfiles(); if(ME&&ME.id===p.id) ME=p; toast("Rôle retiré à "+p.nom+"."); route();
+  },
+  delprof(el){ confirmDeleteProfile(el.dataset.delprof); },
+  confirm(){ runConfirm(); },
+  pinsave(){ savePinFromModal(); },
 
-  /* barre latérale et en-tête */
-  const tog=hit("[data-toggle]");
-  if(tog){
-    const id=tog.dataset.toggle, o=S.prefs.openPhases||(S.prefs.openPhases=[]);
+  /* ── Barre latérale et en-tête ── */
+  toggle(el){
+    const id=el.dataset.toggle, o=S.prefs.openPhases||(S.prefs.openPhases=[]);
     const i=o.indexOf(id); if(i>=0) o.splice(i,1); else o.push(id);
-    save(); paintNav(); return;
-  }
-  if(hit("#burger")){ document.body.classList.toggle("nav-open"); return; }
-  if(hit("[data-navclose]")){ document.body.classList.remove("nav-open"); return; }
-  if(hit("#openCmd")||hit("[data-act=cmd]")){ openCmd(); return; }
-  if(hit("#toggleTheme")){ toggleTheme(); if(location.hash==="#/reglages") route(); return; }
-  if(hit("#openHelp")){ helpModal(); return; }
-  const ci=hit(".cmd-it"); if(ci){ runCmd(+ci.dataset.n); return; }
+    save(); paintNav();
+  },
+  navopen(){ document.body.classList.toggle("nav-open"); },
+  navclose(){ document.body.classList.remove("nav-open"); },
+  cmdrun(el){ runCmd(+el.dataset.cmdrun); },
 
-  /* statuts, favoris, maîtrise */
-  const cy=hit("[data-cycle]"); if(cy){ cycleStatus(cy.dataset.cycle); route(); return; }
-  const dn=hit("[data-done]");  if(dn){ setStatus(dn.dataset.done, meta(dn.dataset.done).st==="done"?"todo":"done"); route(); return; }
-  const fv=hit("[data-fav]");   if(fv){ toggleFav(fv.dataset.fav);
-    fv.classList.toggle("on"); fv.textContent=meta(fv.dataset.fav).fav?"★":"☆";
-    fv.classList.add("pop"); setTimeout(()=>fv.classList.remove("pop"),400); return; }
-  const ms=hit("[data-mast]");  if(ms){ const p=ms.dataset.mast.split("|");
-    meta(p[0]).mastery=+p[1]; save(); checkBadges(); route(); return; }
+  /* ── Statuts, favoris, maîtrise ── */
+  cycle(el){ cycleStatus(el.dataset.cycle); route(); },
+  done(el){ setStatus(el.dataset.done, meta(el.dataset.done).st==="done"?"todo":"done"); route(); },
+  fav(el){
+    toggleFav(el.dataset.fav);
+    el.classList.toggle("on"); el.textContent=meta(el.dataset.fav).fav?"★":"☆";
+    el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),400);
+  },
+  mast(el){ const p=el.dataset.mast.split("|"); meta(p[0]).mastery=+p[1]; save(); checkBadges(); route(); },
 
-  /* onglets de module */
-  const tb=hit("[data-tab]");
-  if(tb){ modTab=tb.dataset.tab;
+  /* ── Onglets de module ── */
+  tab(el){
+    modTab=el.dataset.tab;
     const id=(location.hash.split("/")[2]||"").split("?")[0];
     $$(".tab").forEach(x=>x.classList.toggle("on", x.dataset.tab===modTab));
-    paintTab(id); return; }
+    paintTab(id);
+  },
 
-  /* quiz de module */
-  const qo=hit("[data-opt]"); if(qo && !qo.classList.contains("lock")){ answerQuiz(+qo.dataset.opt); return; }
-  if(hit("[data-qznext]")){ nextQuiz(); return; }
-  if(hit("[data-qzretry]")){ startQuiz(qz.id); return; }
-  if(hit("#timerBtn")){ toggleTimer((location.hash.split("/")[2]||"").split("?")[0]); return; }
+  /* ── Quiz de module ── */
+  opt(el){ if(el.classList.contains("lock")) return false; answerQuiz(+el.dataset.opt); },
+  qznext(){ nextQuiz(); },
+  qzretry(){ startQuiz(qz.id); },
+  timer(){ toggleTimer((location.hash.split("/")[2]||"").split("?")[0]); },
 
-  /* parcours */
-  const pf=hit("[data-pcf]"); if(pf){ pcFilter.f=pf.dataset.pcf;
-    $$("[data-pcf]").forEach(b=>b.classList.toggle("on",b.dataset.pcf===pcFilter.f)); paintParcours(); return; }
+  /* ── Parcours ── */
+  pcf(el){
+    pcFilter.f=el.dataset.pcf;
+    $$("[data-pcf]").forEach(b=>b.classList.toggle("on",b.dataset.pcf===pcFilter.f));
+    paintParcours();
+  },
 
-  /* fiches et modes de jeu */
-  const md=hit("[data-mode]"); if(md){ deck.mode=md.dataset.mode; location.hash="#/cartes?m="+deck.mode; route(); return; }
-  if(hit("[data-shuffle]")){ deck.shuf=!deck.shuf; buildDeck(); startMode();
-    $$("[data-shuffle]").forEach(b=>b.classList.toggle("on",deck.shuf)); toast(deck.shuf?"Paquet mélangé.":"Ordre d'origine rétabli."); return; }
-  if(hit("[data-fcflip]")||(hit("#fcCard")&&!hit("a"))){
-    if(rv.started){ rv.flip=!rv.flip; paintRev(); } else { fc.flip=!fc.flip; paintCard(); } return; }
-  if(hit("[data-fcnext]")){ fc.i=(fc.i+1)%deck.list.length; fc.flip=false; paintCard(); return; }
-  if(hit("[data-fcprev]")){ fc.i=(fc.i-1+deck.list.length)%deck.list.length; fc.flip=false; paintCard(); return; }
-  const qk2=hit("[data-quick]"); if(qk2){ quickGrade(+qk2.dataset.quick); return; }
+  /* ── Fiches et modes de jeu ── */
+  mode(el){ deck.mode=el.dataset.mode; location.hash="#/cartes?m="+deck.mode; route(); },
+  shuffle(){
+    deck.shuf=!deck.shuf; buildDeck(); startMode();
+    $$("[data-shuffle]").forEach(b=>b.classList.toggle("on",deck.shuf));
+    toast(deck.shuf?"Paquet mélangé.":"Ordre d'origine rétabli.");
+  },
+  fcflip(el,e){
+    /* Un lien posé sur la fiche garde son rôle de lien : la fiche ne se
+       retourne pas sous le doigt de qui voulait ouvrir le module lié. */
+    if(e && e.target && e.target.closest && e.target.closest("a")) return false;
+    if(rv.started){ rv.flip=!rv.flip; paintRev(); } else { fc.flip=!fc.flip; paintCard(); }
+  },
+  fcnext(){ fc.i=(fc.i+1)%deck.list.length; fc.flip=false; paintCard(); },
+  fcprev(){ fc.i=(fc.i-1+deck.list.length)%deck.list.length; fc.flip=false; paintCard(); },
+  quick(el){ quickGrade(+el.dataset.quick); },
+  lrn(el){ if(el.classList.contains("lock")) return false; answerLearn(+el.dataset.lrn); },
+  lrnnext(){ nextLearn(); },
+  wrtok(){ submitWrite(false); },
+  wrtskip(){ submitWrite(true); },
+  wrtnext(){ nextWrite(); },
+  wrtoverride(){ overrideWrite(); },
+  tile(el){ if(el.disabled) return false; pickTile(+el.dataset.tile); },
+  tst(el){ answerTest(+el.dataset.tst); },
+  tstwrite(){ const el=$("#tstIn"); answerTest(el?el.value:""); },
 
-  const lr=hit("[data-lrn]"); if(lr && !lr.classList.contains("lock")){ answerLearn(+lr.dataset.lrn); return; }
-  if(hit("[data-lrnnext]")){ nextLearn(); return; }
+  /* ── Révision espacée ── */
+  rvstart(){ startRev(false); },
+  rvnew(){ startRev(false,"neuf"); },
+  rvforce(){ startRev(true); },
+  rvnext(){ startRev(false); },
+  grade(el){ gradeRev(+el.dataset.grade); },
 
-  if(hit("[data-wrtok]")){ submitWrite(false); return; }
-  if(hit("[data-wrtskip]")){ submitWrite(true); return; }
-  if(hit("[data-wrtnext]")){ nextWrite(); return; }
-  if(hit("[data-wrtoverride]")){ overrideWrite(); return; }
+  /* ── Référentiel ── */
+  glc(el){ gl.c=el.dataset.glc; gl.fav=false; route(); },
+  glfavfilter(){ gl.fav=!gl.fav; gl.c="all"; route(); },
+  glview(el){ S.prefs.glView=el.dataset.glview; save(); route(); },
+  glterm(el){ glossaryModal(el.dataset.glterm); },
+  glfav(el){
+    toggleGlFav(el.dataset.glfav);
+    if($("#modalOvl").classList.contains("on")) glossaryModal(el.dataset.glfav); else paintGlossary();
+    paintNav();
+  },
+  glrev(el){ pushToReview(el.dataset.glrev); },
+  az(el){
+    if(el.disabled) return false;
+    const t=$("#az-"+el.dataset.az); if(t) t.scrollIntoView({behavior:"smooth",block:"start"});
+  },
 
-  const tl=hit("[data-tile]"); if(tl && !tl.disabled){ pickTile(+tl.dataset.tile); return; }
+  /* ── Bibliothèque ── */
+  rst(el){ rs.t=el.dataset.rst; rs.ess=false; route(); },
+  rsess(){ rs.ess=!rs.ess; rs.t="all"; route(); },
+  resview(el){ S.prefs.resView=el.dataset.resview; save(); route(); },
+  read(el){ toggleRead(el.dataset.read); paintResources(); },
+  readpath(){ readPathModal(); },
 
-  const ts=hit("[data-tst]"); if(ts){ answerTest(+ts.dataset.tst); return; }
-  if(hit("[data-tstwrite]")){ const el=$("#tstIn"); answerTest(el?el.value:""); return; }
-
-  /* révision espacée */
-  if(hit("[data-rvstart]")){ startRev(false); return; }
-  if(hit("[data-rvnew]")){ startRev(false,"neuf"); return; }
-  if(hit("[data-rvforce]")){ startRev(true); return; }
-  const gr=hit("[data-grade]"); if(gr){ gradeRev(+gr.dataset.grade); return; }
-
-  /* référentiel */
-  const glc=hit("[data-glc]"); if(glc){ gl.c=glc.dataset.glc; gl.fav=false; route(); return; }
-  if(hit("[data-glfavfilter]")){ gl.fav=!gl.fav; gl.c="all"; route(); return; }
-  const glv=hit("[data-glview]"); if(glv){ S.prefs.glView=glv.dataset.glview; save(); route(); return; }
-  const gt=hit("[data-glterm]"); if(gt){ glossaryModal(gt.dataset.glterm); return; }
-  const gf=hit("[data-glfav]"); if(gf){ toggleGlFav(gf.dataset.glfav);
-    if($("#modalOvl").classList.contains("on")) glossaryModal(gf.dataset.glfav); else paintGlossary();
-    paintNav(); return; }
-  const gv=hit("[data-glrev]"); if(gv){ pushToReview(gv.dataset.glrev); return; }
-  const az=hit("[data-az]"); if(az && !az.disabled){
-    const el=$("#az-"+az.dataset.az); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
-
-  /* bibliothèque */
-  const rst=hit("[data-rst]"); if(rst){ rs.t=rst.dataset.rst; rs.ess=false; route(); return; }
-  if(hit("[data-rsess]")){ rs.ess=!rs.ess; rs.t="all"; route(); return; }
-  const rv2=hit("[data-resview]"); if(rv2){ S.prefs.resView=rv2.dataset.resview; save(); route(); return; }
-  const rd=hit("[data-read]"); if(rd){ toggleRead(rd.dataset.read); paintResources(); return; }
-  if(hit("[data-readpath]")){ readPathModal(); return; }
-
-  /* verticale */
-  const vp=hit("[data-vert]");
-  if(vp){
-    setVertical(vp.dataset.vert);
+  /* ── Verticale ── */
+  vert(el){
+    setVertical(el.dataset.vert);
     /* depuis les réglages on reste sur place, ailleurs on ouvre la fiche métier */
     if(location.hash.indexOf("#/reglages")===0) route();
     else { location.hash="#/verticale"; route(); }
-    return;
-  }
-  const vob=hit("[data-vertob]"); if(vob){ setVertical(vob.dataset.vertob,true); showOnboarding(); return; }
-  if(hit("[data-vertchange]")){ viewVertPicker(); return; }
+  },
+  vertob(el){ setVertical(el.dataset.vertob,true); showOnboarding(); },
+  vertchange(){ viewVertPicker(); },
 
-  /* process et accordéons */
-  const st2=hit("[data-step]"); if(st2){ prSel=+st2.dataset.step;
+  /* ── Process et accordéons ── */
+  step(el){
+    prSel=+el.dataset.step;
     $$("[data-step]").forEach(b=>b.classList.toggle("on", +b.dataset.step===prSel));
     paintStep();
     const sb=$("#stepBody"); if(sb) sb.scrollIntoView({behavior:"smooth",block:"nearest"});
-    return; }
-  const ac=hit(".acc-h"); if(ac){ const box=ac.closest(".acc"); if(box) box.classList.toggle("open"); return; }
+  },
+  accordion(el){ const box=el.closest(".acc"); if(box) box.classList.toggle("open"); },
 
-  /* réglages */
-  const th=hit("[data-theme]"); if(th){ S.prefs.theme=th.dataset.theme; save(); applyTheme(); route(); return; }
-  const act=hit("[data-act]");
-  if(act){
-    const a=act.dataset.act;
+  /* ── Réglages ── */
+  settheme(el){ S.prefs.theme=el.dataset.settheme; save(); applyTheme(); route(); },
+  act(el){
+    const a=el.dataset.act;
+    if(a==="cmd") openCmd();
+    if(a==="theme-toggle"){ toggleTheme(); if(location.hash==="#/reglages") route(); }
     if(a==="export") exportData();
-    if(a==="tour"){ resetTips(); }                    /* relance la présentation ET réaffiche les astuces */
+    if(a==="tour") resetTips();                        /* relance la présentation ET réaffiche les astuces */
     if(a==="replay-ob"){ obStep=0; showOnboarding(); } /* relance la présentation seule */
     if(a==="help") helpModal();
     if(a==="pin") pinModal();
     if(a==="askadmin") location.hash="#/admin";
-    if(a==="reset")  resetData();
+    /* L'attestation est produite par la fonction d'impression du navigateur,
+       qui sait enregistrer en PDF. Aucune bibliotheque n'est chargee : c'est le
+       seul moyen de rester sur un fichier unique sans etape de compilation. */
+    if(a==="print-att") window.print();
+    if(a==="reset") resetData();
     if(a==="reset-confirm"){ STORE.del(KEY); S=load(); closeModal();
       applyTheme(); paintHeader(); paintNav(); route(); toast("Progression réinitialisée.","ok"); }
-    return;
-  }
+  },
 
-  /* présentation initiale */
-  if(hit("[data-ob]")){ obNext(); return; }
-  if(hit("[data-obback]")){ obBack(); return; }
-  if(hit("[data-obclose]")){ obDismiss(); return; }
-  if(hit("[data-ob-skip]")){ obDismiss(); return; }
+  /* ── Présentation initiale ── */
+  ob(){ obNext(); },
+  obback(){ obBack(); },
+  obclose(){ obDismiss(); },
+  "ob-skip"(){ obDismiss(); }
+};
+
+/** Nom de l'intention portée par cet élément, ou null.
+    hasOwnProperty protège des attributs qui porteraient par hasard le nom
+    d'une propriété héritée d'Object, par exemple data-constructor. */
+function intentOf(el){
+  const at=el.attributes;
+  for(let i=0;i<at.length;i++){
+    const n=at[i].name;
+    if(n.length>5 && n.lastIndexOf("data-",0)===0){
+      const k=n.slice(5);
+      if(Object.prototype.hasOwnProperty.call(INTENT,k)) return k;
+    }
+  }
+  return null;
+}
+
+function handleClick(e){
+  let el = (e.target && e.target.nodeType===1) ? e.target
+         : (e.target && e.target.parentElement) ? e.target.parentElement : null;
+  while(el && el!==document.body && el!==document.documentElement){
+    const k=intentOf(el);
+    if(k && INTENT[k](el,e)!==false) return;
+    el=el.parentElement;
+  }
 }
 
 /* ── Saisies ──────────────────────────────────────────────── */
+/* Le rendu d une liste filtrée coûte, mise en page comprise, 15 a 42 ms sur un
+   poste de bureau et 67 a 172 ms sur un mobile d entree de gamme, mesure le
+   29 juillet 2026 (referentiel : 190 termes, 2 059 noeuds). Le declencher a
+   chaque caractere rendait la frappe hachee. Un delai de 120 ms regroupe une
+   rafale de frappes en un seul rendu, sans etre perceptible sur une frappe
+   isolee. La recherche globale n est pas concernee : elle lit un index
+   preconstruit et plafonne ses resultats. */
+let filtTimer=null;
+function filtrer(peindre){
+  if(filtTimer) clearTimeout(filtTimer);
+  filtTimer=setTimeout(()=>{ filtTimer=null; try{ peindre(); }catch(err){ reportError(err,"filtrage"); } },120);
+}
+function stopFiltre(){ if(filtTimer){ clearTimeout(filtTimer); filtTimer=null; } }
 document.addEventListener("input", e=>{
   const id=e.target.id;
   if(id==="cmdInput") renderCmd(e.target.value);
-  if(id==="pcq"){ pcFilter.q=e.target.value; paintParcours(); }
-  if(id==="glq"){ gl.q=e.target.value; paintGlossary(); }
-  if(id==="rsq"){ rs.q=e.target.value; paintResources(); }
+  if(id==="pcq"){ pcFilter.q=e.target.value; filtrer(paintParcours); }
+  if(id==="glq"){ gl.q=e.target.value; filtrer(paintGlossary); }
+  if(id==="rsq"){ rs.q=e.target.value; filtrer(paintResources); }
 });
 document.addEventListener("change", e=>{
   const id=e.target.id;
