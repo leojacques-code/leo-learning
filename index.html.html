@@ -3503,6 +3503,481 @@ quiz:[{q:"Que doit contenir le titre d'une page de livrable ?",o:["Le message à
    {q:"Un tableau de synthèse comporte des bandeaux fusionnés par phase et ne porte aucune source. Quelles corrections, et pourquoi dans cet ordre ?",o:["Nommer la source d'abord, car sans elle le tableau n'est pas opposable, puis remettre à plat pour qu'il redevienne triable et filtrable","Remettre à plat d'abord, la source étant un détail de forme","Conserver les bandeaux, qui structurent la lecture, et ajouter la source en note de bas de page","Remplacer le tableau par un graphique, qui n'exige pas de source"],a:0,e:"Un chiffre sans source nommée ne peut pas être défendu en réunion : c'est le défaut qui disqualifie le document, donc le premier à corriger. La fusion de cellules, elle, empêche le destinataire de trier et de filtrer, ce qui est le seul usage réel qu'il fera du tableau."}],
 src:["Usage des cabinets de conseil, matériaux client","Lexique des règles typographiques en usage à l'Imprimerie nationale"]};
 
+LESSONS["projection-ca"] = {
+why:"Le chiffre d'affaires est la première ligne du modèle et la source de toutes les autres erreurs. Une croissance surestimée de deux points se propage jusqu'au prix.",
+obj:["Décomposer un chiffre d'affaires selon ce qui pilote réellement l'activité","Séparer la base récurrente des affaires nouvelles","Exiger un fait derrière toute projection supérieure à l'historique"],
+html:`
+<p class="lead">Un cédant vous annonce 8 % de croissance pour les trois ans à venir. Son historique en affiche 4 %. La question n'est pas de savoir s'il a tort, mais ce qu'il faut lui demander pour que ce chiffre devienne défendable devant un acquéreur.</p>
+
+<h2 id="decomposer">Décomposer selon ce qui pilote</h2>
+<p>Un taux de croissance global n'est pas une hypothèse, c'est un résumé. La décomposition se fait selon la variable qui pilote réellement l'activité : par activité si les métiers ont des dynamiques différentes, par segment client si la concentration est forte, par zone si l'implantation compte. Une seule décomposition, celle qui explique le plus.</p>
+<div class="formula"><span class="fl">Base contractuelle</span>CA récurrent = base précédente x (1 - attrition) x (1 + indexation) + affaires nouvelles</div>
+<p>L'ordre des opérations compte : l'indexation s'applique à ce qui reste après attrition, pas à la base de départ. Et les affaires nouvelles s'ajoutent après, sans indexation, puisqu'elles arrivent en cours d'année.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Composante</th><th class="n">Valeur</th><th>Source</th></tr>
+<tr><td>Base récurrente N</td><td class="n">2 400</td><td>contrats en cours</td></tr>
+<tr><td>Attrition observée</td><td class="n">8 %</td><td>moyenne des trois derniers exercices</td></tr>
+<tr><td>Indexation contractuelle</td><td class="n">3 %</td><td>clause des contrats</td></tr>
+<tr><td>Affaires nouvelles signées</td><td class="n">150</td><td>carnet de commandes</td></tr>
+</table>
+<p>2 400 x 0,92 = 2 208, puis x 1,03 = 2 274, plus 150 = <strong>2 424</strong>, soit une croissance de 1 %. Le cédant annonçait 8 %. L'écart ne vient pas d'un désaccord d'opinion : il vient de ce que sa croissance suppose des affaires nouvelles de 320 au lieu de 150, sans qu'un carnet de commandes ne les documente.</p>
+
+<h2 id="visibilite">La visibilité des douze premiers mois</h2>
+<p>Le carnet de commandes, ou le portefeuille en cours pour une activité de services, donne une visibilité réelle sur la première année de projection. C'est le seul segment du modèle qui repose sur des engagements et non sur des hypothèses, et il sert de test : si la projection de l'année 1 dépasse ce que le carnet permet, le reste du modèle est douteux.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Appliquer le même taux de croissance à la base récurrente et aux affaires nouvelles. Leurs dynamiques n'ont rien à voir : la base décroît par attrition et se réévalue par indexation, les affaires nouvelles dépendent de l'effort commercial. Les confondre produit une projection qui ne se discute plus, faute d'être décomposée.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Toute projection supérieure à la croissance historique doit s'appuyer sur un fait : contrat signé, carnet de commandes, ouverture de site, recrutement commercial déjà effectué. Un fait se vérifie en audit, une intention se renégocie au moment de l'offre.</div>
+`,
+key:["Un taux global n'est pas une hypothèse, c'est un résumé","Base récurrente et affaires nouvelles ont des dynamiques distinctes","L'indexation s'applique après attrition, pas avant","Toute projection au-dessus de l'historique exige un fait documenté"],
+quiz:[{q:"Base récurrente de 1 000, attrition de 6 %, indexation de 2 %, affaires nouvelles de 80. Chiffre d'affaires projeté ?",o:["1 038","1 080","1 040","960"],a:0,e:"1 000 x 0,94 x 1,02 = 958,8, plus 80 d'affaires nouvelles = 1 038,8."},
+   {q:"Base récurrente de 2 400, attrition de 8 %, indexation de 3 %, affaires nouvelles de 150. Quel chiffre d'affaires récurrent l'année suivante ?",o:["2 424","2 550","2 358","2 274"],a:0,e:"2 400 x 0,92 x 1,03 = 2 274, puis + 150 = 2 424. L'ordre compte : l'indexation s'applique à la base qui reste après attrition, pas à la base de départ. Et les affaires nouvelles s'ajoutent après, sans être indexées puisqu'elles arrivent en cours d'année."},
+   {q:"Une projection retient une croissance de 12 % quand l'historique des trois derniers exercices s'établit à 4 %. Qu'exige cette hypothèse ?",o:["Un fait documenté : contrat signé, carnet de commandes, ouverture d'un site, recrutement commercial déjà réalisé","L'accord écrit du cédant sur le chiffre retenu","Une note de synthèse expliquant la stratégie de l'entreprise","Rien de particulier, une projection est par nature une hypothèse"],a:0,e:"Toute projection supérieure à la tendance observée doit s'appuyer sur un fait, pas sur une intention. La différence est opérationnelle : un fait se vérifie en audit, une intention se renégocie."}],
+src:["Vernimmen, construction d'un business plan","Damodaran, Investment Valuation, revenue forecasting"]};
+
+LESSONS["schema-amortissement"] = {
+why:"L'échéancier d'immobilisations relie capex, dotations et valeur nette comptable de façon cohérente. Sans lui, le bilan et le compte de résultat divergent silencieusement.",
+obj:["Construire un échéancier par catégorie d'immobilisation","Amortir l'existant sur sa durée résiduelle et le nouveau sur sa durée normale","Vérifier la convergence de capex et dotations en fin d'horizon"],
+html:`
+<p class="lead">Un modèle projette 400 de dotations par an sur cinq ans, avec 150 de capex annuel. Le bilan s'équilibre, la trésorerie est positive, aucun contrôle ne rougit. Et pourtant l'échéancier est faux, ce qui se verra à la lecture de la valeur nette comptable en année 5.</p>
+
+<h2 id="blocs">Un bloc par catégorie</h2>
+<p>Chaque catégorie d'immobilisation a sa durée propre : un bâtiment sur vingt ans, un outillage sur cinq, un véhicule sur quatre, un logiciel sur trois. Un échéancier unique appliquant une durée moyenne produit des dotations fausses dès la deuxième année, et l'erreur ne s'annule jamais.</p>
+<div class="formula"><span class="fl">Valeur nette comptable</span>VNC de clôture = VNC d'ouverture + capex - dotations - VNC des cessions</div>
+<p>Cette égalité est le contrôle de l'échéancier. Si elle ne tombe pas, une cession a été oubliée ou une dotation calculée sur la mauvaise base.</p>
+
+<h2 id="durees">Deux régimes d'amortissement à ne pas confondre</h2>
+<p>L'existant s'amortit sur sa **durée résiduelle**, celle qui lui reste. Le nouveau capex s'amortit sur sa **durée normale**, complète. Confondre les deux est l'erreur la plus fréquente : elle étale l'existant sur trop d'années et sous-estime les dotations des premiers exercices, donc surestime le résultat.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Élément</th><th class="n">Valeur nette</th><th class="n">Durée</th><th class="n">Dotation annuelle</th></tr>
+<tr><td>Outillage existant</td><td class="n">900</td><td class="n">3 ans résiduels</td><td class="n">300</td></tr>
+<tr><td>Capex année 1</td><td class="n">600</td><td class="n">5 ans</td><td class="n">120</td></tr>
+<tr><td>Capex année 2</td><td class="n">600</td><td class="n">5 ans</td><td class="n">120</td></tr>
+<tr><td><strong>Dotation totale année 2</strong></td><td class="n"></td><td class="n"></td><td class="n"><strong>420</strong></td></tr>
+</table>
+<p>En année 4, l'outillage existant est totalement amorti : la dotation retombe à 360, soit trois tranches de 120. En régime permanent, avec 600 de capex annuel amorti sur cinq ans, la dotation converge vers 600. Si le modèle projette 150 de capex et 400 de dotations sur tout l'horizon, il décrit une entreprise qui consomme son outil sans le renouveler : c'est possible, mais cela doit être dit, et la valeur nette comptable finira par devenir négative.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Amortir l'existant sur sa durée normale au lieu de sa durée résiduelle. Sur un outillage de 900 déjà à moitié amorti, cela donne 180 de dotation au lieu de 300 : 120 de résultat surestimé chaque année, et une valeur nette comptable qui ne s'éteint jamais.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>La dotation projetée alimente le compte de résultat et se neutralise dans le tableau de flux : c'est une charge sans sortie de caisse. Le contrôle est immédiat, la somme des dotations réintégrées dans le tableau de flux doit égaler la somme des dotations du compte de résultat, à l'unité près.</div>
+`,
+key:["Un bloc par catégorie, avec sa durée propre","Existant sur durée résiduelle, nouveau capex sur durée normale","VNC de clôture = ouverture + capex - dotations - VNC des cessions","En régime permanent, capex et dotations convergent"],
+quiz:[{q:"VNC d'ouverture 1 200, capex 300, dotations 250, aucune cession. VNC de clôture ?",o:["1 250","1 750","1 150","900"],a:0,e:"1 200 + 300 - 250 = 1 250. L'actif progresse car l'investissement dépasse la dépréciation."},
+   {q:"Un actif existant présente une valeur nette de 900 et une durée résiduelle de 3 ans. Vous investissez 600 en année 1, amortissables sur 5 ans. Quelle dotation en année 2 ?",o:["420","300","120","500"],a:0,e:"900 / 3 = 300 sur l'existant, amorti selon sa durée résiduelle et non selon une durée neuve. 600 / 5 = 120 sur le nouveau capex, amorti selon sa durée normale. Total 420. Confondre les deux durées est l'erreur classique : elle étale l'existant sur trop d'années et sous-estime les dotations des premiers exercices."},
+   {q:"En régime permanent, capex et dotations convergent. Que signale un écart durable entre les deux ?",o:["Une erreur d'hypothèse dans le modèle, à corriger avant toute conclusion","Une politique d'investissement dynamique, à valoriser","Un changement de méthode d'amortissement","Rien : les deux grandeurs sont indépendantes"],a:0,e:"À l'équilibre, une entreprise renouvelle ce qu'elle consomme : les investissements rejoignent les dotations. Un écart qui persiste sur tout l'horizon signifie soit un capex projeté irréaliste, soit un échéancier d'amortissement mal construit. Dans les deux cas, la trésorerie projetée est fausse."}],
+src:["Plan comptable général, amortissements","FAST Standard, échéanciers d'immobilisations"]};
+
+LESSONS["modele-express"] = {
+why:"En qualification, on a une heure et une liasse. L'objet n'est pas de fixer un prix, c'est de décider s'il faut aller plus loin.",
+obj:["Produire une fourchette défendable en une heure","Choisir les deux seuls inducteurs qui comptent à ce stade","Assumer une fourchette large plutôt qu'une fausse précision"],
+html:`
+<p class="lead">Un cédant vous appelle, vous avez trois liasses en pièce jointe et un rendez-vous dans une heure. Il attend un ordre de grandeur. Produire un modèle à trois états serait la mauvaise réponse : il arriverait trop tard et ne serait pas plus juste.</p>
+
+<h2 id="perimetre">Ce qu'on fait, ce qu'on ne fait pas</h2>
+<table class="tbl">
+<tr><th>On fait</th><th>On ne fait pas</th><th>Pourquoi</th></tr>
+<tr><td>Trois exercices saisis depuis la liasse</td><td>reconstituer un compte de résultat mensuel</td><td>l'information n'existe pas encore</td></tr>
+<tr><td>Excédent brut et retraitements évidents</td><td>chercher tous les retraitements</td><td>les pièces arrivent après le NDA</td></tr>
+<tr><td>Deux inducteurs, croissance et marge</td><td>trente inducteurs</td><td>aucun ne serait calibré</td></tr>
+<tr><td>Dette nette approchée depuis le bilan</td><td>rechercher tous les assimilés</td><td>ne changerait pas la décision d'aller plus loin</td></tr>
+<tr><td>Valorisation par multiple, fourchette large</td><td>flux de trésorerie actualisés</td><td>fausse précision sur des hypothèses non vérifiées</td></tr>
+</table>
+
+<h2 id="cas">Cas chiffré en dix minutes</h2>
+<table class="tbl">
+<tr><th>Étape</th><th class="n">Valeur</th><th>Source</th></tr>
+<tr><td>Excédent brut moyen sur trois ans</td><td class="n">640</td><td>liasses 2052</td></tr>
+<tr><td>Retraitement de rémunération</td><td class="n">+ 90</td><td>déclaré par le cédant, à vérifier</td></tr>
+<tr><td>Excédent brut retraité approché</td><td class="n">730</td><td>calcul</td></tr>
+<tr><td>Fourchette de multiple du secteur</td><td class="n">5,0x à 7,0x</td><td>transactions comparables connues</td></tr>
+<tr><td>Valeur d'entreprise</td><td class="n">3 650 à 5 110</td><td>calcul</td></tr>
+<tr><td>Dette nette approchée</td><td class="n">- 1 200</td><td>bilan 2051, dettes financières moins trésorerie</td></tr>
+<tr><td><strong>Prix des titres</strong></td><td class="n"><strong>2 450 à 3 910</strong></td><td>calcul</td></tr>
+</table>
+<p>Une fourchette de 1 460 d'amplitude, soit 60 % du point bas. Elle paraît large, et elle est honnête : à ce stade, la précision serait une illusion. Ce qu'elle permet est la seule chose utile, savoir si le cédant est dans le même ordre de grandeur que le marché.</p>
+
+<h2 id="livrable">Le livrable est une page</h2>
+<p>Trois blocs : la fourchette, les hypothèses qui la produisent, et la liste des points à vérifier. Ce troisième bloc est le plus important : il montre au cédant que la fourchette n'est pas un prix, et il devient la feuille de route de la phase suivante.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Présenter une valeur unique. Un chiffre unique devient un prix dans la tête du cédant, en quinze secondes et pour six mois. Une fourchette large annoncée comme telle est plus difficile à énoncer et infiniment plus facile à défendre ensuite.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Noter le verbatim des attentes du cédant, avec la date. C'est ce qui permettra, trois mois plus tard, de mesurer le chemin parcouru sans que l'histoire soit réécrite par l'une ou l'autre partie.</div>
+`,
+key:["L'objet est de décider d'aller plus loin, pas de fixer un prix","Deux inducteurs suffisent : croissance et marge","Une fourchette large assumée vaut mieux qu'une fausse précision","Le livrable tient en une page, dont un tiers de points à vérifier"],
+quiz:[{q:"Quel est le livrable d'un modèle express de qualification ?",o:["Une page : fourchette, hypothèses, points à vérifier","Un modèle intégré complet","Un mémorandum","Une LOI"],a:0,e:"La précision doit rester proportionnée à l'information disponible. Afficher trois décimales sur une liasse seule est trompeur."},
+   {q:"En qualification, vous disposez d'une heure et de trois liasses fiscales. Quels choix de modélisation ?",o:["Deux inducteurs seulement, croissance et marge, dette nette approchée depuis le bilan, valorisation par multiple avec une fourchette large assumée, et un livrable d'une page","Un modèle à trois états complet sur cinq ans, quitte à dépasser largement l'heure","Un flux de trésorerie actualisé simplifié, plus rigoureux qu'un multiple","Attendre les données de gestion mensuelles avant de produire la moindre estimation"],a:0,e:"L'objet d'un modèle express est de décider s'il faut aller plus loin, pas de fixer un prix. Deux inducteurs suffisent à cadrer un ordre de grandeur, et une fourchette large annoncée comme telle est plus honnête qu'une valeur unique obtenue en trois fois plus de temps. Un flux actualisé sur des hypothèses non vérifiées donne une fausse précision."},
+   {q:"Pourquoi la dette nette est-elle seulement approchée dans un modèle express ?",o:["Parce que la recherche exhaustive des assimilés se fait après le NDA, avec les pièces, et qu'elle ne changerait pas la décision d'aller plus loin ou non","Parce que la dette nette n'a pas d'effet sur la valeur d'entreprise","Parce que le bilan ne permet jamais de la calculer","Parce qu'elle est du ressort de l'acquéreur, pas du conseil du cédant"],a:0,e:"Crédit-bail, comptes courants, engagements de retraite, dettes sociales différées : les assimilés se documentent sur pièces, et les pièces arrivent après l'accord de confidentialité. À ce stade, une dette nette approchée suffit pour situer une fourchette ; la précision viendrait cadrer un prix, ce qui n'est pas encore l'objet."}],
+src:["Pratique du conseil en cession de PME","Vernimmen, méthodes de valorisation rapides"]};
+
+LESSONS["revue-modele"] = {
+why:"Relire son propre modèle avec les yeux d'un tiers est la dernière étape avant diffusion. C'est aussi la seule qui trouve les erreurs de raisonnement.",
+obj:["Passer une liste de contrôle en vingt points avant diffusion","Tester la sensibilité sur les trois inducteurs principaux","Distinguer une erreur technique d'une erreur de raisonnement"],
+html:`
+<p class="lead">Votre modèle passe tous les contrôles d'équilibre, ses hypothèses sont isolées et colorées, et la marge d'excédent brut atteint 34 % en année 5 contre 19 % en historique. Aucun contrôle automatique ne le signalera jamais.</p>
+
+<h2 id="quatre">Quatre familles de contrôles</h2>
+<table class="tbl">
+<tr><th>Famille</th><th>Exemples</th><th>Ce qu'elle attrape</th></tr>
+<tr><td>Cohérence interne</td><td>équilibre du bilan, trésoreries égales, dettes positives</td><td>les liaisons rompues</td></tr>
+<tr><td>Cohérence économique</td><td>capex et dotations convergents, BFR proportionné, marge plausible</td><td>les hypothèses invraisemblables</td></tr>
+<tr><td>Hygiène de construction</td><td>aucune constante en dur, chaque hypothèse utilisée au moins une fois</td><td>les traces d'essais abandonnés</td></tr>
+<tr><td>Recoupement externe</td><td>trois chiffres clés confrontés à la liasse, à un contrat, à un relevé</td><td>les erreurs de saisie</td></tr>
+</table>
+<p>Les trois premières se passent seul. La quatrième demande une pièce, et c'est celle qu'on saute le plus souvent.</p>
+
+<h2 id="cas">Cas chiffré : le test de sensibilité minimal</h2>
+<p>Trois inducteurs, deux valeurs extrêmes chacun, six calculs. Sur un dossier à 730 d'excédent brut retraité et 6,0x de multiple.</p>
+<table class="tbl">
+<tr><th>Inducteur</th><th class="n">Bas</th><th class="n">Central</th><th class="n">Haut</th><th class="n">Effet sur la valeur</th></tr>
+<tr><td>Croissance annuelle</td><td class="n">1 %</td><td class="n">4 %</td><td class="n">7 %</td><td class="n">± 320</td></tr>
+<tr><td>Marge d'excédent brut</td><td class="n">10 %</td><td class="n">12 %</td><td class="n">14 %</td><td class="n">± 730</td></tr>
+<tr><td>Multiple retenu</td><td class="n">5,0x</td><td class="n">6,0x</td><td class="n">7,0x</td><td class="n">± 730</td></tr>
+</table>
+<p>La lecture est immédiate : la marge et le multiple pèsent deux fois plus que la croissance. Un modèle qui consacre trois feuilles à la projection du chiffre d'affaires et une ligne à la marge est mal calibré, quelle que soit la qualité de ses formules.</p>
+<h2 id="liste">Les vingt points</h2>
+<p>Cinq par famille, dans l'ordre où on les passe. Aucun ne demande plus d'une minute.</p>
+<table class="tbl">
+<tr><th>Cohérence interne</th><th>Cohérence économique</th></tr>
+<tr><td>1. Actif moins passif égale zéro, chaque colonne</td><td>6. Capex et dotations convergent en fin d'horizon</td></tr>
+<tr><td>2. Trésorerie du bilan égale celle du tableau de flux</td><td>7. BFR proportionné au chiffre d'affaires</td></tr>
+<tr><td>3. Soldes de dette jamais négatifs</td><td>8. Marge plausible au regard de l'historique</td></tr>
+<tr><td>4. Trésorerie au-dessus du plancher défini</td><td>9. Croissance justifiée par un fait</td></tr>
+<tr><td>5. Sommes de répartition égales à cent</td><td>10. Taux d'impôt cohérent avec le résultat</td></tr>
+</table>
+<table class="tbl">
+<tr><th>Hygiène de construction</th><th>Recoupement externe</th></tr>
+<tr><td>11. Aucune constante saisie dans une formule</td><td>16. Chiffre d'affaires N confronté à la liasse</td></tr>
+<tr><td>12. Chaque hypothèse utilisée au moins une fois</td><td>17. Dette financière confrontée au tableau des emprunts</td></tr>
+<tr><td>13. Convention de couleurs respectée</td><td>18. Trésorerie de clôture confrontée au relevé</td></tr>
+<tr><td>14. Aucune référence vers un classeur externe</td><td>19. Effectif confronté à la déclaration sociale</td></tr>
+<tr><td>15. Feuilles d'essai supprimées</td><td>20. Loyers confrontés au bail</td></tr>
+</table>
+<p>Les points 16 à 20 sont ceux qu'on saute, parce qu'ils demandent d'ouvrir une pièce. Ce sont aussi les seuls qui attrapent une erreur de saisie, que ni la cohérence interne ni la vraisemblance ne peuvent détecter.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Corriger une hypothèse invraisemblable sans en parler. Ramener la marge de 34 % à 19 % dans le silence efface la question au lieu de la poser. La bonne action est de demander le fait qui justifie le doublement, et de faire tourner le modèle sans lui pour montrer l'écart.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Faire relire par quelqu'un qui n'a pas construit le modèle. C'est le seul contrôle qui trouve les erreurs de raisonnement, parce que son auteur a intégré ses propres hypothèses au point de ne plus les voir. Quinze minutes de relecture externe valent trois heures de vérification personnelle.</div>
+`,
+key:["Quatre familles de contrôles, dont une exige une pièce externe","Trois inducteurs, deux extrêmes : six calculs suffisent","Une hypothèse invraisemblable se discute, elle ne se corrige pas en silence","Seule une relecture externe trouve les erreurs de raisonnement"],
+quiz:[{q:"Quel contrôle détecte le mieux une erreur de raisonnement, par opposition à une erreur de formule ?",o:["Une relecture par une personne qui n'a pas construit le modèle","Le contrôle d'équilibre du bilan","Le test de croissance nulle","La vérification des ancrages"],a:0,e:"Les contrôles automatiques détectent les incohérences internes. Une hypothèse fausse mais cohérente ne se voit qu'avec un regard extérieur."},
+   {q:"Pourquoi vérifier qu'aucune cellule noire ne contient une valeur saisie en dur ?",o:["Parce qu'une constante enfouie dans une formule échappe à toute analyse de sensibilité","Parce que le noir est réservé aux liens vers d'autres feuilles","Parce que les constantes ralentissent le recalcul du classeur","Parce qu'Excel ne les prend pas en compte dans les tables de données"],a:0,e:"Une hypothèse doit être visible pour être discutée et testée. Un 1,25 posé au milieu d'une formule ne figure dans aucune liste d'hypothèses, ne bouge dans aucun scénario, et personne ne se souvient d'où il vient trois semaines plus tard."},
+   {q:"Vous relisez un modèle qui passe tous les contrôles d'équilibre, dont les hypothèses sont correctement isolées, et dont la marge d'excédent brut atteint 34 % en année 5 contre 19 % en historique. Que faites-vous ?",o:["L'erreur n'est pas technique mais de raisonnement : demander le fait qui justifie le doublement de marge, et refaire tourner le modèle sans lui","Rien : les contrôles sont verts, le modèle est valide","Ramener la marge à 19 % et poursuivre la revue","Ajouter un contrôle d'équilibre supplémentaire sur la marge"],a:0,e:"Aucun contrôle automatique ne détecte une hypothèse invraisemblable : ils vérifient la cohérence interne, pas la vraisemblance. Corriger le chiffre sans en parler est pire encore, car cela efface la question au lieu de la poser. C'est exactement ce qu'un relecteur qui n'a pas construit le modèle est le seul à voir."}],
+src:["FAST Standard, revue de modèle","Vernimmen, audit d'un business plan"]};
+
+LESSONS["multiples-ca-per"] = {
+why:"Quand l'excédent brut n'est pas significatif, d'autres multiples prennent le relais, avec leurs limites propres. Encore faut-il connaître ces limites.",
+obj:["Choisir le multiple adapté quand l'excédent brut ne sert pas","Connaître la limite propre de chaque multiple","Croiser deux multiples et interpréter leur écart"],
+html:`
+<p class="lead">Une cible en forte croissance affiche un excédent brut de 40 pour un chiffre d'affaires de 3 000, parce qu'elle réinvestit tout. Un multiple d'excédent brut donnerait une valeur absurde. Il faut changer d'instrument, sans changer de rigueur.</p>
+
+<h2 id="trois">Trois familles, trois limites</h2>
+<table class="tbl">
+<tr><th>Multiple</th><th>Quand l'utiliser</th><th>Sa limite</th></tr>
+<tr><td>Chiffre d'affaires</td><td>forte croissance, perte temporaire</td><td>ignore totalement la rentabilité</td></tr>
+<tr><td>PER, prix sur résultat net</td><td>sociétés matures, comparables cotés</td><td>sensible à la structure financière et à la fiscalité</td></tr>
+<tr><td>Sectoriel</td><td>encours, commissions, mandats selon le métier</td><td>convention de marché, dont il faut connaître la base exacte</td></tr>
+</table>
+<p>Le PER mérite une précaution particulière : il porte sur le résultat net, donc après charges financières. Deux sociétés identiques dont l'une est endettée n'auront pas le même PER, sans que leur valeur économique diffère.</p>
+
+<h2 id="cas">Cas chiffré : croiser deux conventions</h2>
+<p>Un cabinet de gestion de patrimoine gère 120 M€ d'encours et facture 1,1 M€ de commissions. Le marché retient 2,5 % des encours ou 3,2 fois les commissions.</p>
+<table class="tbl">
+<tr><th>Méthode</th><th class="n">Calcul</th><th class="n">Valeur</th></tr>
+<tr><td>Multiple d'encours</td><td class="n">120 x 2,5 %</td><td class="n">3,0 M€</td></tr>
+<tr><td>Multiple de commissions</td><td class="n">1,1 x 3,2</td><td class="n">3,5 M€</td></tr>
+</table>
+<p>Les deux conventions sont cohérentes entre elles pour un taux de commissionnement de 0,78 %, soit 2,5 divisé par 3,2. Ce cabinet facture 0,92 % de ses encours, donc plus cher que la moyenne. L'écart de 0,5 M€ entre les deux méthodes n'est pas une erreur : c'est l'information la plus utile du dossier, et elle se documente.</p>
+
+<h2 id="base">Connaître la base exacte</h2>
+<p>Un multiple sectoriel est une convention, pas une formule. Trois fois les commissions de quelle année : l'exercice écoulé, la moyenne de trois ans, les commissions nettes de rétrocessions ? L'écart entre ces conventions atteint facilement 20 %. Avant d'appliquer un multiple sectoriel, il faut savoir ce que les praticiens du segment mettent au dénominateur.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Faire la moyenne de deux multiples qui divergent. La moyenne efface précisément l'information que l'écart apportait. Deux multiples qui convergent confirment une lecture, deux multiples qui divergent désignent l'endroit où la cible s'écarte de son secteur.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Un multiple de chiffre d'affaires ne se défend jamais seul. Il s'accompagne systématiquement de la marge, sans quoi il compare une société à 15 % de marge et une société à 3 % comme si elles se valaient. La phrase juste est « 1,2 fois le chiffre d'affaires pour une marge de 12 % », jamais « 1,2 fois le chiffre d'affaires ».</div>
+`,
+key:["Le multiple de chiffre d'affaires ignore la rentabilité, il ne va jamais seul","Le PER est sensible à la structure financière et à la fiscalité","Un multiple sectoriel est une convention : connaître sa base exacte","L'écart entre deux multiples est une information, pas un problème à moyenner"],
+quiz:[{q:"Pourquoi le PER est-il peu utilisé en small cap non cotée ?",o:["Il dépend de la structure financière et de la politique de rémunération du dirigeant","Il est trop complexe","Il n'existe pas de comparables","Il est interdit"],a:0,e:"Le résultat net d'une PME reflète des choix personnels du dirigeant. L'EBE retraité neutralise ces effets et se compare mieux."},
+   {q:"Un cabinet de gestion de patrimoine gère 120 M€ d'encours et facture 1,1 M€ de commissions. Le marché retient 2,5 % des encours ou 3,2 fois les commissions. Quelle fourchette, et que conclure de l'écart ?",o:["3,0 à 3,5 M€ : l'écart vient d'un taux de commissionnement supérieur à celui qu'implique la convention de marché, ce qui est une information sur la cible et non une erreur de méthode","3,0 M€ : le multiple d'encours prime toujours en gestion de patrimoine","3,5 M€ : le multiple de commissions prime toujours, étant plus proche du résultat","Les deux méthodes se contredisant, aucune n'est exploitable"],a:0,e:"120 x 2,5 % = 3,0 M€, et 1,1 x 3,2 = 3,5 M€. Les deux conventions sont cohérentes entre elles pour un taux de commissionnement de 0,78 % des encours, soit 2,5 divisé par 3,2. Ici le cabinet facture 0,92 %, donc plus cher que la moyenne : c'est précisément ce que l'écart entre les deux multiples révèle, et c'est un argument de valorisation à documenter."},
+   {q:"Pourquoi croiser au moins deux multiples plutôt que de s'en tenir au plus pertinent ?",o:["Parce qu'un écart important entre deux multiples est en soi une information sur la cible","Parce que la moyenne de deux multiples est plus fiable qu'un seul","Parce que les acquéreurs exigent deux méthodes","Parce qu'un multiple unique n'est jamais publié par les praticiens"],a:0,e:"Deux multiples qui convergent confirment la lecture. Deux multiples qui divergent désignent l'endroit où la cible s'écarte de son secteur, et c'est souvent là que se trouve l'argument de négociation. Faire la moyenne, à l'inverse, efface l'information."}],
+src:["Vernimmen, méthode des multiples","Conventions de marché par secteur, transactions comparables"]};
+
+LESSONS["fcff"] = {
+why:"Le flux disponible pour la firme est ce qui revient à l'ensemble des apporteurs de capitaux. C'est la grandeur qu'on actualise pour obtenir une valeur d'entreprise.",
+obj:["Construire un flux disponible pour la firme sans oublier de terme","Comprendre pourquoi il se calcule avant charges financières","Savoir qu'il produit une valeur d'entreprise, jamais un prix des titres"],
+html:`
+<p class="lead">Deux analystes calculent le flux disponible d'une même cible. Le premier trouve 1 040, le second 1 390. L'écart de 350 ne vient pas d'une divergence d'hypothèses : l'un a oublié deux termes, et sa valorisation sera surestimée d'autant multiplié par la durée d'actualisation.</p>
+
+<h2 id="formule">La formule et ses quatre termes</h2>
+<div class="formula"><span class="fl">Flux disponible pour la firme</span>EBIT x (1 - taux d'impôt) + dotations - capex - variation du BFR</div>
+<p>Chaque terme a une raison d'être. L'EBIT après impôt est le résultat économique disponible. Les dotations se réintègrent parce qu'elles ne sortent pas de caisse. Le capex se retranche parce qu'il sort de caisse sans passer par le résultat. La variation du besoin en fonds de roulement se retranche parce qu'une hausse immobilise de la trésorerie.</p>
+
+<h2 id="avant">Pourquoi avant charges financières</h2>
+<p>Le coût de la dette est pris en compte dans le taux d'actualisation, le coût moyen pondéré du capital, et non dans les flux. Le déduire des deux côtés serait un double compte. C'est aussi pourquoi l'impôt se calcule sur l'EBIT et non sur le résultat net : rester cohérent avec l'absence de charges financières dans le flux.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Terme</th><th class="n">Valeur</th><th>Effet</th></tr>
+<tr><td>EBIT</td><td class="n">1 400</td><td>point de départ</td></tr>
+<tr><td>Impôt à 25 %</td><td class="n">- 350</td><td>calculé sur l'EBIT, pas sur le résultat net</td></tr>
+<tr><td>Dotations</td><td class="n">+ 320</td><td>charge sans sortie de caisse</td></tr>
+<tr><td>Capex</td><td class="n">- 260</td><td>sortie de caisse hors résultat</td></tr>
+<tr><td>Variation du BFR, de 540 à 610</td><td class="n">- 70</td><td>trésorerie immobilisée</td></tr>
+<tr><td><strong>Flux disponible</strong></td><td class="n"><strong>1 040</strong></td><td></td></tr>
+</table>
+<p>Les deux erreurs qui donnaient 1 390 : oublier le capex et la variation du besoin en fonds de roulement, les deux seuls termes négatifs après l'impôt. Toutes les erreurs sur cette formule vont dans le même sens, celui de la surestimation, parce qu'on oublie plus facilement une sortie qu'une entrée.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Calculer l'impôt sur le résultat net puis l'appliquer à l'EBIT. Le taux effectif d'imposition d'une société endettée est inférieur au taux nominal, précisément parce que les charges financières sont déductibles. L'utiliser dans un flux avant charges financières fait entrer l'économie d'impôt de la dette deux fois.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Un flux disponible pour la firme actualisé au coût moyen pondéré du capital donne une valeur d'entreprise. Le passage au prix des titres est l'étape suivante, celle du pont : retrancher la dette financière, ajouter la trésorerie, traiter les assimilés. Confondre les deux fait annoncer au cédant un chèque qu'il ne recevra pas.</div>
+`,
+key:["Quatre termes, dont deux négatifs qu'on oublie plus facilement","Avant charges financières : la dette est dans le taux, pas dans le flux","L'impôt se calcule sur l'EBIT, au taux nominal","Le résultat est une valeur d'entreprise, pas un prix des titres"],
+quiz:[{q:"Pourquoi calculer l'impôt sur l'EBIT et non sur le résultat courant dans un FCFF ?",o:["Pour rester cohérent avec l'exclusion des charges financières","Parce que c'est la règle fiscale","Pour réduire l'impôt","Aucune raison technique"],a:0,e:"Le FCFF ignore la structure financière. Utiliser un impôt calculé après charges financières y réintroduirait l'économie d'impôt liée à la dette, déjà prise en compte dans le WACC."},
+   {q:"EBIT de 1 400, taux d'impôt de 25 %, dotations aux amortissements de 320, capex de 260, besoin en fonds de roulement passé de 540 à 610. Quel est le flux disponible pour la firme ?",o:["1 040","1 110","1 390","970"],a:0,e:"1 400 x 0,75 = 1 050, puis + 320 de dotations réintégrées, - 260 de capex, - 70 de variation du besoin en fonds de roulement, soit 1 040. Oublier la variation du besoin en fonds de roulement donne 1 110, et oublier le capex donne 1 390 : les deux erreurs surestiment le flux, donc la valeur."},
+   {q:"Pourquoi un flux disponible pour la firme ne donne-t-il jamais directement une valeur des titres ?",o:["Parce qu'il est calculé avant charges financières et actualisé au coût moyen pondéré du capital : il produit une valeur d'entreprise, dont il reste à déduire la dette nette","Parce qu'il ne tient pas compte de l'impôt","Parce qu'il faut lui appliquer une décote d'illiquidité","Parce qu'il ignore la valeur terminale"],a:0,e:"Le coût de la dette est déjà pris en compte dans le taux d'actualisation, pas dans les flux. Actualiser des flux avant frais financiers à un taux qui intègre la dette donne la valeur de l'ensemble des actifs économiques, donc la valeur d'entreprise. Le passage au prix des titres est l'étape suivante, celle du pont."}],
+src:["Vernimmen, flux de trésorerie disponibles","Damodaran, Investment Valuation, free cash flow to firm"]};
+
+LESSONS["cout-fonds-propres"] = {
+why:"Le coût des fonds propres est le rendement exigé par un actionnaire pour supporter le risque de l'entreprise. C'est l'hypothèse la plus contestée d'une valorisation.",
+obj:["Construire un coût des fonds propres par le MEDAF","Documenter les primes ajoutées en non coté","Pondérer par une structure cible et non par la structure comptable"],
+html:`
+<p class="lead">Un acquéreur vous annonce un coût des fonds propres de 8 % pour une PME française de 5 M€ de chiffre d'affaires. Le chiffre est indéfendable, et il faut savoir pourquoi en une phrase, pas en une note de dix pages.</p>
+
+<h2 id="medaf">Le MEDAF et ses trois termes</h2>
+<div class="formula"><span class="fl">Coût des fonds propres</span>Taux sans risque + bêta x prime de risque de marché</div>
+<p>Le taux sans risque se prend sur une maturité longue, cohérente avec l'horizon d'investissement, typiquement l'obligation d'État à dix ans. La prime de risque de marché se cite avec sa source et sa date : elle varie dans le temps et un chiffre non daté n'est pas opposable.</p>
+<p>En non coté, deux primes s'ajoutent : une prime de taille, et une prime spécifique documentée, pour la dépendance à un homme clé, la concentration client, l'absence de liquidité. Chacune se justifie séparément.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Composante</th><th class="n">Valeur</th><th>Source</th></tr>
+<tr><td>Taux sans risque</td><td class="n">3,0 %</td><td>OAT 10 ans, à la date de l'évaluation</td></tr>
+<tr><td>Bêta sectoriel désendetté puis réendetté</td><td class="n">1,1</td><td>comparables cotés du secteur</td></tr>
+<tr><td>Prime de risque de marché</td><td class="n">6,0 %</td><td>source citée et datée</td></tr>
+<tr><td>Prime de taille</td><td class="n">+ 3,0 %</td><td>études sur les petites capitalisations</td></tr>
+<tr><td>Prime spécifique</td><td class="n">+ 3,0 %</td><td>dépendance au dirigeant, documentée</td></tr>
+<tr><td><strong>Coût des fonds propres</strong></td><td class="n"><strong>15,6 %</strong></td><td>3,0 + 1,1 x 6,0 + 3,0 + 3,0</td></tr>
+</table>
+<p>Un coût des fonds propres inférieur à 10 % pour une PME française est difficile à défendre : il supposerait un bêta faible, aucune prime de taille et aucun risque spécifique, ce qui décrit une société cotée diversifiée, pas une PME dépendante de son dirigeant.</p>
+
+<h2 id="wacc">Du coût des fonds propres au coût du capital</h2>
+<div class="formula"><span class="fl">Coût moyen pondéré</span>part des fonds propres x Kcp + part de la dette x Kd x (1 - taux d'impôt)</div>
+<p>Avec 70 % de fonds propres à 15,6 % et 30 % de dette à 4 % avant impôt : 0,70 x 15,6 + 0,30 x 4 x 0,75 = <strong>11,8 %</strong>. L'oubli le plus fréquent est celui de l'économie d'impôt sur les charges financières, qui donne 12,1 % et sous-évalue la valeur de plusieurs points.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Pondérer par la structure comptable observée. Une société sur-endettée par son histoire afficherait un coût du capital artificiellement bas, donc une valeur artificiellement haute, alors qu'un acquéreur refinancera à sa propre structure. La structure cible est celle du secteur ou de l'acquéreur type, et elle s'annonce comme une hypothèse.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Chaque prime ajoutée doit porter un nom et une justification écrite. Une prime spécifique de 3 % sans motif est une variable d'ajustement, et un acquéreur la contestera en premier. « Prime de dépendance au dirigeant, 60 % du chiffre d'affaires apporté par lui » est défendable, « prime spécifique 3 % » ne l'est pas.</div>
+`,
+key:["MEDAF : taux sans risque, bêta, prime de marché citée et datée","En non coté, prime de taille et prime spécifique, chacune justifiée","Sous 10 % pour une PME française : difficile à défendre","Pondérer par une structure cible, pas par la structure comptable"],
+quiz:[{q:"Rf 3 %, bêta 1,2, prime de marché 6 %, prime de taille 3 %. Coût des fonds propres ?",o:["13,2 %","10,2 %","9,0 %","12,0 %"],a:0,e:"3 + 1,2 x 6 + 3 = 3 + 7,2 + 3 = 13,2 %."},
+   {q:"Coût des fonds propres de 12,6 %, coût de la dette avant impôt de 4 %, impôt sur les sociétés à 25 %, structure cible de 70 % de fonds propres et 30 % de dette. Quel coût moyen pondéré du capital ?",o:["9,72 %","10,02 %","11,02 %","9,00 %"],a:0,e:"0,70 x 12,6 % = 8,82 %, et 0,30 x 4 % x (1 - 0,25) = 0,90 %, soit 9,72 %. L'erreur la plus fréquente consiste à oublier l'économie d'impôt sur les charges financières, ce qui donne 10,02 % et sous-évalue la valeur de plusieurs points."},
+   {q:"Pourquoi pondérer par une structure financière cible et non par la structure comptable observée ?",o:["Parce que la structure comptable reflète l'histoire du financement du cédant, pas celle que retiendra un acquéreur","Parce que la structure comptable n'est pas connue avant l'audit","Parce que les normes imposent une structure de marché","Parce que la dette comptable inclut le besoin en fonds de roulement"],a:0,e:"Une société sur-endettée par son histoire afficherait un coût du capital artificiellement bas, donc une valeur artificiellement haute, alors qu'un acquéreur refinancera à sa propre structure. La structure cible est celle du secteur ou celle de l'acquéreur type, et elle doit être annoncée comme une hypothèse."}],
+src:["Vernimmen, coût du capital","Damodaran, cost of equity and implied premiums"]};
+
+LESSONS["football-field"] = {
+why:"La synthèse de valorisation est souvent la seule page que lira le décideur. Elle doit dire la fourchette et l'écart à combler, pas empiler des méthodes.",
+obj:["Construire un football field lisible en trois secondes","Déterminer la fourchette retenue par recoupement","Traiter une méthode isolée au lieu de la laisser sans commentaire"],
+html:`
+<p class="lead">Cinq méthodes, cinq fourchettes, et un cédant qui attend un chiffre. La synthèse n'a pas pour but de montrer le travail accompli : elle a pour but de dire quelle fourchette est défendable et pourquoi.</p>
+
+<h2 id="construire">Une barre par méthode</h2>
+<p>Chaque méthode donne une barre horizontale avec sa fourchette basse et haute, et ses hypothèses en note. L'ordre des barres n'est pas neutre : de la plus fondée à la moins fondée, ou par famille, comparables d'abord et méthodes intrinsèques ensuite. Jamais par ordre décroissant de valeur, ce qui suggérerait une préférence.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Méthode</th><th class="n">Bas</th><th class="n">Haut</th><th>Lecture</th></tr>
+<tr><td>Comparables boursiers</td><td class="n">9 000</td><td class="n">11 000</td><td>décote de taille à appliquer</td></tr>
+<tr><td>Comparables transactionnels</td><td class="n">10 000</td><td class="n">13 000</td><td>trois transactions, dont une reconstituée</td></tr>
+<tr><td>Prix maximum LBO</td><td class="n">11 000</td><td class="n">12 000</td><td>capacité d'endettement du secteur</td></tr>
+<tr><td>Flux actualisés</td><td class="n">14 000</td><td class="n">17 000</td><td>isolée et supérieure</td></tr>
+<tr><td>Attentes du cédant</td><td class="n">15 000</td><td class="n">15 000</td><td>barre indicative</td></tr>
+</table>
+<p>Trois méthodes sur quatre se recoupent entre <strong>11 000 et 13 000</strong> : c'est la fourchette défendable. Les flux actualisés, seuls et nettement au-dessus, ne prouvent pas que le marché se trompe : ils indiquent presque toujours une valeur terminale trop généreuse ou une croissance perpétuelle trop élevée. Et l'écart entre 13 000 et l'attente de 15 000 est le véritable sujet du rendez-vous.</p>
+
+<h2 id="isolee">Traiter la méthode isolée</h2>
+<p>Une méthode isolée s'explique ou se retire, elle ne se laisse jamais sans commentaire. L'expliquer signifie nommer l'hypothèse responsable et montrer le résultat sans elle. La retirer signifie le dire, avec le motif. La laisser en place sans un mot invite le lecteur à choisir la barre qui l'arrange.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Faire la moyenne des méthodes. Une moyenne de 12 300 sur cet exemple donne un chiffre qu'aucune méthode ne produit, et qui écrase l'information de recoupement. La fourchette retenue vient du chevauchement, pas de l'arithmétique.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Ajouter la barre des attentes du cédant transforme un désaccord de principe en question mesurable. Posée sur le même graphique, elle se discute sur des hypothèses. Découverte au moment de l'offre, elle fait échouer le dossier après six mois de travail.</div>
+`,
+key:["Une barre par méthode, avec sa fourchette et ses hypothèses en note","La fourchette retenue vient du recoupement, jamais de la moyenne","Une méthode isolée s'explique ou se retire, jamais sans commentaire","La barre des attentes du cédant situe l'écart à combler"],
+quiz:[{q:"Que représente la zone de recoupement d'un football field ?",o:["La fourchette de valeur retenue, corroborée par plusieurs méthodes","La valeur maximale","La moyenne des méthodes","Le prix final"],a:0,e:"Une valeur confirmée par plusieurs approches indépendantes est plus robuste qu'un chiffre issu d'une seule méthode."},
+   {q:"Sur un football field, le flux actualisé ressort entre 14 et 17 M€, les comparables boursiers entre 9 et 11 M€, les transactionnels entre 10 et 13 M€, le prix maximum LBO entre 11 et 12 M€. Que retenez-vous, et que faites-vous du flux actualisé ?",o:["La zone de recoupement, soit 11 à 13 M€, et le flux actualisé est expliqué ou retiré : isolé et supérieur, il signale des hypothèses de croissance ou de valeur terminale à justifier","La moyenne des quatre méthodes, soit environ 12,3 M€","La fourchette la plus large, soit 9 à 17 M€, pour ne rien exclure","Le flux actualisé, méthode la plus rigoureuse des quatre"],a:0,e:"Trois méthodes sur quatre se recoupent entre 11 et 13 M€ : c'est la fourchette défendable. La quatrième, seule et nettement au-dessus, ne prouve pas que le marché se trompe, elle indique presque toujours une valeur terminale trop généreuse ou une croissance perpétuelle trop élevée. Une méthode isolée s'explique ou se retire, elle ne se laisse jamais sans commentaire sur un livrable."},
+   {q:"Pourquoi ajouter au football field une barre indiquant les attentes du cédant ?",o:["Pour situer l'écart à combler et le rendre discutable avant d'entrer en négociation","Pour montrer au cédant que ses attentes sont excessives","Parce que les attentes du cédant constituent une méthode de valorisation","Pour respecter l'usage des banques d'affaires"],a:0,e:"L'écart entre les méthodes et l'attente est le véritable sujet du rendez-vous. Le poser sur le même graphique le transforme en question mesurable, discutée sur des hypothèses, au lieu d'un désaccord de principe découvert au moment de l'offre."}],
+src:["Usage des banques d'affaires, matériaux de valorisation","Vernimmen, synthèse des méthodes"]};
+
+LESSONS["typologie-operations"] = {
+why:"Ce qui est cédé détermine la fiscalité, les garanties et le prix. C'est la première question du dossier, et elle se pose avant toute valorisation.",
+obj:["Distinguer les quatre grandes formes d'opération et ce qu'elles transfèrent","Anticiper l'opposition d'intérêts entre cédant et acquéreur","Savoir que le prix exprimé dépend de la forme retenue"],
+html:`
+<p class="lead">Un cédant vous dit vouloir « vendre son entreprise ». Cette phrase couvre quatre opérations différentes, dont la fiscalité, les garanties et le formalisme n'ont rien de commun. La question précède la valorisation.</p>
+
+<h2 id="formes">Quatre formes, quatre transferts</h2>
+<table class="tbl">
+<tr><th>Forme</th><th>Ce qui est transféré</th><th>Conséquence principale</th></tr>
+<tr><td>Cession de titres</td><td>la société, avec son passé</td><td>garantie d'actif et de passif indispensable</td></tr>
+<tr><td>Cession de fonds de commerce</td><td>les actifs, sans le passé</td><td>formalisme lourd, solidarité fiscale temporaire</td></tr>
+<tr><td>Cession de portefeuille ou de clientèle</td><td>les contrats ou les mandats</td><td>prix en multiple de commissions ou d'honoraires</td></tr>
+<tr><td>Apport ou fusion</td><td>les titres contre d'autres titres</td><td>effet de levier fiscal, montage plus complexe</td></tr>
+</table>
+
+<h2 id="opposition">L'opposition d'intérêts</h2>
+<p>La cession de titres est fiscalement favorable au cédant, qui relève du régime des plus-values sur titres. Elle transfère en revanche le passé de la société, litiges compris. La cession de fonds de commerce protège l'acquéreur mais bascule le cédant en plus-value professionnelle, souvent plus lourdement imposée.</p>
+<p>Aucune forme ne satisfait les deux parties. Ce qui se négocie n'est donc pas la structure seule, mais le triptyque prix, périmètre de garantie et séquestre.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<p>Un cabinet de courtage cède un portefeuille de 900 k€ de commissions annuelles, avec un litige prud'homal en cours estimé à 60 k€.</p>
+<table class="tbl">
+<tr><th>Hypothèse</th><th class="n">Prix</th><th>Traitement du litige</th></tr>
+<tr><td>Cession de titres, multiple de 3,2x</td><td class="n">2 880</td><td>garantie d'actif et de passif, séquestre de 100</td></tr>
+<tr><td>Cession de portefeuille, multiple de 3,0x</td><td class="n">2 700</td><td>reste chez le cédant</td></tr>
+</table>
+<p>L'écart de 180 n'est pas une décote : c'est le prix que l'acquéreur accepte de payer en plus pour ne pas porter le litige, ou celui que le cédant accepte de perdre pour le garder. Les deux options sont défendables, et le rôle du conseil est de les chiffrer avant que la discussion ne s'installe sur un seul chiffre.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Annoncer un multiple sans préciser la forme de l'opération. Trois fois les commissions ne veut pas dire la même chose en cession de titres et en cession de portefeuille, et un cédant qui a entendu le premier chiffre ne comprendra jamais pourquoi on lui propose le second.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Poser la question de la forme au premier rendez-vous, avant toute estimation. Elle détermine la fiscalité du cédant, donc son net, donc son attente de prix brut. Un cédant qui attend 3 M€ nets n'attend pas le même prix selon la forme.</div>
+`,
+key:["Quatre formes, quatre transferts, quatre régimes fiscaux","Aucune forme ne satisfait les deux parties : le prix arbitre","Un multiple s'annonce toujours avec la forme d'opération","La forme détermine le net du cédant, donc son attente de brut"],
+quiz:[{q:"Quelle différence majeure entre cession de titres et cession de fonds de commerce ?",o:["La reprise ou non du passif antérieur","Le prix","Le délai","La confidentialité"],a:0,e:"En cession de titres, la société conserve tout son passé, y compris ses passifs inconnus. C'est la raison d'être de la garantie d'actif et de passif."},
+   {q:"Le cédant dirige une SARL et cherche à optimiser sa fiscalité personnelle. L'acquéreur veut éviter de reprendre un litige prud'homal en cours. Comment traiter cette opposition ?",o:["Les deux intérêts s'opposent structurellement : l'arbitrage se règle par le prix et par la garantie d'actif et de passif, pas par le choix de structure seul","La cession de fonds de commerce satisfait les deux parties","La cession de titres satisfait les deux parties dès lors qu'une provision est constituée","Le litige interdit toute opération avant son dénouement"],a:0,e:"La cession de titres est fiscalement favorable au cédant mais transfère le passé, donc le litige. La cession de fonds de commerce protège l'acquéreur mais bascule le cédant en plus-value professionnelle et impose un formalisme lourd. Aucune structure ne satisfait les deux : ce qui se négocie, c'est le prix, le périmètre de la garantie et éventuellement un séquestre dédié au litige."},
+   {q:"Comment s'exprime usuellement le prix d'une cession de portefeuille en courtage ?",o:["En multiple de commissions","En multiple d'EBITDA","En pourcentage de la valeur d'entreprise","En valeur nette comptable des contrats"],a:0,e:"Le portefeuille se valorise sur ce qu'il produit de façon récurrente, donc les commissions. Il faut connaître la base exacte retenue par les praticiens du segment : commissions de l'année écoulée, moyenne sur trois ans, ou commissions nettes de rétrocessions, l'écart entre ces conventions étant loin d'être négligeable."}],
+src:["Code de commerce, cession de fonds de commerce","Mémento fiscal, plus-values de cession"]};
+
+LESSONS["sell-buy-side"] = {
+why:"Les deux mandats n'ont ni le même rythme, ni les mêmes livrables, ni les mêmes critères de succès. Les confondre fait échouer les deux.",
+obj:["Distinguer les livrables et le rythme de chaque mandat","Comprendre pourquoi le taux de succès diffère structurellement","Choisir une stratégie face à un processus compétitif"],
+html:`
+<p class="lead">Un consolidateur vous confie un mandat acquéreur et attend le même rythme qu'un mandat vendeur. L'attente est légitime et intenable : en sell side l'objet du mandat existe, en buy side il est à trouver.</p>
+
+<h2 id="deux">Deux métiers</h2>
+<table class="tbl">
+<tr><th></th><th>Sell side</th><th>Buy side</th></tr>
+<tr><td>Objectif</td><td>maximiser prix et sécurité d'exécution</td><td>trouver la cible, éviter la concurrence</td></tr>
+<tr><td>Livrables</td><td>teaser, mémorandum, data room</td><td>liste de cibles, thèse d'acquisition</td></tr>
+<tr><td>Rythme imposé par</td><td>le calendrier du process</td><td>la disponibilité des cibles</td></tr>
+<tr><td>Levier principal</td><td>créer de la concurrence</td><td>obtenir une exclusivité tôt</td></tr>
+</table>
+<p>La différence de taux de succès n'est pas une affaire d'effort. En sell side, l'entreprise est là et le calendrier se décide. En buy side, une cible ne devient disponible que si son dirigeant le décide, et cela n'arrive pas sur commande.</p>
+
+<h2 id="competitif">Face à un processus compétitif</h2>
+<p>Entrer dans un processus organisé sans avantage revient à financer la concurrence : le mécanisme est construit pour faire monter le prix. Trois issues seulement.</p>
+<table class="tbl">
+<tr><th>Option</th><th>Condition de réussite</th></tr>
+<tr><td>Sortir du processus par une offre ferme contre exclusivité</td><td>pouvoir décider vite et payer la certitude</td></tr>
+<tr><td>Rester et l'emporter au prix</td><td>avoir une synergie que les autres n'ont pas</td></tr>
+<tr><td>Renoncer</td><td>savoir le dire tôt, avant d'avoir engagé des frais</td></tr>
+</table>
+<p>La quatrième option, approcher le cédant en direct sans passer par son conseil, n'est pas une option : elle ferme durablement la relation avec un intermédiaire que l'on retrouvera sur d'autres dossiers.</p>
+<h2 id="mesure">Ce qui se mesure de chaque côté</h2>
+<p>Les deux mandats ne se pilotent pas avec les mêmes indicateurs, et c'est la source la plus fréquente de malentendu avec le client.</p>
+<table class="tbl">
+<tr><th>Sell side</th><th>Buy side</th></tr>
+<tr><td>Teasers envoyés sur cibles retenues</td><td>approches envoyées sur cibles identifiées</td></tr>
+<tr><td>NDA signés sur teasers envoyés</td><td>réponses obtenues sur approches</td></tr>
+<tr><td>Rendez-vous sur NDA signés</td><td>contacts qualifiés sur réponses</td></tr>
+<tr><td>Offres reçues sur rendez-vous</td><td>exclusivités obtenues sur contacts</td></tr>
+</table>
+<p>En sell side, chaque ratio se compare à une référence connue du cabinet. En buy side, le seul dénominateur maîtrisé est le nombre d'approches : tout le reste dépend de décisions extérieures. Un tableau de bord buy side qui affiche des taux de conversion comme un tableau de bord sell side donne l'illusion d'un pilotage.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Promettre un délai en buy side. Le conseil maîtrise le nombre d'approches et leur qualité, pas la décision des dirigeants approchés. S'engager sur une échéance transforme un mandat de moyens en obligation de résultat impossible à tenir.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>En buy side, mesurer le mandat au nombre de contacts qualifiés obtenus, pas au nombre d'approches envoyées. Cent approches sans réponse ne valent pas trois dirigeants rencontrés, et c'est le seul indicateur que le client peut lire honnêtement.</div>
+`,
+key:["En sell side l'objet existe, en buy side il est à trouver","Livrables et rythme diffèrent, les critères de succès aussi","Un processus compétitif est construit pour faire monter le prix","En buy side, compter les contacts qualifiés, pas les approches"],
+quiz:[{q:"Quel est l'objectif principal d'un acquéreur conseillé en buy side ?",o:["Éviter le processus compétitif et sécuriser une exclusivité tôt","Faire monter les enchères","Publier un teaser","Créer une data room"],a:0,e:"La concurrence fait monter le prix. Un acquéreur cherche à traiter en bilatéral, un vendeur cherche l'inverse."},
+   {q:"Pourquoi le taux de succès d'un mandat vendeur bien préparé dépasse-t-il nettement celui d'un mandat acquéreur ?",o:["Parce que le vendeur maîtrise le calendrier et l'information, alors que l'acquéreur dépend de la disponibilité de cibles qu'il ne contrôle pas","Parce que les acquéreurs sont plus nombreux que les vendeurs","Parce que les honoraires de succès sont plus élevés en sell side","Parce que le vendeur accepte plus facilement de baisser son prix"],a:0,e:"En sell side, l'objet du mandat existe : l'entreprise est là, le calendrier se décide. En buy side, l'objet est à trouver, et une cible ne devient disponible que si son dirigeant le décide. C'est une différence de nature, pas d'effort."},
+   {q:"Vous conseillez un consolidateur en buy side. Une cible intéressante vient d'être mise en vente par une banque d'affaires, avec cinq acquéreurs déjà en concurrence. Quelle stratégie ?",o:["Tenter de sortir du processus compétitif en proposant tôt une offre ferme contre une exclusivité, ou renoncer : dans un processus organisé, l'avantage structurel est au vendeur","Entrer dans le processus et surenchérir jusqu'à l'emporter","Attendre l'échec du processus pour se positionner ensuite à un prix plus bas","Approcher le cédant en direct, sans passer par la banque d'affaires"],a:0,e:"Un processus compétitif est construit pour faire monter le prix : y entrer sans avantage revient à financer la concurrence. La sortie par le haut consiste à échanger de la vitesse et de la certitude contre de l'exclusivité. Contourner le conseil du vendeur, en revanche, est une faute qui ferme durablement la relation avec un intermédiaire que l'on retrouvera sur d'autres dossiers."}],
+src:["Pratique de l'intermédiation en fusions-acquisitions","Usage des cabinets de conseil en cession"]};
+
+LESSONS["mandat"] = {
+why:"Le mandat encadre la relation, la rémunération et le périmètre. Ce qui n'y figure pas se discute mal ensuite, et se discute toujours au mauvais moment.",
+obj:["Identifier les cinq clauses qui déterminent la rémunération","Comprendre le rôle de la clause de survie","Traiter une demande de non-exclusivité sans perdre le mandat"],
+html:`
+<p class="lead">Un cédant refuse l'exclusivité : il veut pouvoir négocier en direct avec deux acquéreurs qu'il connaît déjà. La demande est légitime. Y répondre par un refus fait perdre le mandat, y céder fait perdre la rémunération.</p>
+
+<h2 id="clauses">Cinq clauses qui décident de tout</h2>
+<table class="tbl">
+<tr><th>Clause</th><th>Ce qu'elle protège</th></tr>
+<tr><td>Exclusivité, durée, périmètre</td><td>le travail de préparation, non rémunérable sans elle</td></tr>
+<tr><td>Forfait de préparation</td><td>les semaines engagées avant tout contact acquéreur</td></tr>
+<tr><td>Honoraires de succès et barème</td><td>l'alignement d'intérêt sur le prix obtenu</td></tr>
+<tr><td>Clause de survie</td><td>le contournement dans les mois suivant la fin du mandat</td></tr>
+<tr><td>Liste des acquéreurs exclus</td><td>les contacts antérieurs du cédant, nommément</td></tr>
+</table>
+
+<h2 id="survie">La clause de survie</h2>
+<p>Elle prévoit que la commission reste due si l'opération se réalise dans les mois suivant la fin du mandat, avec un acquéreur que le conseil a présenté. Sans elle, il suffit d'attendre l'expiration pour conclure sans honoraires, avec un acquéreur trouvé et travaillé par le conseil.</p>
+<p>Sa durée usuelle est de douze à vingt-quatre mois, et elle ne vaut que pour les acquéreurs figurant sur une liste tenue et transmise. Une clause de survie sans liste est inapplicable.</p>
+
+<h2 id="cas">Traiter la demande de non-exclusivité</h2>
+<p>La réponse n'est ni le refus, ni l'abandon de l'exclusivité, mais une liste d'exclusion nommée.</p>
+<table class="tbl">
+<tr><th>Réponse</th><th>Conséquence</th></tr>
+<tr><td>Liste d'exclusion nominative, exclusivité maintenue sur tous les autres</td><td>le travail reste rémunérable, la demande du cédant est satisfaite</td></tr>
+<tr><td>Mandat sans exclusivité</td><td>le cédant peut conclure avec n'importe qui sans honoraires</td></tr>
+<tr><td>Refus du mandat</td><td>un dossier perdu pour une clause négociable</td></tr>
+</table>
+<div class="callout warn"><div class="ct">Piège classique</div>Croire que la clause de survie compense l'absence d'exclusivité. Elle protège d'un contournement dans le temps, sur des acquéreurs présentés. Elle ne protège pas d'une opération conclue pendant le mandat avec un acquéreur venu seul.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Faire signer la liste d'acquéreurs exclus, datée, en annexe du mandat. Trois mois plus tard, la mémoire du cédant sur l'antériorité d'un contact sera invariablement plus généreuse que la vôtre, et sans annexe la discussion n'a pas d'issue.</div>
+`,
+key:["Sans exclusivité, la préparation n'est pas rémunérable","La clause de survie exige une liste d'acquéreurs présentés","Une demande de non-exclusivité se traite par une liste d'exclusion nommée","La liste d'exclusion se signe et se date, en annexe"],
+quiz:[{q:"À quoi sert la clause de survie d'un mandat ?",o:["Protéger le conseil si l'opération se conclut peu après la fin du mandat avec un acquéreur qu'il a présenté","Prolonger l'exclusivité","Fixer les honoraires","Limiter la responsabilité"],a:0,e:"Sans cette clause, il suffirait d'attendre l'expiration du mandat pour conclure sans payer les honoraires de succès."},
+   {q:"Un cédant refuse l'exclusivité : il veut pouvoir négocier en direct avec deux acquéreurs qu'il connaît déjà. Comment traiter la demande ?",o:["Acquérir la liste nominative des acquéreurs exclus, par écrit, et maintenir l'exclusivité sur tous les autres avec clause de survie","Accepter un mandat sans exclusivité : la clause de survie protège suffisamment","Refuser le mandat, l'exclusivité étant non négociable","Accepter l'exclusivité totale en renonçant à la clause de survie"],a:0,e:"La demande est légitime et se traite par une liste d'exclusion nommée, pas par l'abandon de l'exclusivité. Sans exclusivité, tout le travail de préparation, valorisation, teaser, mémorandum, devient non rémunérable : le cédant peut conclure avec n'importe qui sans honoraires. La clause de survie protège d'un contournement dans le temps, pas d'une absence d'exclusivité."},
+   {q:"Que couvre la rémunération de préparation, distincte des honoraires de succès ?",o:["Le travail réalisé avant tout contact acquéreur : valorisation, teaser, mémorandum, liste de cibles","Les frais de déplacement et les frais de dossier","La rémunération de l'avocat rédacteur du protocole","Une avance sur les honoraires de succès, remboursable en cas d'échec"],a:0,e:"Ce travail a lieu quoi qu'il arrive et représente l'essentiel de l'effort initial. Le facturer séparément protège les deux parties : le conseil n'avance pas plusieurs semaines de travail à fonds perdus, et le cédant mesure ce qu'il achète avant de s'engager sur un succès hypothétique."}],
+src:["Pratique du mandat de cession","Code civil, mandat et obligations réciproques"]};
+
+LESSONS["origination"] = {
+why:"Sans dossier, pas de métier. Mais la qualification évite surtout de travailler six mois sur une opération qui ne se fera pas.",
+obj:["Poser les trois questions de qualification dans le bon ordre","Vérifier l'actionnariat avant toute valorisation","Partager une fourchette de valeur avant de signer"],
+html:`
+<p class="lead">Un cédant décidé, une entreprise cessible, et des attentes de prix à douze fois l'excédent brut quand le secteur se traite entre cinq et sept. Le dossier est signable, et il échouera dans six mois si l'écart n'est pas traité maintenant.</p>
+
+<h2 id="trois">Trois questions, dans cet ordre</h2>
+<table class="tbl">
+<tr><th>Question</th><th>Ce qui la valide</th><th>Ce qui l'invalide</th></tr>
+<tr><td>Le cédant est-il décidé ?</td><td>il sait dire pourquoi maintenant</td><td>il explore, ou il teste le marché</td></tr>
+<tr><td>L'entreprise est-elle cessible ?</td><td>comptes tenus, activité transférable</td><td>dépendance totale au dirigeant, actionnariat bloqué</td></tr>
+<tr><td>Les attentes sont-elles réalistes ?</td><td>écart inférieur à 30 % de la fourchette</td><td>écart d'un facteur deux</td></tr>
+</table>
+<p>L'ordre compte : un cédant indécis rend les deux autres questions sans objet, et une entreprise incessible rend la troisième inutile.</p>
+
+<h2 id="actionnariat">Vérifier l'actionnariat avant tout</h2>
+<p>Un pacte, un droit de préemption, une clause d'agrément ou simplement un minoritaire hostile suffisent à rendre l'opération impossible. C'est la vérification la moins coûteuse et la plus rentable de la phase : un extrait Kbis, les statuts, et la question posée directement.</p>
+
+<h2 id="cas">Partager la fourchette avant de signer</h2>
+<table class="tbl">
+<tr><th>Élément</th><th class="n">Valeur</th></tr>
+<tr><td>Excédent brut retraité</td><td class="n">740</td></tr>
+<tr><td>Fourchette de multiple du secteur</td><td class="n">5,0x à 7,0x</td></tr>
+<tr><td>Valeur d'entreprise</td><td class="n">3 700 à 5 180</td></tr>
+<tr><td>Attente du cédant</td><td class="n">8 880, soit 12,0x</td></tr>
+<tr><td><strong>Écart à combler</strong></td><td class="n"><strong>3 700, soit 71 %</strong></td></tr>
+</table>
+<p>Un écart de 71 % ne se résorbe pas par la concurrence entre acquéreurs. Le partager avant signature est inconfortable et décisif : soit il se réduit et le mandat devient signable, soit il ne se réduit pas et le mandat sera un échec coûteux pour les deux parties.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Signer en affichant une fourchette haute pour obtenir le mandat. Le cédant retiendra le point haut, la première offre sera perçue comme une trahison, et la relation ne s'en remettra pas. Une fourchette annoncée est un engagement, pas un argument commercial.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Consigner le verbatim des attentes de prix, avec sa date, dans l'outil de suivi. Trois mois plus tard, il permet de mesurer le chemin parcouru sans que l'histoire soit réécrite, et c'est souvent lui qui débloque la discussion sur la première offre.</div>
+`,
+key:["Trois questions dans l'ordre : décision, cessibilité, attentes","Un cédant qui ne peut dire pourquoi maintenant n'est pas prêt","L'actionnariat se vérifie avant toute valorisation","La fourchette se partage avant signature, et elle engage"],
+quiz:[{q:"Quel signal indique qu'un cédant n'est pas prêt ?",o:["Il ne peut pas expliquer pourquoi il vend maintenant","Il demande un prix élevé","Il veut réfléchir une semaine","Il consulte plusieurs conseils"],a:0,e:"L'absence de déclencheur clair signale une réflexion inaboutie. Le process s'arrêtera au premier obstacle, souvent après plusieurs mois de travail."},
+   {q:"Un cédant est décidé, l'entreprise est cessible, mais il attend 12 fois l'EBITDA quand le secteur se traite entre 5 et 7 fois. Que faites-vous ?",o:["Partager la fourchette de valeur avant de signer, et consigner le verbatim des attentes avec sa date : soit l'écart se réduit et le mandat est signable, soit il ne l'est pas","Signer le mandat : le marché ramènera le cédant à la raison au fil des retours","Refuser et clore la relation, l'écart étant rédhibitoire","Signer en affichant une fourchette haute, quitte à la corriger plus tard"],a:0,e:"Un mandat signé sur un écart de valeur non traité échoue presque toujours, après plusieurs mois de travail et en abîmant la relation. Partager la fourchette avant signature est inconfortable mais décisif. Et consigner le verbatim daté sert à deux choses : mesurer le chemin parcouru, et éviter la réécriture de l'histoire au moment de la première offre."},
+   {q:"Pourquoi vérifier l'actionnariat réel dès la qualification, avant même la valorisation ?",o:["Parce qu'un associé minoritaire opposé bloque l'opération, quelle que soit la qualité du dossier","Parce que la répartition du capital détermine le multiple applicable","Parce que l'acquéreur exigera la liste des associés dans le teaser","Parce que le mandat doit être signé par le seul actionnaire majoritaire"],a:0,e:"Un pacte, un droit de préemption, une clause d'agrément ou simplement un minoritaire hostile suffisent à rendre l'opération impossible. C'est la vérification la moins coûteuse et la plus rentable de toute la phase de qualification."}],
+src:["Pratique de l'origination en cession de PME","Registre du commerce, statuts et pactes"]};
+
+LESSONS["dataroom"] = {
+why:"La data room est le lieu de la transparence organisée. Sa qualité conditionne le rythme de la transaction, et son désordre en devient l'argument de renégociation.",
+obj:["Organiser une arborescence et un nommage qui tiennent","Centraliser les questions dans un tableau unique","Comprendre pourquoi une réponse orale n'existe pas"],
+html:`
+<p class="lead">Un acquéreur pose la même question trois fois en deux semaines, à trois interlocuteurs différents, et obtient trois réponses. Ce n'est pas un problème de bonne foi : c'est un problème d'organisation, et il se paiera en renégociation.</p>
+
+<h2 id="arborescence">Arborescence et nommage</h2>
+<p>Huit rubriques suffisent : juridique, financier, fiscal, social, commercial, opérationnel, immobilier, assurances. Le nommage compte autant que le classement : chaque fichier porte sa date et sa version, et aucun document n'existe sans date.</p>
+<div class="callout key"><div class="ct">La règle du nommage</div>Rubrique, objet, date, version. Un fichier nommé « comptes.pdf » sera ouvert dix fois par dix personnes qui se demanderont de quel exercice il s'agit.</div>
+
+<h2 id="questions">Le tableau unique de questions</h2>
+<table class="tbl">
+<tr><th>Colonne</th><th>Ce qu'elle permet</th></tr>
+<tr><td>Question, date, auteur</td><td>éviter les doublons et tracer l'origine</td></tr>
+<tr><td>Réponse, pièce jointe</td><td>rendre la réponse opposable</td></tr>
+<tr><td>Statut</td><td>savoir ce qui reste ouvert, à tout instant</td></tr>
+</table>
+<p>Un tableau unique, partagé, remplace les fils de courriels parallèles. Il est aussi le document que l'on relit au moment de la garantie d'actif et de passif, pour établir ce qui avait été communiqué.</p>
+
+<h2 id="orale">Pourquoi une réponse orale n'existe pas</h2>
+<p>Une réponse donnée en visioconférence et non consignée disparaît du dossier. C'est précisément celle qui réapparaît dans une réclamation post-closing, chacun se souvenant d'une version différente. La consigner dans le tableau la rend opposable aux deux parties, ce qui protège autant le cédant que l'acquéreur.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Ouvrir la data room avant qu'elle soit complète, pour gagner du temps. L'acquéreur découvre les manques un par un, chaque manque devient une question, et le désordre initial devient un argument de renégociation sur le prix.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Tenir le journal des accès et des téléchargements. Il répond à la seule question qui compte en cas de contentieux, cette information avait-elle été mise à disposition et quand. Il renseigne accessoirement sur l'intérêt réel de chaque acquéreur, mais ce n'est pas sa fonction première.</div>
+`,
+key:["Huit rubriques, un nommage daté et versionné, aucun document sans date","Un tableau unique de questions, pas des fils de courriels parallèles","Une réponse orale non consignée n'existe pas dans le dossier","Ouvrir une data room incomplète crée l'argument de renégociation"],
+quiz:[{q:"Pourquoi centraliser les questions dans un tableau unique ?",o:["Traçabilité, cohérence des réponses et preuve de l'information communiquée","Pour gagner du temps","Parce que la loi l'impose","Pour limiter le nombre de questions"],a:0,e:"En cas de litige sur une garantie, la question est de savoir ce qui a été communiqué et quand. Le tableau en est la preuve."},
+   {q:"Pourquoi tenir un journal des accès et des téléchargements de la data room ?",o:["Parce qu'il établit qui a eu accès à quoi et à quelle date, ce qui est décisif en cas de contentieux ultérieur","Parce que la réglementation impose cette traçabilité","Pour facturer l'accès aux acquéreurs","Pour mesurer l'intérêt réel de chaque acquéreur"],a:0,e:"En cas de réclamation post-closing, la question devient : cette information avait-elle été mise à disposition ? Le journal y répond. Il renseigne accessoirement sur l'intérêt de chacun, mais ce n'est pas sa fonction première."},
+   {q:"Un acquéreur obtient en visioconférence une réponse orale sur un point de garantie. Que faites-vous ?",o:["Consigner la question et la réponse dans le tableau unique, datées et attribuées à leur auteur","Rien : la réponse a été donnée, l'acquéreur en a pris note","Envoyer un courriel de confirmation à l'acquéreur, sans autre formalité","Demander à l'acquéreur de reformuler sa question par écrit avant toute réponse"],a:0,e:"Une réponse orale non consignée n'existe pas dans le dossier, et c'est précisément celle qui réapparaît dans une réclamation, chacun se souvenant d'une version différente. La consigner dans le tableau unique la rend opposable aux deux parties. Exiger une reformulation écrite avant de répondre est excessif et ralentit inutilement l'audit : ce qui compte, c'est la trace après."}],
+src:["Pratique de la due diligence en PME","Usage des plateformes de data room"]};
+
 const BRIEFS = {};
 
 /* ── Phase 1, comptabilité ── */
@@ -3574,11 +4049,7 @@ q:{q:"Quel avantage principal de Power Query sur un nettoyage manuel ?",o:["La t
 /* ── Phase 3, modélisation ── */
 
 
-BRIEFS["projection-ca"]={why:"Le chiffre d'affaires est la première ligne du modèle et la source de toutes les autres erreurs.",
-pts:["Décomposer par activité, par segment client ou par zone selon ce qui pilote réellement l'activité.","Distinguer la base récurrente du nouveau : leurs taux de croissance n'ont rien à voir.","Pour une base contractuelle : chiffre d'affaires récurrent = base précédente x (1 - attrition) x (1 + indexation) + affaires nouvelles.","Le carnet de commandes ou le portefeuille en cours donne la visibilité sur les douze premiers mois.","Toute projection supérieure à la croissance historique doit s'appuyer sur un fait, pas sur un espoir."],
-q:[{q:"Base récurrente de 1 000, attrition de 6 %, indexation de 2 %, affaires nouvelles de 80. Chiffre d'affaires projeté ?",o:["1 038","1 080","1 040","960"],a:0,e:"1 000 x 0,94 x 1,02 = 958,8, plus 80 d'affaires nouvelles = 1 038,8."},
-   {q:"Base récurrente de 2 400, attrition de 8 %, indexation de 3 %, affaires nouvelles de 150. Quel chiffre d'affaires récurrent l'année suivante ?",o:["2 424","2 550","2 358","2 274"],a:0,e:"2 400 x 0,92 x 1,03 = 2 274, puis + 150 = 2 424. L'ordre compte : l'indexation s'applique à la base qui reste après attrition, pas à la base de départ. Et les affaires nouvelles s'ajoutent après, sans être indexées puisqu'elles arrivent en cours d'année."},
-   {q:"Une projection retient une croissance de 12 % quand l'historique des trois derniers exercices s'établit à 4 %. Qu'exige cette hypothèse ?",o:["Un fait documenté : contrat signé, carnet de commandes, ouverture d'un site, recrutement commercial déjà réalisé","L'accord écrit du cédant sur le chiffre retenu","Une note de synthèse expliquant la stratégie de l'entreprise","Rien de particulier, une projection est par nature une hypothèse"],a:0,e:"Toute projection supérieure à la tendance observée doit s'appuyer sur un fait, pas sur une intention. La différence est opérationnelle : un fait se vérifie en audit, une intention se renégocie."}]};
+
 
 
 
@@ -3586,11 +4057,7 @@ BRIEFS["masse-salariale"]={why:"En société de services, la masse salariale rep
 pts:["Modéliser par effectif et par coût moyen chargé, jamais par un montant global indexé.","Distinguer les catégories : production, commercial, support. Leurs évolutions diffèrent.","Prévoir l'augmentation générale, l'augmentation individuelle et l'effet de noria séparément.","Le taux de charges patronales se calcule sur l'historique réel, pas sur un barème théorique.","Les recrutements se positionnent au mois près la première année, l'effet année pleine se voit la seconde."],
 q:{q:"Un recrutement en juillet à 60 k€ chargés annuels. Coût de l'année en cours et de la suivante ?",o:["30 k€ puis 60 k€","60 k€ puis 60 k€","60 k€ puis 30 k€","30 k€ puis 30 k€"],a:0,e:"L'effet année pleine se manifeste la seconde année. Oublier ce décalage sous-estime les charges du plan d'affaires."}};
 
-BRIEFS["schema-amortissement"]={why:"L'échéancier d'immobilisations relie capex, dotations et valeur nette comptable de façon cohérente.",
-pts:["Un bloc par catégorie d'immobilisation, avec sa durée d'amortissement propre.","Amortir l'existant selon sa durée résiduelle, le nouveau capex selon sa durée normale.","Valeur nette de clôture = valeur nette d'ouverture + capex - dotations - valeur nette des cessions.","La dotation projetée alimente le compte de résultat et se neutralise dans le tableau de flux.","En régime permanent, capex et dotations convergent. Un écart durable signale une erreur d'hypothèse."],
-q:[{q:"VNC d'ouverture 1 200, capex 300, dotations 250, aucune cession. VNC de clôture ?",o:["1 250","1 750","1 150","900"],a:0,e:"1 200 + 300 - 250 = 1 250. L'actif progresse car l'investissement dépasse la dépréciation."},
-   {q:"Un actif existant présente une valeur nette de 900 et une durée résiduelle de 3 ans. Vous investissez 600 en année 1, amortissables sur 5 ans. Quelle dotation en année 2 ?",o:["420","300","120","500"],a:0,e:"900 / 3 = 300 sur l'existant, amorti selon sa durée résiduelle et non selon une durée neuve. 600 / 5 = 120 sur le nouveau capex, amorti selon sa durée normale. Total 420. Confondre les deux durées est l'erreur classique : elle étale l'existant sur trop d'années et sous-estime les dotations des premiers exercices."},
-   {q:"En régime permanent, capex et dotations convergent. Que signale un écart durable entre les deux ?",o:["Une erreur d'hypothèse dans le modèle, à corriger avant toute conclusion","Une politique d'investissement dynamique, à valoriser","Un changement de méthode d'amortissement","Rien : les deux grandeurs sont indépendantes"],a:0,e:"À l'équilibre, une entreprise renouvelle ce qu'elle consomme : les investissements rejoignent les dotations. Un écart qui persiste sur tout l'horizon signifie soit un capex projeté irréaliste, soit un échéancier d'amortissement mal construit. Dans les deux cas, la trésorerie projetée est fausse."}]};
+
 
 BRIEFS["capex"]={why:"Confondre capex de maintenance et capex de croissance conduit à surévaluer les flux disponibles.",
 pts:["Capex de maintenance : ce qu'il faut dépenser pour maintenir la capacité actuelle. Proche des dotations en régime permanent.","Capex de croissance : ce qui augmente la capacité. Doit s'accompagner d'une hausse d'activité modélisée.","Le flux disponible normatif retient le capex de maintenance, jamais le capex de croissance seul.","Historique du ratio capex sur chiffre d'affaires sur cinq ans : première référence de calibrage.","Un capex de croissance sans effet chiffré sur le chiffre d'affaires est une incohérence de modèle."],
@@ -3606,24 +4073,12 @@ BRIEFS["sensibilites-modele"]={why:"Sensibiliser un modèle mal construit le cas
 pts:["Toute hypothèse à sensibiliser doit vivre dans une cellule unique, référencée partout.","Vérifier que le modèle tient à zéro de croissance et à moins vingt pour cent d'activité.","Une sensibilité qui produit une erreur ou une trésorerie absurde révèle une faiblesse structurelle, pas un cas extrême.","Afficher systématiquement la valeur de référence au centre de la matrice.","Une matrice de plus de cinq par cinq n'est pas lue : réduire plutôt que multiplier les points."],
 q:{q:"Le modèle renvoie une erreur quand on met la croissance à zéro. Que faut-il en conclure ?",o:["Une faiblesse structurelle du modèle, à corriger","Le cas est irréaliste","Le modèle est correct","Il faut éviter cette valeur"],a:0,e:"Une croissance nulle est un scénario parfaitement plausible. Si le modèle ne le supporte pas, c'est une division par zéro ou une formule mal conçue."}};
 
-BRIEFS["modele-express"]={why:"En qualification, on a une heure et une liasse. Il faut produire une fourchette défendable.",
-pts:["Trois exercices historiques saisis depuis la liasse, EBE calculé, retraitements évidents identifiés.","Projection sur trois ans avec deux inducteurs seulement : croissance et marge.","Dette nette approchée depuis le bilan, sans recherche exhaustive des assimilés.","Valorisation par multiple uniquement, fourchette large assumée.","Le livrable est une page : fourchette, hypothèses, points à vérifier. Jamais un modèle complet."],
-q:[{q:"Quel est le livrable d'un modèle express de qualification ?",o:["Une page : fourchette, hypothèses, points à vérifier","Un modèle intégré complet","Un mémorandum","Une LOI"],a:0,e:"La précision doit rester proportionnée à l'information disponible. Afficher trois décimales sur une liasse seule est trompeur."},
-   {q:"En qualification, vous disposez d'une heure et de trois liasses fiscales. Quels choix de modélisation ?",o:["Deux inducteurs seulement, croissance et marge, dette nette approchée depuis le bilan, valorisation par multiple avec une fourchette large assumée, et un livrable d'une page","Un modèle à trois états complet sur cinq ans, quitte à dépasser largement l'heure","Un flux de trésorerie actualisé simplifié, plus rigoureux qu'un multiple","Attendre les données de gestion mensuelles avant de produire la moindre estimation"],a:0,e:"L'objet d'un modèle express est de décider s'il faut aller plus loin, pas de fixer un prix. Deux inducteurs suffisent à cadrer un ordre de grandeur, et une fourchette large annoncée comme telle est plus honnête qu'une valeur unique obtenue en trois fois plus de temps. Un flux actualisé sur des hypothèses non vérifiées donne une fausse précision."},
-   {q:"Pourquoi la dette nette est-elle seulement approchée dans un modèle express ?",o:["Parce que la recherche exhaustive des assimilés se fait après le NDA, avec les pièces, et qu'elle ne changerait pas la décision d'aller plus loin ou non","Parce que la dette nette n'a pas d'effet sur la valeur d'entreprise","Parce que le bilan ne permet jamais de la calculer","Parce qu'elle est du ressort de l'acquéreur, pas du conseil du cédant"],a:0,e:"Crédit-bail, comptes courants, engagements de retraite, dettes sociales différées : les assimilés se documentent sur pièces, et les pièces arrivent après l'accord de confidentialité. À ce stade, une dette nette approchée suffit pour situer une fourchette ; la précision viendrait cadrer un prix, ce qui n'est pas encore l'objet."}]};
 
-BRIEFS["revue-modele"]={why:"Relire son propre modèle avec les yeux d'un tiers est la dernière étape avant diffusion.",
-pts:["Les vingt points : équilibre du bilan, trésorerie positive, cohérence capex et dotations, convergence en fin d'horizon.","Vérifier que chaque hypothèse bleue est utilisée au moins une fois, et qu'aucune cellule noire n'est saisie en dur.","Tester deux valeurs extrêmes sur les trois inducteurs principaux.","Recouper trois chiffres clés avec la source externe : liasse, contrat, relevé bancaire.","Faire relire par quelqu'un qui n'a pas construit le modèle. C'est le seul contrôle qui trouve les erreurs de raisonnement."],
-q:[{q:"Quel contrôle détecte le mieux une erreur de raisonnement, par opposition à une erreur de formule ?",o:["Une relecture par une personne qui n'a pas construit le modèle","Le contrôle d'équilibre du bilan","Le test de croissance nulle","La vérification des ancrages"],a:0,e:"Les contrôles automatiques détectent les incohérences internes. Une hypothèse fausse mais cohérente ne se voit qu'avec un regard extérieur."},
-   {q:"Pourquoi vérifier qu'aucune cellule noire ne contient une valeur saisie en dur ?",o:["Parce qu'une constante enfouie dans une formule échappe à toute analyse de sensibilité","Parce que le noir est réservé aux liens vers d'autres feuilles","Parce que les constantes ralentissent le recalcul du classeur","Parce qu'Excel ne les prend pas en compte dans les tables de données"],a:0,e:"Une hypothèse doit être visible pour être discutée et testée. Un 1,25 posé au milieu d'une formule ne figure dans aucune liste d'hypothèses, ne bouge dans aucun scénario, et personne ne se souvient d'où il vient trois semaines plus tard."},
-   {q:"Vous relisez un modèle qui passe tous les contrôles d'équilibre, dont les hypothèses sont correctement isolées, et dont la marge d'excédent brut atteint 34 % en année 5 contre 19 % en historique. Que faites-vous ?",o:["L'erreur n'est pas technique mais de raisonnement : demander le fait qui justifie le doublement de marge, et refaire tourner le modèle sans lui","Rien : les contrôles sont verts, le modèle est valide","Ramener la marge à 19 % et poursuivre la revue","Ajouter un contrôle d'équilibre supplémentaire sur la marge"],a:0,e:"Aucun contrôle automatique ne détecte une hypothèse invraisemblable : ils vérifient la cohérence interne, pas la vraisemblance. Corriger le chiffre sans en parler est pire encore, car cela efface la question au lieu de la poser. C'est exactement ce qu'un relecteur qui n'a pas construit le modèle est le seul à voir."}]};
+
+
 
 /* ── Phase 4, valorisation ── */
-BRIEFS["multiples-ca-per"]={why:"Quand l'EBE n'est pas significatif, d'autres multiples prennent le relais, avec leurs limites propres.",
-pts:["Multiple de chiffre d'affaires : utile en forte croissance ou en perte, mais ignore totalement la rentabilité.","PER : rapporte le prix au résultat net, donc sensible à la structure financière et à la fiscalité.","Multiples sectoriels : par encours en gestion de patrimoine, par commission en courtage, par mandat en administration de biens.","Un multiple sectoriel est une convention de marché : il faut connaître la base exacte utilisée par les praticiens.","Croiser au moins deux multiples : un écart important entre eux est une information en soi."],
-q:[{q:"Pourquoi le PER est-il peu utilisé en small cap non cotée ?",o:["Il dépend de la structure financière et de la politique de rémunération du dirigeant","Il est trop complexe","Il n'existe pas de comparables","Il est interdit"],a:0,e:"Le résultat net d'une PME reflète des choix personnels du dirigeant. L'EBE retraité neutralise ces effets et se compare mieux."},
-   {q:"Un cabinet de gestion de patrimoine gère 120 M€ d'encours et facture 1,1 M€ de commissions. Le marché retient 2,5 % des encours ou 3,2 fois les commissions. Quelle fourchette, et que conclure de l'écart ?",o:["3,0 à 3,5 M€ : l'écart vient d'un taux de commissionnement supérieur à celui qu'implique la convention de marché, ce qui est une information sur la cible et non une erreur de méthode","3,0 M€ : le multiple d'encours prime toujours en gestion de patrimoine","3,5 M€ : le multiple de commissions prime toujours, étant plus proche du résultat","Les deux méthodes se contredisant, aucune n'est exploitable"],a:0,e:"120 x 2,5 % = 3,0 M€, et 1,1 x 3,2 = 3,5 M€. Les deux conventions sont cohérentes entre elles pour un taux de commissionnement de 0,78 % des encours, soit 2,5 divisé par 3,2. Ici le cabinet facture 0,92 %, donc plus cher que la moyenne : c'est précisément ce que l'écart entre les deux multiples révèle, et c'est un argument de valorisation à documenter."},
-   {q:"Pourquoi croiser au moins deux multiples plutôt que de s'en tenir au plus pertinent ?",o:["Parce qu'un écart important entre deux multiples est en soi une information sur la cible","Parce que la moyenne de deux multiples est plus fiable qu'un seul","Parce que les acquéreurs exigent deux méthodes","Parce qu'un multiple unique n'est jamais publié par les praticiens"],a:0,e:"Deux multiples qui convergent confirment la lecture. Deux multiples qui divergent désignent l'endroit où la cible s'écarte de son secteur, et c'est souvent là que se trouve l'argument de négociation. Faire la moyenne, à l'inverse, efface l'information."}]};
+
 
 BRIEFS["echantillon-comps"]={why:"Un échantillon choisi pour arriver au bon chiffre se voit immédiatement et discrédite tout le travail.",
 pts:["Écrire les critères de sélection avant de regarder les multiples obtenus.","Documenter les exclusions autant que les inclusions : pourquoi telle société n'est pas retenue.","Cinq à dix comparables. En dessous, l'échantillon est fragile ; au-dessus, il perd sa cohérence.","Afficher toujours minimum, quartiles, médiane et maximum, jamais la seule médiane.","Tester la robustesse : retirer le plus haut et le plus bas et vérifier que la conclusion tient."],
@@ -3633,21 +4088,13 @@ BRIEFS["primes-decotes"]={why:"Les primes et décotes font l'essentiel de l'éca
 pts:["Prime de contrôle : ce qu'un acquéreur paie pour diriger. Observée entre 20 et 40 % sur les opérations publiques.","Décote de taille : les petites structures sont plus risquées et moins liquides.","Décote d'illiquidité : absence de marché organisé pour revendre les titres.","Décote de minorité : symétrique de la prime de contrôle, appliquée aux participations non majoritaires.","Les décotes se cumulent multiplicativement et doivent chacune être justifiées par écrit."],
 q:{q:"Prime de contrôle et décote de minorité sont :",o:["Deux formulations symétriques du même phénomène","Deux effets indépendants qui se cumulent","Sans rapport","Toujours égales à 30 %"],a:0,e:"Si le contrôle vaut une prime, l'absence de contrôle vaut une décote. Appliquer les deux au même calcul serait un double compte."}};
 
-BRIEFS["fcff"]={why:"Le flux disponible pour la firme est ce qui revient à l'ensemble des apporteurs de capitaux.",
-pts:["FCFF = EBIT après impôt + dotations - capex - variation de BFR.","Avant charges financières : le coût de la dette est pris en compte par le WACC, pas dans les flux.","L'impôt se calcule sur l'EBIT, pas sur le résultat net, pour rester cohérent avec l'absence de charges financières.","Une variation de BFR positive est une sortie de trésorerie, donc un flux négatif.","Le FCFF sert avec le WACC et donne une valeur d'entreprise, jamais directement une valeur des titres."],
-q:[{q:"Pourquoi calculer l'impôt sur l'EBIT et non sur le résultat courant dans un FCFF ?",o:["Pour rester cohérent avec l'exclusion des charges financières","Parce que c'est la règle fiscale","Pour réduire l'impôt","Aucune raison technique"],a:0,e:"Le FCFF ignore la structure financière. Utiliser un impôt calculé après charges financières y réintroduirait l'économie d'impôt liée à la dette, déjà prise en compte dans le WACC."},
-   {q:"EBIT de 1 400, taux d'impôt de 25 %, dotations aux amortissements de 320, capex de 260, besoin en fonds de roulement passé de 540 à 610. Quel est le flux disponible pour la firme ?",o:["1 040","1 110","1 390","970"],a:0,e:"1 400 x 0,75 = 1 050, puis + 320 de dotations réintégrées, - 260 de capex, - 70 de variation du besoin en fonds de roulement, soit 1 040. Oublier la variation du besoin en fonds de roulement donne 1 110, et oublier le capex donne 1 390 : les deux erreurs surestiment le flux, donc la valeur."},
-   {q:"Pourquoi un flux disponible pour la firme ne donne-t-il jamais directement une valeur des titres ?",o:["Parce qu'il est calculé avant charges financières et actualisé au coût moyen pondéré du capital : il produit une valeur d'entreprise, dont il reste à déduire la dette nette","Parce qu'il ne tient pas compte de l'impôt","Parce qu'il faut lui appliquer une décote d'illiquidité","Parce qu'il ignore la valeur terminale"],a:0,e:"Le coût de la dette est déjà pris en compte dans le taux d'actualisation, pas dans les flux. Actualiser des flux avant frais financiers à un taux qui intègre la dette donne la valeur de l'ensemble des actifs économiques, donc la valeur d'entreprise. Le passage au prix des titres est l'étape suivante, celle du pont."}]};
+
 
 BRIEFS["fcfe"]={why:"Le flux disponible pour l'actionnaire donne directement la valeur des titres, sans passer par le pont.",
 pts:["FCFE = Résultat net + dotations - capex - variation de BFR + variation nette de dette.","S'actualise au coût des fonds propres, jamais au WACC.","Utile pour les établissements financiers, où la dette fait partie de l'exploitation.","Plus volatil que le FCFF, car sensible au calendrier de remboursement de la dette.","Donne directement la valeur des titres : ne pas y retrancher la dette une seconde fois."],
 q:{q:"À quel taux actualiser un FCFE ?",o:["Le coût des fonds propres","Le WACC","Le coût de la dette","Le taux sans risque"],a:0,e:"Le FCFE est déjà net du service de la dette. L'actualiser au WACC reviendrait à déduire deux fois l'effet du financement."}};
 
-BRIEFS["cout-fonds-propres"]={why:"Le coût des fonds propres est le rendement exigé par un actionnaire pour supporter le risque de l'entreprise.",
-pts:["MEDAF : taux sans risque + bêta x prime de risque de marché.","En non coté, on ajoute une prime de taille et une prime spécifique documentée.","Le taux sans risque se prend sur une maturité longue, cohérente avec l'horizon d'investissement.","La prime de risque de marché se cite avec sa source et sa date, elle varie dans le temps.","Un coût des fonds propres inférieur à 10 % pour une PME française est difficile à défendre."],
-q:[{q:"Rf 3 %, bêta 1,2, prime de marché 6 %, prime de taille 3 %. Coût des fonds propres ?",o:["13,2 %","10,2 %","9,0 %","12,0 %"],a:0,e:"3 + 1,2 x 6 + 3 = 3 + 7,2 + 3 = 13,2 %."},
-   {q:"Coût des fonds propres de 12,6 %, coût de la dette avant impôt de 4 %, impôt sur les sociétés à 25 %, structure cible de 70 % de fonds propres et 30 % de dette. Quel coût moyen pondéré du capital ?",o:["9,72 %","10,02 %","11,02 %","9,00 %"],a:0,e:"0,70 x 12,6 % = 8,82 %, et 0,30 x 4 % x (1 - 0,25) = 0,90 %, soit 9,72 %. L'erreur la plus fréquente consiste à oublier l'économie d'impôt sur les charges financières, ce qui donne 10,02 % et sous-évalue la valeur de plusieurs points."},
-   {q:"Pourquoi pondérer par une structure financière cible et non par la structure comptable observée ?",o:["Parce que la structure comptable reflète l'histoire du financement du cédant, pas celle que retiendra un acquéreur","Parce que la structure comptable n'est pas connue avant l'audit","Parce que les normes imposent une structure de marché","Parce que la dette comptable inclut le besoin en fonds de roulement"],a:0,e:"Une société sur-endettée par son histoire afficherait un coût du capital artificiellement bas, donc une valeur artificiellement haute, alors qu'un acquéreur refinancera à sa propre structure. La structure cible est celle du secteur ou celle de l'acquéreur type, et elle doit être annoncée comme une hypothèse."}]};
+
 
 BRIEFS["beta"]={why:"Le bêta mesure la sensibilité au risque de marché. Il se retraite avant d'être utilisé.",
 pts:["Bêta observé d'une cotée intègre son propre endettement : c'est un bêta endetté.","Désendetter : bêta désendetté = bêta endetté / (1 + (1 - t) x D / CP).","Réendetter à la structure cible de la société valorisée avec la formule inverse.","Prendre la médiane des bêtas désendettés de l'échantillon, jamais un bêta individuel.","Un bêta n'existe pas pour une société non cotée : il s'emprunte au secteur, ce qui est une approximation assumée."],
@@ -3657,11 +4104,7 @@ BRIEFS["sensibilite-dcf"]={why:"Un DCF sans sensibilité est une opinion déguis
 pts:["Matrice principale : WACC contre croissance perpétuelle ou multiple de sortie.","Matrice secondaire : croissance du chiffre d'affaires contre marge d'EBE.","Exprimer la sensibilité en euros par point de variation, pas seulement en tableau.","Le pont de valeur décompose l'écart entre deux versions du DCF, hypothèse par hypothèse.","Présenter une fourchette et une valeur centrale, jamais une valeur unique."],
 q:{q:"Comment présenter le résultat d'un DCF à un cédant ?",o:["Une fourchette avec une valeur centrale et les hypothèses qui la portent","Une valeur unique à l'euro près","Uniquement la matrice de sensibilité","Le multiple implicite seul"],a:0,e:"Une valeur unique donne une fausse impression de précision et se fait démolir au premier contradicteur. La fourchette est plus honnête et plus solide."}};
 
-BRIEFS["football-field"]={why:"La synthèse de valorisation est souvent la seule page que lira le décideur.",
-pts:["Une barre horizontale par méthode : DCF, comparables boursiers, comparables transactionnels, approche patrimoniale, prix maximum LBO.","Chaque barre porte sa fourchette basse et haute, avec les hypothèses en note.","La zone de recoupement des méthodes constitue la fourchette de valeur retenue.","Une méthode isolée très éloignée des autres doit être expliquée ou retirée, jamais laissée sans commentaire.","Ajouter une barre indicative des attentes du cédant permet de situer l'écart à combler."],
-q:[{q:"Que représente la zone de recoupement d'un football field ?",o:["La fourchette de valeur retenue, corroborée par plusieurs méthodes","La valeur maximale","La moyenne des méthodes","Le prix final"],a:0,e:"Une valeur confirmée par plusieurs approches indépendantes est plus robuste qu'un chiffre issu d'une seule méthode."},
-   {q:"Sur un football field, le flux actualisé ressort entre 14 et 17 M€, les comparables boursiers entre 9 et 11 M€, les transactionnels entre 10 et 13 M€, le prix maximum LBO entre 11 et 12 M€. Que retenez-vous, et que faites-vous du flux actualisé ?",o:["La zone de recoupement, soit 11 à 13 M€, et le flux actualisé est expliqué ou retiré : isolé et supérieur, il signale des hypothèses de croissance ou de valeur terminale à justifier","La moyenne des quatre méthodes, soit environ 12,3 M€","La fourchette la plus large, soit 9 à 17 M€, pour ne rien exclure","Le flux actualisé, méthode la plus rigoureuse des quatre"],a:0,e:"Trois méthodes sur quatre se recoupent entre 11 et 13 M€ : c'est la fourchette défendable. La quatrième, seule et nettement au-dessus, ne prouve pas que le marché se trompe, elle indique presque toujours une valeur terminale trop généreuse ou une croissance perpétuelle trop élevée. Une méthode isolée s'explique ou se retire, elle ne se laisse jamais sans commentaire sur un livrable."},
-   {q:"Pourquoi ajouter au football field une barre indiquant les attentes du cédant ?",o:["Pour situer l'écart à combler et le rendre discutable avant d'entrer en négociation","Pour montrer au cédant que ses attentes sont excessives","Parce que les attentes du cédant constituent une méthode de valorisation","Pour respecter l'usage des banques d'affaires"],a:0,e:"L'écart entre les méthodes et l'attente est le véritable sujet du rendez-vous. Le poser sur le même graphique le transforme en question mesurable, discutée sur des hypothèses, au lieu d'un désaccord de principe découvert au moment de l'offre."}]};
+
 
 /* ── Phase 5, analyse stratégique ── */
 BRIEFS["business-model"]={why:"Si on ne sait pas expliquer comment la société gagne de l'argent en trois phrases, on ne peut pas la valoriser.",
@@ -3701,35 +4144,15 @@ pts:["Cartographier qui détient la relation client, le savoir-faire technique, 
 q:{q:"Le cédant suit personnellement 70 % du chiffre d'affaires. Quelle conséquence sur la transaction ?",o:["Décote, accompagnement long et probable complément de prix","Prime de qualité","Aucun impact","Le prix augmente"],a:0,e:"L'acquéreur achète un risque de transfert. Il le traite par le prix, par la durée d'accompagnement et par un mécanisme conditionnel."}};
 
 /* ── Phase 6, process ── */
-BRIEFS["typologie-operations"]={why:"Ce qui est cédé détermine la fiscalité, les garanties et le prix. C'est la première question du dossier.",
-pts:["Cession de titres : l'acquéreur reprend la société avec son passé, d'où la garantie d'actif et de passif.","Cession de fonds de commerce : reprise des actifs sans le passé, mais formalisme lourd et solidarité fiscale temporaire.","Cession de portefeuille ou de clientèle : usuel en courtage et en expertise comptable, prix exprimé en multiple de commissions ou d'honoraires.","Apport ou fusion : opérations à effet de levier fiscal, plus complexes, souvent entre professionnels.","Le choix a un effet fiscal majeur pour le cédant : plus-value sur titres contre plus-value professionnelle."],
-q:[{q:"Quelle différence majeure entre cession de titres et cession de fonds de commerce ?",o:["La reprise ou non du passif antérieur","Le prix","Le délai","La confidentialité"],a:0,e:"En cession de titres, la société conserve tout son passé, y compris ses passifs inconnus. C'est la raison d'être de la garantie d'actif et de passif."},
-   {q:"Le cédant dirige une SARL et cherche à optimiser sa fiscalité personnelle. L'acquéreur veut éviter de reprendre un litige prud'homal en cours. Comment traiter cette opposition ?",o:["Les deux intérêts s'opposent structurellement : l'arbitrage se règle par le prix et par la garantie d'actif et de passif, pas par le choix de structure seul","La cession de fonds de commerce satisfait les deux parties","La cession de titres satisfait les deux parties dès lors qu'une provision est constituée","Le litige interdit toute opération avant son dénouement"],a:0,e:"La cession de titres est fiscalement favorable au cédant mais transfère le passé, donc le litige. La cession de fonds de commerce protège l'acquéreur mais bascule le cédant en plus-value professionnelle et impose un formalisme lourd. Aucune structure ne satisfait les deux : ce qui se négocie, c'est le prix, le périmètre de la garantie et éventuellement un séquestre dédié au litige."},
-   {q:"Comment s'exprime usuellement le prix d'une cession de portefeuille en courtage ?",o:["En multiple de commissions","En multiple d'EBITDA","En pourcentage de la valeur d'entreprise","En valeur nette comptable des contrats"],a:0,e:"Le portefeuille se valorise sur ce qu'il produit de façon récurrente, donc les commissions. Il faut connaître la base exacte retenue par les praticiens du segment : commissions de l'année écoulée, moyenne sur trois ans, ou commissions nettes de rétrocessions, l'écart entre ces conventions étant loin d'être négligeable."}]};
 
-BRIEFS["sell-buy-side"]={why:"Les deux mandats n'ont ni le même rythme, ni les mêmes livrables, ni les mêmes critères de succès.",
-pts:["Sell side : maximiser le prix et la sécurité d'exécution, créer de la concurrence entre acquéreurs.","Buy side : trouver la cible, éviter le processus compétitif, sécuriser une exclusivité tôt.","Le sell side produit teaser, mémorandum, data room. Le buy side produit une liste de cibles et une thèse.","Le rythme du sell side est imposé par le calendrier du process, celui du buy side par la disponibilité des cibles.","Le taux de succès d'un mandat vendeur bien préparé est nettement supérieur à celui d'un mandat acquéreur."],
-q:[{q:"Quel est l'objectif principal d'un acquéreur conseillé en buy side ?",o:["Éviter le processus compétitif et sécuriser une exclusivité tôt","Faire monter les enchères","Publier un teaser","Créer une data room"],a:0,e:"La concurrence fait monter le prix. Un acquéreur cherche à traiter en bilatéral, un vendeur cherche l'inverse."},
-   {q:"Pourquoi le taux de succès d'un mandat vendeur bien préparé dépasse-t-il nettement celui d'un mandat acquéreur ?",o:["Parce que le vendeur maîtrise le calendrier et l'information, alors que l'acquéreur dépend de la disponibilité de cibles qu'il ne contrôle pas","Parce que les acquéreurs sont plus nombreux que les vendeurs","Parce que les honoraires de succès sont plus élevés en sell side","Parce que le vendeur accepte plus facilement de baisser son prix"],a:0,e:"En sell side, l'objet du mandat existe : l'entreprise est là, le calendrier se décide. En buy side, l'objet est à trouver, et une cible ne devient disponible que si son dirigeant le décide. C'est une différence de nature, pas d'effort."},
-   {q:"Vous conseillez un consolidateur en buy side. Une cible intéressante vient d'être mise en vente par une banque d'affaires, avec cinq acquéreurs déjà en concurrence. Quelle stratégie ?",o:["Tenter de sortir du processus compétitif en proposant tôt une offre ferme contre une exclusivité, ou renoncer : dans un processus organisé, l'avantage structurel est au vendeur","Entrer dans le processus et surenchérir jusqu'à l'emporter","Attendre l'échec du processus pour se positionner ensuite à un prix plus bas","Approcher le cédant en direct, sans passer par la banque d'affaires"],a:0,e:"Un processus compétitif est construit pour faire monter le prix : y entrer sans avantage revient à financer la concurrence. La sortie par le haut consiste à échanger de la vitesse et de la certitude contre de l'exclusivité. Contourner le conseil du vendeur, en revanche, est une faute qui ferme durablement la relation avec un intermédiaire que l'on retrouvera sur d'autres dossiers."}]};
 
-BRIEFS["mandat"]={why:"Le mandat encadre la relation, la rémunération et le périmètre. Ce qui n'y figure pas se discute mal ensuite.",
-pts:["Exclusivité, durée, périmètre géographique et sectoriel des acquéreurs approchés.","Rémunération : forfait de préparation, honoraires de succès, barème dégressif ou progressif.","Clause de survie : commission due si l'opération se réalise dans les mois suivant la fin du mandat, avec un acquéreur présenté.","Liste des acquéreurs exclus, généralement ceux déjà en contact avec le cédant.","Obligations réciproques : le cédant s'engage à fournir l'information et à ne pas négocier en direct."],
-q:[{q:"À quoi sert la clause de survie d'un mandat ?",o:["Protéger le conseil si l'opération se conclut peu après la fin du mandat avec un acquéreur qu'il a présenté","Prolonger l'exclusivité","Fixer les honoraires","Limiter la responsabilité"],a:0,e:"Sans cette clause, il suffirait d'attendre l'expiration du mandat pour conclure sans payer les honoraires de succès."},
-   {q:"Un cédant refuse l'exclusivité : il veut pouvoir négocier en direct avec deux acquéreurs qu'il connaît déjà. Comment traiter la demande ?",o:["Acquérir la liste nominative des acquéreurs exclus, par écrit, et maintenir l'exclusivité sur tous les autres avec clause de survie","Accepter un mandat sans exclusivité : la clause de survie protège suffisamment","Refuser le mandat, l'exclusivité étant non négociable","Accepter l'exclusivité totale en renonçant à la clause de survie"],a:0,e:"La demande est légitime et se traite par une liste d'exclusion nommée, pas par l'abandon de l'exclusivité. Sans exclusivité, tout le travail de préparation, valorisation, teaser, mémorandum, devient non rémunérable : le cédant peut conclure avec n'importe qui sans honoraires. La clause de survie protège d'un contournement dans le temps, pas d'une absence d'exclusivité."},
-   {q:"Que couvre la rémunération de préparation, distincte des honoraires de succès ?",o:["Le travail réalisé avant tout contact acquéreur : valorisation, teaser, mémorandum, liste de cibles","Les frais de déplacement et les frais de dossier","La rémunération de l'avocat rédacteur du protocole","Une avance sur les honoraires de succès, remboursable en cas d'échec"],a:0,e:"Ce travail a lieu quoi qu'il arrive et représente l'essentiel de l'effort initial. Le facturer séparément protège les deux parties : le conseil n'avance pas plusieurs semaines de travail à fonds perdus, et le cédant mesure ce qu'il achète avant de s'engager sur un succès hypothétique."}]};
 
-BRIEFS["origination"]={why:"Sans dossier, pas de métier. La qualification évite de travailler six mois sur une opération qui ne se fera pas.",
-pts:["Trois questions de qualification : le cédant est-il décidé, l'entreprise est-elle cessible, les attentes de prix sont-elles réalistes ?","Un cédant qui ne peut pas dire pourquoi il vend maintenant n'est pas prêt.","Vérifier l'actionnariat réel : un associé minoritaire opposé bloque toute opération.","Établir une fourchette de valeur avant de signer le mandat, et la partager.","Consigner immédiatement la qualification dans l'outil de suivi, avec la date et le verbatim des attentes de prix."],
-q:[{q:"Quel signal indique qu'un cédant n'est pas prêt ?",o:["Il ne peut pas expliquer pourquoi il vend maintenant","Il demande un prix élevé","Il veut réfléchir une semaine","Il consulte plusieurs conseils"],a:0,e:"L'absence de déclencheur clair signale une réflexion inaboutie. Le process s'arrêtera au premier obstacle, souvent après plusieurs mois de travail."},
-   {q:"Un cédant est décidé, l'entreprise est cessible, mais il attend 12 fois l'EBITDA quand le secteur se traite entre 5 et 7 fois. Que faites-vous ?",o:["Partager la fourchette de valeur avant de signer, et consigner le verbatim des attentes avec sa date : soit l'écart se réduit et le mandat est signable, soit il ne l'est pas","Signer le mandat : le marché ramènera le cédant à la raison au fil des retours","Refuser et clore la relation, l'écart étant rédhibitoire","Signer en affichant une fourchette haute, quitte à la corriger plus tard"],a:0,e:"Un mandat signé sur un écart de valeur non traité échoue presque toujours, après plusieurs mois de travail et en abîmant la relation. Partager la fourchette avant signature est inconfortable mais décisif. Et consigner le verbatim daté sert à deux choses : mesurer le chemin parcouru, et éviter la réécriture de l'histoire au moment de la première offre."},
-   {q:"Pourquoi vérifier l'actionnariat réel dès la qualification, avant même la valorisation ?",o:["Parce qu'un associé minoritaire opposé bloque l'opération, quelle que soit la qualité du dossier","Parce que la répartition du capital détermine le multiple applicable","Parce que l'acquéreur exigera la liste des associés dans le teaser","Parce que le mandat doit être signé par le seul actionnaire majoritaire"],a:0,e:"Un pacte, un droit de préemption, une clause d'agrément ou simplement un minoritaire hostile suffisent à rendre l'opération impossible. C'est la vérification la moins coûteuse et la plus rentable de toute la phase de qualification."}]};
 
-BRIEFS["dataroom"]={why:"La data room est le lieu de la transparence organisée. Sa qualité conditionne le rythme de la transaction.",
-pts:["Arborescence standard : juridique, financier, fiscal, social, commercial, opérationnel, immobilier, assurances.","Nommage uniforme des fichiers, avec date et version. Aucun document sans date.","Journal des accès et des téléchargements, utile en cas de contentieux ultérieur.","Les questions se centralisent dans un tableau unique : question, date, auteur, réponse, pièce jointe, statut.","Aucune réponse orale sans consignation écrite dans le tableau."],
-q:[{q:"Pourquoi centraliser les questions dans un tableau unique ?",o:["Traçabilité, cohérence des réponses et preuve de l'information communiquée","Pour gagner du temps","Parce que la loi l'impose","Pour limiter le nombre de questions"],a:0,e:"En cas de litige sur une garantie, la question est de savoir ce qui a été communiqué et quand. Le tableau en est la preuve."},
-   {q:"Pourquoi tenir un journal des accès et des téléchargements de la data room ?",o:["Parce qu'il établit qui a eu accès à quoi et à quelle date, ce qui est décisif en cas de contentieux ultérieur","Parce que la réglementation impose cette traçabilité","Pour facturer l'accès aux acquéreurs","Pour mesurer l'intérêt réel de chaque acquéreur"],a:0,e:"En cas de réclamation post-closing, la question devient : cette information avait-elle été mise à disposition ? Le journal y répond. Il renseigne accessoirement sur l'intérêt de chacun, mais ce n'est pas sa fonction première."},
-   {q:"Un acquéreur obtient en visioconférence une réponse orale sur un point de garantie. Que faites-vous ?",o:["Consigner la question et la réponse dans le tableau unique, datées et attribuées à leur auteur","Rien : la réponse a été donnée, l'acquéreur en a pris note","Envoyer un courriel de confirmation à l'acquéreur, sans autre formalité","Demander à l'acquéreur de reformuler sa question par écrit avant toute réponse"],a:0,e:"Une réponse orale non consignée n'existe pas dans le dossier, et c'est précisément celle qui réapparaît dans une réclamation, chacun se souvenant d'une version différente. La consigner dans le tableau unique la rend opposable aux deux parties. Exiger une reformulation écrite avant de répondre est excessif et ralentit inutilement l'audit : ce qui compte, c'est la trace après."}]};
+
+
+
+
+
 
 BRIEFS["dd-juridique"]={why:"Les risques juridiques, fiscaux et sociaux se transforment en garanties spécifiques ou en réduction de prix.",
 pts:["Juridique : statuts, pactes, titres, contrats significatifs, contentieux, propriété intellectuelle, baux.","Fiscal : conformité des déclarations, contrôles passés, positions agressives, prix de transfert le cas échéant.","Social : contrats de travail, conventions collectives, heures supplémentaires, requalifications, représentation du personnel.","Le risque social est souvent le plus sous-estimé en PME française : temps de travail, forfaits jours, statut des cadres.","Chaque risque identifié se chiffre en probabilité fois impact, puis se traite en prix, garantie ou condition suspensive."],
@@ -4726,7 +5149,7 @@ function warnStorage(){
   setTimeout(()=>toast("Stockage local indisponible : la progression ne sera pas conservée après fermeture.","err"),900);
 }
 
-const APP_BUILD = "1.35-lotA2b-2026-07-30";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
+const APP_BUILD = "1.39-lotA2f-2026-07-30";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
 console.log("Hub M&A Triactis · build "+APP_BUILD);
 /** Clone profond sans dépendance à structuredClone : notre état est un objet
     purement JSON, donc round-trip JSON suffit et fonctionne partout. */
