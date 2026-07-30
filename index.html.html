@@ -1344,7 +1344,7 @@ html:`
 <li><strong>Variations des postes de bilan</strong> (BFR, immobilisations, dettes) vers les <strong>trois sections du tableau de flux</strong>.</li>
 <li><strong>Variation de trésorerie</strong> du tableau de flux vers la <strong>ligne trésorerie</strong> du bilan de clôture.</li>
 </ol>
-<div class="callout"><div class="ct">Le test</div>Si les quatre liaisons sont correctes, le bilan s'équilibre sans forçage. Un bilan qui ne s'équilibre pas signale toujours une liaison manquante, jamais une erreur d'addition.</div>
+<div class="callout key"><div class="ct">Le test</div>Si les quatre liaisons sont correctes, le bilan s'équilibre sans forçage. Un bilan qui ne s'équilibre pas signale toujours une liaison manquante, jamais une erreur d'addition.</div>
 
 <h2 id="diagnostic">Diagnostiquer un déséquilibre</h2>
 <p>La méthode est déterministe. On isole l'écart, puis on remonte.</p>
@@ -1522,7 +1522,7 @@ html:`
 <li>2058-A : repérer les réintégrations récurrentes, indice de charges personnelles.</li>
 <li>Recouper trois exercices en une seule feuille avant toute analyse.</li>
 </ol>
-<div class="callout"><div class="ct">Contrôle de cohérence</div>Le résultat de 2052 doit se retrouver au passif de 2051, et les dotations de 2055 doivent égaler celles de 2052. Un écart signale une saisie approximative, souvent le premier signe d'une comptabilité peu fiable.</div>
+<div class="callout key"><div class="ct">Contrôle de cohérence</div>Le résultat de 2052 doit se retrouver au passif de 2051, et les dotations de 2055 doivent égaler celles de 2052. Un écart signale une saisie approximative, souvent le premier signe d'une comptabilité peu fiable.</div>
 
 <h2 id="limites">Limites</h2>
 <p>La liasse est un document fiscal, pas un outil de gestion. Elle ne dit rien de la répartition du chiffre d'affaires par client, de la marge par activité ou de la saisonnalité. Ces informations viennent du grand livre, du FEC ou d'un reporting interne, qui se demandent dès la qualification.</p>
@@ -1840,7 +1840,7 @@ html:`
 <tr><td>Dettes sociales</td><td>Charges de personnel</td><td class="mono">Jours / 365 x charges de personnel</td></tr>
 <tr><td>TVA</td><td>Chiffre d'affaires et achats</td><td class="mono">Solde du mois de décalage</td></tr>
 </table>
-<div class="callout"><div class="ct">Point de départ</div>On calcule les jours historiques réels sur trois exercices, on les affiche, puis on décide de la trajectoire projetée. Si l'on retient un DSO qui s'améliore de 72 à 60 jours, cette amélioration est une hypothèse à justifier, pas un automatisme.</div>
+<div class="callout key"><div class="ct">Point de départ</div>On calcule les jours historiques réels sur trois exercices, on les affiche, puis on décide de la trajectoire projetée. Si l'on retient un DSO qui s'améliore de 72 à 60 jours, cette amélioration est une hypothèse à justifier, pas un automatisme.</div>
 
 <h2 id="cas">Cas chiffré</h2>
 <p>CA projeté 10 M€ HT, TVA à 20 %, coût des ventes 6 M€, achats HT 5,5 M€, DSO 60 jours, DIO 45 jours, DPO 55 jours.</p>
@@ -3042,22 +3042,473 @@ src:["France Invest, mesure de la performance","BIWS, Returns Analysis"]};
    FICHES SYNTHÉTIQUES · les 65 modules restants
    Structure : why, pts[], q (question unique de contrôle)
    ═══════════════════════════════════════════════════════════ */
+LESSONS["compte-resultat"] = {
+why:"Le compte de résultat raconte la formation du résultat sur une période. C'est lui qui porte le multiple, et c'est donc lui que l'on retraite en premier.",
+obj:["Distinguer les trois blocs du compte de résultat et savoir lequel porte la valeur","Calculer une marge d'excédent brut et la commenter","Repérer ce qui doit être retraité avant d'appliquer un multiple"],
+html:`
+<p class="lead">Un cédant vous transmet trois liasses et vous annonce que son entreprise « fait 400 000 euros de résultat ». Avant de répondre quoi que ce soit, il vous faut savoir de quel résultat il parle, et lequel un acquéreur acceptera de payer.</p>
+
+<h2 id="blocs">Trois blocs, et un seul porte la valeur</h2>
+<p>Le compte de résultat français s'organise en trois étages : exploitation, financier, exceptionnel. Un acquéreur ne paie presque jamais que le premier. Le financier dépend de la structure de dette, qu'il va refinancer à sa manière. L'exceptionnel, par définition, ne se reproduira pas.</p>
+<div class="formula"><span class="fl">Excédent brut d'exploitation</span>CA - achats consommés - autres charges externes - impôts et taxes - charges de personnel</div>
+<p>Les dotations aux amortissements restent en dehors : c'est précisément ce qui rend cet agrégat comparable entre deux sociétés dont l'outil de production n'a pas le même âge.</p>
+<div class="callout warn"><div class="ct">Présentation par nature ou par fonction</div>Le plan comptable français classe les charges par nature, la présentation anglo-saxonne les classe par fonction. Le résultat final est identique, aucune ligne intermédiaire ne l'est. Un benchmark de marge brute entre les deux présentations est faux tant que le retraitement n'a pas été fait.</div>
+
+<h2 id="cas">Cas chiffré</h2>
+<p>Une société de services présente le compte de résultat simplifié suivant, en milliers d'euros.</p>
+<table class="tbl">
+<tr><th>Poste</th><th class="n">N</th><th>Commentaire</th></tr>
+<tr><td>Chiffre d'affaires</td><td class="n">5 000</td><td>dont 300 de refacturations de frais</td></tr>
+<tr><td>Achats consommés</td><td class="n">2 100</td><td></td></tr>
+<tr><td>Autres charges externes</td><td class="n">900</td><td>dont 300 de frais refacturés</td></tr>
+<tr><td>Impôts et taxes</td><td class="n">80</td><td></td></tr>
+<tr><td>Charges de personnel</td><td class="n">1 500</td><td></td></tr>
+<tr><td>Dotations</td><td class="n">200</td><td>hors excédent brut</td></tr>
+</table>
+<p>Excédent brut = 5 000 - 2 100 - 900 - 80 - 1 500 = <strong>420</strong>. Marge affichée = 420 / 5 000 = <strong>8,4 %</strong>. Mais 300 de chiffre d'affaires ne sont que des frais refacturés à l'euro près : en les neutralisant des deux côtés, la marge réelle ressort à 420 / 4 700 = <strong>8,9 %</strong>. Un demi-point de marge, soit environ un demi-tour de multiple sur la valeur.</p>
+
+<h2 id="retraitements">Ce qui se retraite avant tout multiple</h2>
+<ul>
+<li><strong>Résultat exceptionnel</strong> : par construction non récurrent, il sort. Une plus-value de cession d'actif n'est pas de la performance d'exploitation.</li>
+<li><strong>Rémunération du dirigeant</strong> : au-delà du salaire de marché d'un directeur général, l'écart revient à l'excédent brut.</li>
+<li><strong>Loyers non facturés</strong> : un immeuble détenu en direct et non loué à la société cache une charge que l'acquéreur supportera.</li>
+<li><strong>Produits réputés exceptionnels mais récurrents</strong> : subventions renouvelées, indemnités annuelles. Ils restent, mais dans l'exploitation.</li>
+</ul>
+<div class="callout warn"><div class="ct">Piège classique</div>Calculer la marge sur un chiffre d'affaires qui inclut des refacturations, des ventes de marchandises à marge nulle ou de la sous-traitance revendue au prix d'achat. La marge paraît faible et la comparaison sectorielle devient absurde. Toujours demander la ventilation avant de calculer un ratio.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Ventiler le chiffre d'affaires par client avant de regarder la marge. Une marge de 12 % dont la moitié vient d'un client unique ne vaut pas une marge de 9 % répartie sur quarante clients, et aucun multiple ne le dira à votre place.</div>
+`,
+key:["L'excédent brut se calcule avant dotations, c'est ce qui le rend comparable","Le M&A ne paie presque que le bloc exploitation","Une marge se calcule sur un chiffre d'affaires nettoyé des refacturations","Exceptionnel, rémunération, loyers : les trois retraitements systématiques"],
+quiz:[{q:"Pourquoi retraiter le résultat exceptionnel avant de calculer un multiple ?",o:["Parce qu'il ne se reproduira pas et fausse la récurrence","Parce qu'il est non déductible","Parce qu'il est toujours négatif","Il ne se retraite jamais"],a:0,e:"Un multiple capitalise un résultat récurrent. Y inclure un élément non récurrent revient à le payer à l'infini."},
+   {q:"Une cible française présente ses charges par nature, son acquéreur anglo-saxon les présente par fonction. Quelle conséquence pour la comparaison ?",o:["Les deux présentations ne se comparent pas ligne à ligne, il faut retraiter avant tout benchmark","Aucune, les totaux sont identiques donc les lignes le sont aussi","La présentation par fonction interdit de calculer un EBE","Il suffit de convertir les montants en devise de l'acquéreur"],a:0,e:"Charges par nature en PCG français, par fonction en présentation anglo-saxonne : le résultat final est le même, mais aucune ligne intermédiaire n'est directement comparable. Un benchmark de marge brute entre les deux présentations est faux tant que le retraitement n'est pas fait."},
+   {q:"Chiffre d'affaires de 8 M€, excédent brut d'exploitation de 640 k€. Quelle est la marge d'EBE ?",o:["8 %","12,5 %","6,4 %","Impossible à dire sans le résultat net"],a:0,e:"640 / 8 000 = 8 %. C'est le premier ratio à calculer sur un compte de résultat, avant toute autre analyse, parce que c'est lui qui portera le multiple."},
+   {q:"Chiffre d'affaires 5 000, achats consommés 2 100, autres charges externes 900, impôts et taxes 80, charges de personnel 1 500, dotations aux amortissements 200. Quel est l'excédent brut d'exploitation ?",o:["420","220","500","620"],a:0,e:"5 000 - 2 100 - 900 - 80 - 1 500 = 420. Les dotations sont exclues par construction : l'excédent brut se calcule avant amortissements, c'est précisément ce qui en fait l'agrégat porteur du multiple."}],
+src:["Plan comptable général, comptes de résultat","Mémento comptable, soldes intermédiaires de gestion"]};
+
+LESSONS["capitaux-propres"] = {
+why:"Le tableau de variation des capitaux propres révèle la politique de distribution et les opérations sur capital. C'est le document qui dit si le cédant prépare sa sortie.",
+obj:["Reconstituer la variation des capitaux propres d'un exercice","Détecter une décapitalisation et savoir la nommer","Situer le seuil légal de régularisation et ses conséquences en cession"],
+html:`
+<p class="lead">Sur un dossier, vous constatez que la société a distribué 500 pour un résultat de 300. Rien d'illégal, rien d'anormal en soi. Mais cette ligne raconte quelque chose sur les intentions du cédant, et un acquéreur la lira.</p>
+
+<h2 id="composition">Ce que contient la ligne</h2>
+<p>Les capitaux propres agrègent des éléments de nature très différente : capital social, primes d'émission, réserves légale et statutaires, report à nouveau, résultat de l'exercice, subventions d'investissement, provisions réglementées. Seuls les trois premiers sont stables, les autres bougent chaque année.</p>
+<div class="formula"><span class="fl">Variation d'un exercice</span>Capitaux propres d'ouverture + résultat - dividendes + apports = capitaux propres de clôture</div>
+<p>Cette égalité doit tomber juste au centime. Si elle ne tombe pas, il manque une opération : une distribution exceptionnelle, une réduction de capital, une incorporation de réserves, un changement de méthode comptable.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Exercice</th><th class="n">Ouverture</th><th class="n">Résultat</th><th class="n">Dividendes</th><th class="n">Clôture</th></tr>
+<tr><td>N-2</td><td class="n">1 400</td><td class="n">320</td><td class="n">200</td><td class="n">1 520</td></tr>
+<tr><td>N-1</td><td class="n">1 520</td><td class="n">280</td><td class="n">400</td><td class="n">1 400</td></tr>
+<tr><td>N</td><td class="n">1 400</td><td class="n">300</td><td class="n">500</td><td class="n">1 200</td></tr>
+</table>
+<p>La société est rentable les trois années, et ses capitaux propres reculent de 320 sur la période. Cumul : 900 de résultat contre 1 100 distribués. Ce n'est pas une entreprise en difficulté, c'est une entreprise que l'on vide avant de la vendre. La question à poser au cédant est simple : la trésorerie qui a servi à distribuer était-elle excédentaire, ou l'entreprise s'est-elle endettée pour la remplacer ?</p>
+
+<h2 id="seuil">Le seuil légal</h2>
+<p>Lorsque les capitaux propres deviennent inférieurs à la moitié du capital social, les associés doivent être consultés sur la poursuite de l'activité et la situation régularisée dans les délais légaux. Sur le dossier ci-dessus, avec un capital de 500, la moitié vaut 250 : le seuil n'est pas franchi. Il le serait si le capital était de 2 500.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Compter les comptes courants d'associés dans les capitaux propres. Ce sont des dettes, remboursables à vue sauf convention de blocage écrite. Les classer en quasi-fonds propres améliore artificiellement tous les ratios de structure, et un auditeur le corrigera en première semaine.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Lire le tableau de variation avant le bilan. Le bilan donne un état à une date, la variation donne une intention sur trois ans. C'est la variation qui vous dira si le dossier arrive parce que le cédant part à la retraite ou parce que l'entreprise a atteint une limite.</div>
+`,
+key:["Ouverture + résultat - dividendes + apports = clôture, au centime","Une distribution supérieure au résultat est une décapitalisation, à documenter","Sous la moitié du capital social, une régularisation légale s'impose","Les comptes courants d'associés sont de la dette, jamais des capitaux propres"],
+quiz:[{q:"Distribution de 400 k€ pour un résultat de 250 k€. Que faut-il en déduire ?",o:["Une décapitalisation, à examiner avant la cession","Une forte rentabilité","Une erreur comptable","Une augmentation de capital"],a:0,e:"On distribue des réserves accumulées. Le mouvement est légitime mais réduit les fonds propres livrés à l'acquéreur."},
+   {q:"Capitaux propres d'ouverture de 1 200, résultat de 300, dividendes versés de 500, aucun apport. Quels sont les capitaux propres de clôture ?",o:["1 000","1 400","1 500","900"],a:0,e:"1 200 + 300 - 500 = 1 000. La distribution excède le résultat de 200 : la société se décapitalise, mouvement à documenter avant une cession."},
+   {q:"Les capitaux propres d'une SARL tombent sous la moitié du capital social. Quelle conséquence ?",o:["Une obligation légale de régularisation, à traiter avant la cession","Une interdiction de distribuer des dividendes pendant cinq ans","Aucune, il s'agit d'un simple indicateur de gestion","La transformation automatique en société par actions simplifiée"],a:0,e:"Les associés doivent être consultés sur la poursuite de l'activité et la situation régularisée dans les délais légaux. Un acquéreur découvrant le point en audit exigera qu'il soit purgé avant signature."},
+   {q:"Capital social 500, capitaux propres d'ouverture 620, perte de l'exercice 200, aucun dividende, apport en capital de 50. Où en est-on de l'obligation de régularisation ?",o:["Capitaux propres de 470, supérieurs à la moitié du capital : aucune obligation","Capitaux propres de 470, inférieurs à la moitié du capital : régularisation obligatoire","Capitaux propres de 420, régularisation obligatoire","Impossible de conclure sans le montant du report à nouveau"],a:0,e:"620 - 200 + 50 = 470. La moitié du capital social vaut 250, et 470 lui reste supérieur : le seuil légal n'est pas franchi. La question suppose de faire le calcul puis de le comparer au bon seuil, les deux étapes étant nécessaires."}],
+src:["Code de commerce, articles L223-42 et L225-248","Mémento comptable, capitaux propres"]};
+
+LESSONS["projection-couts"] = {
+why:"Modéliser toutes les charges en pourcentage du chiffre d'affaires fait disparaître le levier opérationnel, c'est-à-dire précisément ce qu'un acquéreur achète.",
+obj:["Classer un poste en variable, fixe ou semi-variable à partir de l'historique","Séparer part fixe et part variable par une régression à la main","Préserver le levier opérationnel dans un modèle de projection"],
+html:`
+<p class="lead">Vous construisez le modèle d'une cible et un poste résiste : il ne suit ni le chiffre d'affaires, ni l'inflation. Trois exercices d'historique sont disponibles, et le directeur financier attend la charge projetée pour un chiffre d'affaires de 6 500.</p>
+
+<h2 id="regimes">Trois régimes, un seul classement à faire</h2>
+<p>Une charge variable suit le volume ou le chiffre d'affaires. Une charge fixe ne bouge pas avec l'activité, seulement avec l'inflation et les décisions. Une charge semi-variable combine les deux, et c'est le cas le plus fréquent en PME : un socle incompressible plus une part qui accompagne l'activité.</p>
+<div class="formula"><span class="fl">Charge semi-variable</span>Charge = part fixe + taux variable x chiffre d'affaires</div>
+<p>Le classement ne se décide pas, il se mesure. Deux exercices suffisent pour un premier taux, trois pour le confirmer.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Exercice</th><th class="n">Chiffre d'affaires</th><th class="n">Charge</th><th class="n">Ratio brut</th></tr>
+<tr><td>N-2</td><td class="n">4 000</td><td class="n">600</td><td class="n">15,0 %</td></tr>
+<tr><td>N-1</td><td class="n">5 000</td><td class="n">660</td><td class="n">13,2 %</td></tr>
+<tr><td>N</td><td class="n">5 500</td><td class="n">690</td><td class="n">12,5 %</td></tr>
+</table>
+<p>Le ratio brut baisse régulièrement : signe qu'une part de la charge ne suit pas l'activité. Le taux marginal se lit entre deux exercices : entre N-2 et N-1, le chiffre d'affaires progresse de 1 000 et la charge de 60, soit <strong>6 %</strong>. Entre N-1 et N, 500 et 30 : le même taux, la lecture est confirmée. La part fixe s'en déduit : 600 - 6 % x 4 000 = <strong>360</strong>.</p>
+<p>Projection pour 6 500 : 360 + 6 % x 6 500 = <strong>750</strong>. En projetant au ratio brut de 15 %, on aurait obtenu 975, soit 225 de charges inventées et autant d'excédent brut détruit dans le modèle. Sur un multiple de 6, cela représente 1 350 de valeur effacée par une erreur de méthode.</p>
+
+<h2 id="paliers">Les paliers</h2>
+<p>Certaines charges ne progressent pas de façon continue : un chef d'équipe supplémentaire, un local plus grand, une licence par tranche d'utilisateurs. Elles se modélisent par paliers, un palier par tranche d'activité, et non par un pourcentage lissé qui n'existe dans la réalité à aucun moment.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Projeter tous les postes en pourcentage du chiffre d'affaires. La marge devient constante par construction, à 5 comme à 15 millions, alors que c'est exactement l'inverse qui intéresse un acquéreur : savoir combien de marge supplémentaire produit un euro de croissance.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Tester la part fixe sur le point bas du cycle, pas sur la moyenne. Une charge dont la part fixe est estimée sur trois années de croissance sera sous-évaluée le jour où l'activité recule, et c'est ce jour-là que le modèle sert vraiment.</div>
+`,
+key:["Le classement d'une charge se mesure sur l'historique, il ne se décide pas","Taux marginal entre deux exercices, puis part fixe par différence","Tout projeter en pourcentage du chiffre d'affaires efface le levier opérationnel","Les charges par paliers ne se lissent pas"],
+quiz:[{q:"Pourquoi ne pas projeter les loyers en pourcentage du chiffre d'affaires ?",o:["Ce sont des coûts fixes : le pourcentage efface le levier opérationnel","Parce que la TVA s'applique","Parce qu'ils sont déductibles","Aucune raison particulière"],a:0,e:"Un coût fixe modélisé en pourcentage augmente automatiquement avec l'activité, ce qui supprime l'effet d'échelle qui fait la valeur de la croissance."},
+   {q:"Historique d'un poste de charges : 600 pour un chiffre d'affaires de 4 000, puis 660 pour 5 000, puis 690 pour 5 500. Comment le classer et le projeter ?",o:["Semi-variable : environ 360 de part fixe, plus 6 % du chiffre d'affaires","Variable, à 15 % du chiffre d'affaires","Fixe, à indexer sur l'inflation","Variable, à 12,5 % du chiffre d'affaires"],a:0,e:"Entre les deux premiers exercices, le chiffre d'affaires progresse de 1 000 et la charge de 60, soit un taux marginal de 6 %, confirmé sur la période suivante (+ 500 et + 30). La part fixe s'en déduit : 600 - 6 % x 4 000 = 360. Retenir 15 %, soit 600 / 4 000, revient à traiter la part fixe comme variable et gonfle mécaniquement les charges projetées."},
+   {q:"Pourquoi le levier opérationnel disparaît-il si l'on projette toutes les charges en pourcentage du chiffre d'affaires ?",o:["Parce que la marge devient constante par construction, alors que c'est la part fixe qui la fait varier avec la croissance","Parce que les charges variables sont surestimées","Parce que le chiffre d'affaires n'est pas un bon inducteur","Il ne disparaît pas, il devient simplement plus régulier"],a:0,e:"Si toute charge suit le chiffre d'affaires, la marge est la même à 5 M€ et à 15 M€. Or c'est exactement l'inverse qui intéresse un acquéreur : savoir combien de marge supplémentaire produit un euro de croissance. Un modèle sans part fixe ne répond plus à cette question."}],
+src:["Vernimmen, analyse des coûts","Mémento comptable, charges d'exploitation"]};
+
+LESSONS["hypotheses-drivers"] = {
+why:"Un modèle vaut ce que valent ses inducteurs. Le reste n'est que de l'arithmétique, et l'arithmétique ne se trompe jamais sur des hypothèses fausses.",
+obj:["Distinguer un inducteur d'une conviction, et nommer chacun pour ce qu'il est","Documenter une hypothèse par sa valeur, sa source et sa plage de variation","Limiter le nombre d'inducteurs pour garder un modèle pilotable"],
+html:`
+<p class="lead">Votre modèle compte quarante-six inducteurs. Trois n'ont aucun historique de référence. Le dossier passe en comité dans deux jours et personne, vous compris, ne sait plus lesquels comptent vraiment.</p>
+
+<h2 id="inducteur">Inducteur ou conviction</h2>
+<p>Un inducteur est une variable qui explique un agrégat et sur laquelle on dispose d'une observation historique permettant de la calibrer. Sans historique, on ne calibre rien : on postule. C'est parfois nécessaire, et cela porte alors un autre nom.</p>
+<div class="callout key"><div class="ct">La distinction en une phrase</div>Un inducteur se discute sur des données, une conviction se discute sur un raisonnement. Les deux ont leur place dans un modèle, à condition que le lecteur sache laquelle il regarde.</div>
+
+<h2 id="trois">Trois informations par hypothèse</h2>
+<p>Une hypothèse qui ne porte qu'une valeur n'est pas exploitable. Il en faut trois, sur la même ligne, visibles sans ouvrir de cellule.</p>
+<table class="tbl">
+<tr><th>Information</th><th>Exemple</th><th>À quoi elle sert</th></tr>
+<tr><td>Valeur retenue</td><td>croissance 4 %</td><td>alimenter le calcul</td></tr>
+<tr><td>Source</td><td>moyenne N-3 à N, liasses</td><td>rendre l'hypothèse opposable</td></tr>
+<tr><td>Plage raisonnable</td><td>2 % à 6 %</td><td>alimenter la sensibilité</td></tr>
+</table>
+
+<h2 id="cas">Cas chiffré</h2>
+<p>Une même cible, deux façons de projeter le chiffre d'affaires sur trois ans. Par un taux global de 8 % par an : 5 000 devient 6 299. Par volume et prix, avec un volume qui progresse de 6 % et un prix de 2 % : 5 000 x 1,06 x 1,02 par an, soit <strong>6 314</strong>. L'écart final est faible, moins de 0,3 %, et pourtant la seconde version est bien meilleure.</p>
+<p>La raison n'est pas la précision, c'est la discutabilité. Un acquéreur peut contester un volume, il peut contester un prix, il peut accepter l'un et refuser l'autre. Face à un taux global de 8 %, il n'a qu'une réponse possible : non. Décomposer, c'est se donner une surface de négociation.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Remplacer une hypothèse sans historique par une moyenne sectorielle sans le mentionner. L'hypothèse devient invisible, elle prend l'apparence d'une donnée, et personne ne la testera plus. Une conviction affichée comme telle est plus solide qu'une conviction déguisée en statistique.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Écrire la plage avant la valeur. Si vous ne savez pas dire entre quelles bornes une hypothèse est raisonnable, vous n'êtes pas prêt à en retenir une valeur centrale, et la sensibilité que vous produirez sera décorative.</div>
+`,
+key:["Un inducteur a un historique, une conviction n'en a pas : les deux se nomment","Valeur, source, plage : trois informations sur la même ligne","Décomposer volume et prix donne une surface de négociation","Au-delà d'une trentaine d'inducteurs, plus personne ne les pilote"],
+quiz:[{q:"Quelle projection de chiffre d'affaires est la plus défendable ?",o:["Volume multiplié par prix, chacun projeté séparément","Un taux de croissance global de 5 pour cent","La moyenne des trois dernières années","Le budget du dirigeant"],a:0,e:"Décomposer permet de discuter séparément l'effet volume et l'effet prix, et de confronter chacun à une réalité observable."},
+   {q:"Qu'est-ce qui distingue un inducteur d'une hypothèse ordinaire ?",o:["Il explique un agrégat et l'on dispose d'une observation historique pour le calibrer","Il est saisi en bleu dans le modèle","Il porte toujours sur le chiffre d'affaires","Il est validé par le cédant"],a:0,e:"Sans historique, on ne calibre rien : on postule. Cela reste parfois nécessaire, mais il faut alors l'appeler une conviction et l'assortir d'une plage de variation, pas la présenter comme un inducteur."},
+   {q:"Votre modèle compte quarante-six inducteurs, dont trois n'ont aucun historique de référence. Quelle décision ?",o:["Réduire le nombre d'inducteurs pour que le modèle reste pilotable, et identifier explicitement les trois sans historique comme des convictions, avec leur plage de variation","Conserver les quarante-six : la précision augmente avec le nombre d'inducteurs","Supprimer les trois sans historique, qui ne sont pas modélisables","Remplacer les trois par une moyenne sectorielle, sans le mentionner dans les hypothèses"],a:0,e:"Au-delà d'une trentaine d'inducteurs, plus personne ne les pilote et le modèle devient une boîte noire : la précision apparente augmente pendant que la fiabilité baisse. Quant aux trois sans historique, les supprimer appauvrit le modèle et les déguiser en moyenne sectorielle non signalée est le seul choix véritablement fautif des quatre."}],
+src:["Vernimmen, construction d'un business plan","Damodaran, Investment Valuation, chapitre 3"]};
+
+LESSONS["controles-equilibre"] = {
+why:"Un modèle sans contrôles est un modèle dont personne ne peut garantir les résultats, à commencer par son auteur.",
+obj:["Poser les cinq contrôles qui rendent un modèle défendable","Lire un écart de trésorerie comme un symptôme et non comme un arrondi","Savoir refuser d'exploiter un modèle qui ne boucle pas"],
+html:`
+<p class="lead">Un acquéreur vous transmet le modèle bâti par son directeur financier et vous demande de le reprendre pour rédiger la lettre d'intention. Avant d'utiliser une seule de ses sorties, vous passez cinq contrôles. Ils prennent dix minutes.</p>
+
+<h2 id="cinq">Les cinq contrôles</h2>
+<table class="tbl">
+<tr><th>Contrôle</th><th>Attendu</th><th>Ce que révèle un écart</th></tr>
+<tr><td>Équilibre du bilan</td><td>actif - passif = 0, chaque colonne</td><td>une liaison rompue, éliminatoire</td></tr>
+<tr><td>Égalité des trésoreries</td><td>bilan = tableau de flux</td><td>le bouclage passe par une variable d'ajustement</td></tr>
+<tr><td>Plancher de trésorerie</td><td>jamais sous le seuil défini</td><td>un besoin de financement non modélisé</td></tr>
+<tr><td>Soldes de dette</td><td>ni négatifs, ni au-delà des autorisations</td><td>un remboursement mal échéancé</td></tr>
+<tr><td>Sommes de répartition</td><td>égales à cent partout</td><td>une part du montant disparaît en silence</td></tr>
+</table>
+
+<h2 id="cas">Cas chiffré</h2>
+<p>Dernière colonne du modèle reçu, en milliers d'euros.</p>
+<table class="tbl">
+<tr><th>Grandeur</th><th class="n">Valeur</th><th>Contrôle</th></tr>
+<tr><td>Total actif</td><td class="n">4 820</td><td rowspan="2">écart de 30, échec</td></tr>
+<tr><td>Total passif</td><td class="n">4 790</td></tr>
+<tr><td>Trésorerie au bilan</td><td class="n">320</td><td rowspan="2">écart de 25, échec</td></tr>
+<tr><td>Trésorerie du tableau de flux</td><td class="n">295</td></tr>
+<tr><td>Trésorerie minimale exigée</td><td class="n">150</td><td>respectée</td></tr>
+<tr><td>Solde de dette senior</td><td class="n">870</td><td>cohérent</td></tr>
+<tr><td>Somme des répartitions</td><td class="n">97 %</td><td>échec</td></tr>
+</table>
+<p>Trois contrôles sur cinq échouent. Le modèle n'est pas approximatif, il est faux : les 30 d'écart de bilan et les 25 d'écart de trésorerie sont deux symptômes de la même rupture, et les 3 % manquants de répartition retirent silencieusement une part de chaque montant réparti, sur toutes les périodes.</p>
+
+<h2 id="ajustement">Pourquoi un bilan équilibré ne prouve rien</h2>
+<p>La plupart des modèles bouclent par une ligne d'ajustement, trésorerie ou dette revolving. Son rôle est précisément d'absorber l'écart. Un bilan équilibré peut donc dissimuler une erreur, et le seul contrôle qui la révèle est la comparaison des deux trésoreries. Le fait qu'un écart apparaisse à partir d'une année précise désigne la période où la liaison a été rompue.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Considérer un écart de quelques unités comme un arrondi. Un modèle n'arrondit pas : chaque ligne est le résultat d'une formule. Un écart de 30 sur 4 820 n'est pas 0,6 % de tolérance, c'est une erreur de 30 qui se propagera au prix.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Un indicateur agrégé en haut de chaque feuille, alimenté par une seule feuille de contrôles, qui passe au rouge dès qu'un contrôle échoue. Le lecteur d'un modèle ne doit pas parcourir six feuilles pour savoir si le classeur est sain.</div>
+`,
+key:["Cinq contrôles, dix minutes, avant toute exploitation d'un modèle reçu","Un bilan équilibré ne prouve rien : la variable d'ajustement absorbe l'erreur","L'égalité des deux trésoreries est le contrôle qui révèle une liaison rompue","Un écart de quelques unités n'est jamais un arrondi"],
+quiz:[{q:"Quel contrôle détecte une liaison manquante entre le tableau de flux et le bilan ?",o:["Trésorerie du bilan comparée à celle du tableau de flux","Le contrôle des pourcentages","Le plancher de trésorerie","Le solde de dette"],a:0,e:"Si les deux trésoreries divergent, un flux n'est pas reporté ou une variation de bilan n'a pas de contrepartie."},
+   {q:"Pourquoi contrôler que la somme des pourcentages de répartition vaut exactement cent ?",o:["Parce qu'une répartition incomplète fait disparaître silencieusement une part du montant réparti","Parce qu'Excel refuse les répartitions incomplètes","Pour respecter la convention de couleurs du modèle","Parce que le bilan ne s'équilibre pas sinon"],a:0,e:"Une répartition à 97 % ne produit aucune erreur visible : elle réduit simplement le total de 3 %, sur toutes les périodes, sans qu'aucune cellule ne s'affiche en rouge. C'est le type d'écart qu'on ne trouve jamais par relecture, seulement par contrôle automatique."},
+   {q:"Le bilan s'équilibre sur les cinq années projetées, mais la trésorerie du bilan diffère de celle du tableau de flux à partir de l'année 3. Que faut-il en conclure ?",o:["La trésorerie du bilan n'est pas alimentée par le tableau de flux : l'équilibre est probablement obtenu par une variable d'ajustement qui masque l'erreur","Une simple accumulation d'arrondis, sans conséquence","Le bilan étant équilibré, il n'y a pas d'erreur à chercher","Il manque un contrôle de plancher de trésorerie"],a:0,e:"Un bilan équilibré ne prouve rien si le bouclage passe par une ligne d'ajustement : c'est justement son rôle d'absorber l'erreur. Le seul contrôle qui la révèle est la comparaison des deux trésoreries, et le fait que l'écart apparaisse à partir d'une année précise désigne la période où la liaison a été rompue."}],
+src:["FAST Standard, modélisation financière","Vernimmen, construction et audit d'un modèle"]};
+
+LESSONS["immos-amortissements"] = {
+why:"L'âge de l'outil de production conditionne le capex que l'acquéreur devra engager. Un bilan peut afficher des immobilisations quasi nulles et cacher une usine à refaire.",
+obj:["Lire ensemble valeur brute, amortissements cumulés et valeur nette","Calculer un ratio d'usure et en tirer une conséquence sur le prix","Distinguer ce qui affecte le résultat de ce qui affecte la trésorerie"],
+html:`
+<p class="lead">Un cédant vous montre un bilan où les immobilisations nettes valent 400 pour un chiffre d'affaires de 6 000. Il en conclut que son entreprise est peu capitalistique. Vous allez conclure l'inverse.</p>
+
+<h2 id="trois">Trois chiffres qui se lisent ensemble</h2>
+<p>Une immobilisation porte toujours trois montants. La valeur brute est ce qu'elle a coûté. Les amortissements cumulés sont ce qui a déjà été passé en charges. La valeur nette est la différence, et c'est la seule qui figure à l'actif du bilan publié.</p>
+<div class="formula"><span class="fl">Ratio d'usure</span>Amortissements cumulés / Valeur brute</div>
+<p>Au-delà de 70 %, l'outil approche de sa fin de vie comptable. Cela ne veut pas dire qu'il ne fonctionne plus, mais qu'il a été financé une première fois et qu'il devra l'être une seconde.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<table class="tbl">
+<tr><th>Grandeur</th><th class="n">Montant</th><th>Lecture</th></tr>
+<tr><td>Valeur brute des immobilisations</td><td class="n">4 000</td><td>coût d'origine de l'outil</td></tr>
+<tr><td>Amortissements cumulés</td><td class="n">3 600</td><td>ratio d'usure de 90 %</td></tr>
+<tr><td>Valeur nette au bilan</td><td class="n">400</td><td>ce que le cédant montre</td></tr>
+<tr><td>Dotation annuelle</td><td class="n">400</td><td>rythme de consommation</td></tr>
+<tr><td>Investissements des trois derniers exercices</td><td class="n">150 par an</td><td>sous-investissement de 250 par an</td></tr>
+</table>
+<p>Le ratio d'usure de 90 % et l'écart entre 150 investis et 400 amortis disent la même chose : l'entreprise consomme son outil sans le renouveler. Un acquéreur devra financer un rattrapage. À 250 par an sur trois ans, cela représente 750 de trésorerie que le modèle doit prévoir, et autant d'argument de négociation sur le prix.</p>
+
+<h2 id="methodes">Le choix de méthode</h2>
+<p>Linéaire, dégressif ou par composants : le choix change la répartition de la charge entre exercices. Il ne change ni la trésorerie, ni l'excédent brut d'exploitation, calculé avant dotations. Passer du linéaire au dégressif abaisse le résultat des premières années et l'élève ensuite, sans qu'un euro ne sorte de caisse.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Conclure d'une valeur nette faible que l'entreprise est peu capitalistique. C'est souvent l'inverse : l'outil existe, il est simplement déjà amorti. La question n'est pas ce que le bilan affiche, mais ce qu'il faudra dépenser pour continuer à produire.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Demander le tableau 2055 de la liasse fiscale, qui donne les acquisitions et cessions de l'exercice. Trois exercices de ce tableau suffisent à établir le capex réel, sans dépendre du discours du cédant sur ses investissements.</div>
+`,
+key:["Valeur brute, amortissements cumulés, valeur nette : les trois ensemble","Ratio d'usure au-delà de 70 % : outil en fin de vie comptable","Le choix de méthode change le résultat, jamais la trésorerie","Le tableau 2055 donne le capex réel, pas le discours"],
+quiz:[{q:"Amortissements cumulés de 820 sur une valeur brute de 1 000. Que conclure ?",o:["Ratio d'usure de 82 %, un rattrapage d'investissement est probable","L'outil est neuf","La société est rentable","Le BFR est élevé"],a:0,e:"Un ratio d'usure élevé annonce des remplacements à financer, donc des flux futurs réduits pour l'acquéreur."},
+   {q:"Une machine totalement amortie est toujours en production. Que faut-il en déduire ?",o:["Un actif sous-évalué au bilan : sa valeur nette comptable est nulle alors qu'il produit encore","Que la machine doit être cédée sans délai","Que le résultat de l'exercice est surévalué","Que le BFR va augmenter"],a:0,e:"La valeur nette comptable est nulle mais la valeur d'usage ne l'est pas. C'est un cas fréquent en PME industrielle : le bilan sous-estime l'outil, et l'acquéreur doit chercher la valeur ailleurs que dans les comptes."},
+   {q:"Une société passe d'un amortissement linéaire à un amortissement dégressif. Quel effet ?",o:["Le résultat baisse les premières années, la trésorerie ne change pas","Le résultat et la trésorerie baissent tous les deux","La trésorerie baisse, le résultat est inchangé","L'EBE baisse à due concurrence"],a:0,e:"Une dotation est une charge sans sortie de caisse : elle déplace du résultat entre exercices sans toucher à la trésorerie. L'EBE, calculé avant dotations, est également inchangé."},
+   {q:"Valeur brute des immobilisations 4 000, amortissements cumulés 3 000, dotation annuelle 400, investissements réalisés 150 par an depuis trois ans. Que retenir pour la valorisation ?",o:["Ratio d'usure de 75 % et sous-investissement de 250 par an : un capex de rattrapage réduira les flux futurs","Outil de production récent, investissement maîtrisé","Ratio d'usure de 25 %, la situation est saine","Les dotations sont surévaluées, il faut les retraiter à la hausse de l'excédent brut"],a:0,e:"3 000 / 4 000 = 75 % d'usure, et 150 investis contre 400 amortis chaque année, soit 250 de sous-investissement annuel. L'acquéreur héritera d'un rattrapage à financer : c'est un argument de négociation sur le prix, pas une simple observation comptable."}],
+src:["Plan comptable général, amortissements","Liasse fiscale, tableau 2055"]};
+
+LESSONS["qualite-resultat"] = {
+why:"La qualité du résultat mesure à quel point le bénéfice affiché se convertit en trésorerie durable. Deux entreprises au même résultat ne valent pas le même prix.",
+obj:["Calculer un ratio de conversion et le situer par rapport au seuil d'alerte","Reconnaître les quatre marqueurs classiques d'un résultat habillé","Faire converger plusieurs indices avant de conclure"],
+html:`
+<p class="lead">Deux cibles affichent le même excédent brut d'exploitation de 1 200. La première dégage 1 020 de trésorerie d'exploitation, la seconde 640. Un acquéreur ne paiera pas le même prix, et il aura raison.</p>
+
+<h2 id="conversion">Le ratio de conversion</h2>
+<div class="formula"><span class="fl">Conversion en trésorerie</span>Flux net de trésorerie d'exploitation / EBITDA</div>
+<p>Le seuil d'alerte usuel se situe autour de 70 %. Au-dessus, le résultat se transforme correctement en encaissements. En dessous de façon durable, il faut chercher où le cash se perd : besoin en fonds de roulement qui s'étire, charges capitalisées, provisions qui varient sans explication.</p>
+<p>Sur l'exemple d'ouverture, la première cible convertit à 85 %, la seconde à 53 %. La seconde n'est pas nécessairement malhonnête : elle peut être en forte croissance et financer son besoin en fonds de roulement. Mais un acquéreur devra apporter ce financement, et cela se paie.</p>
+
+<h2 id="cas">Cas chiffré</h2>
+<p>Trois exercices d'une même cible, en milliers d'euros.</p>
+<table class="tbl">
+<tr><th>Indicateur</th><th class="n">N-2</th><th class="n">N-1</th><th class="n">N</th></tr>
+<tr><td>Chiffre d'affaires</td><td class="n">4 200</td><td class="n">4 620</td><td class="n">4 960</td></tr>
+<tr><td>EBITDA</td><td class="n">520</td><td class="n">600</td><td class="n">634</td></tr>
+<tr><td>Flux d'exploitation</td><td class="n">430</td><td class="n">425</td><td class="n">420</td></tr>
+<tr><td>Délai clients, en jours</td><td class="n">40</td><td class="n">54</td><td class="n">68</td></tr>
+<tr><td>Charges capitalisées</td><td class="n">30</td><td class="n">120</td><td class="n">210</td></tr>
+</table>
+<p>Le chiffre d'affaires progresse de 18 % et l'EBITDA de 22 % : la marge s'améliore, en apparence. Mais le flux d'exploitation stagne, la conversion passe de 83 % à 66 %, le délai clients s'allonge de 28 jours et les charges capitalisées sont multipliées par sept. Aucun de ces indices ne suffirait seul. Leur convergence, si.</p>
+
+<h2 id="marqueurs">Les quatre marqueurs classiques</h2>
+<ul>
+<li><strong>Croissance financée par les clients</strong> : le délai de règlement s'allonge au rythme du chiffre d'affaires.</li>
+<li><strong>Charges capitalisées en hausse</strong> : des dépenses qui passaient en charges deviennent des actifs.</li>
+<li><strong>Provisions en baisse sans motif</strong> : une reprise de provision est un produit sans encaissement.</li>
+<li><strong>Marge qui progresse quand le secteur se dégrade</strong> : chercher l'explication comptable avant l'explication commerciale.</li>
+</ul>
+<div class="callout warn"><div class="ct">Piège classique</div>Conclure sur un seul marqueur. Un délai clients qui s'allonge peut venir d'un grand compte nouvellement gagné, avec ses conditions de paiement. Un indice isolé ouvre une question, il ne referme pas un dossier.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Un changement de méthode comptable non signalé est le signal le plus fort de tous, parce qu'il est le seul qui suppose une intention. Vérifier l'annexe des comptes avant les ratios : elle mentionne les changements de méthode, et sa lecture prend cinq minutes.</div>
+`,
+key:["Conversion sous 70 % durablement : chercher où le cash se perd","Quatre marqueurs classiques, dont aucun ne conclut seul","La convergence de plusieurs indices vaut preuve, pas l'indice isolé","Un changement de méthode non signalé est le signal le plus fort"],
+quiz:[{q:"Flux d'exploitation de 380 pour un EBITDA de 900 sur trois exercices consécutifs. Quelle lecture ?",o:["Conversion faible et persistante, la qualité du résultat est en cause","Excellente performance","Situation normale","Le BFR se réduit"],a:0,e:"Une conversion durablement inférieure à 50 % signale que le résultat ne devient pas de la trésorerie : BFR qui dérive, produits non encaissés, ou habillage."},
+   {q:"Le chiffre d'affaires progresse de 15 % et le délai de règlement clients passe de 45 à 75 jours. Quelle lecture ?",o:["Une croissance partiellement financée par l'allongement des délais clients, donc de moindre qualité","Une amélioration de la performance commerciale sans réserve","Un effet mécanique sans conséquence sur la trésorerie","Une baisse du besoin en fonds de roulement"],a:0,e:"Vendre en payant plus tard n'est pas vendre mieux. La croissance consomme du cash et une partie du chiffre d'affaires nouveau peut n'être jamais encaissée. C'est un des marqueurs classiques d'un résultat de faible qualité."},
+   {q:"EBITDA de 1 200, flux net de trésorerie d'exploitation de 1 020. Quelle conclusion ?",o:["Conversion de 85 %, satisfaisante","Conversion de 85 %, insuffisante","Conversion de 118 %, anormale","La conversion ne se calcule pas ainsi"],a:0,e:"1 020 / 1 200 = 85 %. Le seuil d'alerte usuel se situe autour de 70 % : au-dessus, le résultat se transforme correctement en trésorerie. En dessous durablement, il faut chercher où le cash se perd."},
+   {q:"Sur trois exercices : chiffre d'affaires + 18 %, EBITDA + 22 %, délai clients de 40 à 68 jours, flux d'exploitation stable, charges capitalisées passées de 30 à 210. Quelle conclusion ?",o:["La progression affichée ne se convertit pas en trésorerie : crédit clients allongé et charges capitalisées croissantes expliquent l'écart, la qualité du résultat est en cause","Une performance solide, la trésorerie suivra mécaniquement l'année suivante","Une réduction du besoin en fonds de roulement, favorable à l'acquéreur","Un simple effet de périmètre, sans incidence sur la valorisation"],a:0,e:"Trois marqueurs convergent. L'EBITDA progresse plus vite que le chiffre d'affaires alors que le flux d'exploitation stagne : l'écart est financé par les clients, qui paient 28 jours plus tard, et gonflé par des charges capitalisées multipliées par sept. Aucun des trois indices ne suffirait seul, leur convergence, si."}],
+src:["Vernimmen, analyse de la qualité des résultats","Damodaran, Investment Valuation, earnings quality"]};
+
+LESSONS["raccourcis"] = {
+why:"Le temps gagné au clavier se réinvestit en réflexion. C'est la différence entre subir un modèle et le piloter.",
+obj:["Naviguer et sélectionner dans une grande plage sans la souris","Enchaîner un collage spécial et un contrôle de formules","Repérer les quatre familles de raccourcis qui servent tous les jours"],
+html:`
+<p class="lead">Un modèle de quatorze feuilles, douze mille lignes, à auditer avant midi. À la souris, la navigation seule consommera une heure. Les quatre familles de raccourcis ci-dessous la ramènent à quelques minutes.</p>
+
+<h2 id="familles">Quatre familles, pas cinquante raccourcis</h2>
+<table class="tbl">
+<tr><th>Famille</th><th>Raccourcis</th><th>Ce qu'ils remplacent</th></tr>
+<tr><td>Navigation</td><td>Ctrl + flèches, Ctrl + Maj + flèches</td><td>le défilement à la souris</td></tr>
+<tr><td>Édition</td><td>F2 modifier, F4 ancrages, Alt + = somme</td><td>le double-clic et la saisie du dollar</td></tr>
+<tr><td>Collage spécial</td><td>Alt puis E, S, V valeurs, Alt E S T formats</td><td>le menu contextuel</td></tr>
+<tr><td>Audit</td><td>Ctrl + accent grave, Ctrl + crochet</td><td>l'ouverture de chaque cellule une par une</td></tr>
+</table>
+<p>Ctrl étend jusqu'au bord de la plage remplie, Maj sélectionne au passage : la combinaison des deux atteint la dernière valeur d'une colonne de douze mille lignes en une frappe, indépendamment du nombre de lignes.</p>
+
+<h2 id="cas">Cas pratique : la séquence d'audit</h2>
+<p>Vous recevez une plage de résultats à figer puis à vérifier. La séquence complète tient en quatre gestes.</p>
+<table class="tbl">
+<tr><th>Étape</th><th>Frappe</th><th>Effet</th></tr>
+<tr><td>1</td><td>Ctrl + Maj + flèche bas</td><td>sélectionne jusqu'à la dernière valeur</td></tr>
+<tr><td>2</td><td>Ctrl + C</td><td>copie</td></tr>
+<tr><td>3</td><td>Alt puis E, S, V</td><td>collage spécial des valeurs seules</td></tr>
+<tr><td>4</td><td>Ctrl + accent grave</td><td>affiche toutes les formules de la feuille</td></tr>
+</table>
+<p>La quatrième frappe est celle que l'on oublie. Elle révèle d'un coup les constantes saisies en dur et les références vers d'autres classeurs, les deux défauts qui invalident un modèle reçu.</p>
+<h2 id="limites">Ce qu'il ne faut pas mémoriser</h2>
+<p>Les listes de deux cents raccourcis sont contre-productives. Ce qui compte est le nombre de gestes que vous ne faites plus à la souris, et il se compte sur une main. Trois familles suffisent au quotidien : naviguer, coller en valeurs, afficher les formules. Le reste s'apprend au fil des besoins réels.</p>
+<p>Le repère est simple : si un geste revient plus de dix fois par heure, il mérite un raccourci. En dessous, l'apprendre coûte plus que le temps qu'il fait gagner.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Confondre Alt E S V et Alt E S T. Le premier colle les valeurs, le second les formats. Coller les formats sur une plage de résultats efface la mise en forme conditionnelle qui portait vos contrôles, sans message d'erreur.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>F4 en cours de saisie fait tourner les quatre états d'ancrage d'une référence. Trois frappes de F4 valent mieux qu'une relecture de formule, et une référence mal ancrée recopiée sur soixante colonnes est l'erreur la plus fréquente et la plus difficile à voir.</div>
+`,
+key:["Ctrl étend, Maj sélectionne : la combinaison remplace le défilement","Alt E S V pour les valeurs, Alt E S T pour les formats, ne pas confondre","Ctrl + accent grave révèle constantes en dur et liens externes","F4 fait tourner les quatre états d'ancrage"],
+quiz:[{q:"Quel raccourci bascule les ancrages d'une référence entre relatif et absolu ?",o:["F4","F2","F9","Ctrl + F"],a:0,e:"F4 fait défiler A1, dollar A dollar 1, A dollar 1, dollar A 1. C'est le raccourci le plus utilisé en modélisation."},
+   {q:"Vous devez sélectionner une colonne de 12 000 lignes jusqu'à sa dernière valeur renseignée. Quelle combinaison ?",o:["Ctrl + Maj + flèche bas","Ctrl + A","Maj + clic sur la dernière cellule visible à l'écran","F4 puis flèche bas maintenue"],a:0,e:"Ctrl étend jusqu'au bord de la plage, Maj sélectionne au passage. C'est le geste qui remplace le défilement à la souris, et il est fiable quel que soit le nombre de lignes."},
+   {q:"Vous voulez coller uniquement les valeurs d'une plage copiée, puis vérifier visuellement toutes les formules de la feuille. Quelle séquence ?",o:["Alt puis E, S, V, puis Ctrl + accent grave","Ctrl + V puis F2","Alt puis E, S, T, puis Ctrl + crochet","F4 puis Ctrl + Maj + V"],a:0,e:"Alt E S V est le collage spécial des valeurs, Alt E S T celui des formats. Ctrl + accent grave bascule l'affichage des formules sur toute la feuille, Ctrl + crochet remonte un antécédent cellule par cellule. La séquence enchaîne donc le collage puis le contrôle d'ensemble."}],
+src:["Documentation Microsoft, raccourcis clavier Excel","FAST Standard, productivité de modélisation"]};
+
+LESSONS["recherche-index"] = {
+why:"Une recherche mal construite est la première cause d'erreur silencieuse dans un modèle : elle ne renvoie pas d'erreur, elle renvoie une valeur fausse.",
+obj:["Choisir entre RECHERCHEX et INDEX-EQUIV selon la version et la structure","Reconnaître le défaut qui rend RECHERCHEV dangereuse","Prévoir systématiquement le cas où la valeur n'existe pas"],
+html:`
+<p class="lead">Vous récupérez le chiffre d'affaires de quarante sociétés depuis un extrait de base, par leur SIREN. Le tableau tombe juste sur trente-huit lignes et faux sur deux, sans aucun message d'erreur. C'est le pire cas possible.</p>
+
+<h2 id="defaut">Le défaut qui rend RECHERCHEV dangereuse</h2>
+<p>Son quatrième argument est optionnel. Omis, il vaut VRAI et déclenche une recherche approximative : la fonction renvoie la valeur immédiatement inférieure au lieu de signaler l'absence. Sur des identifiants numériques comme un SIREN, cela produit le chiffre d'affaires d'une autre société, du même ordre de grandeur, donc invisible à la relecture.</p>
+<div class="formula"><span class="fl">Toujours</span>RECHERCHEV(clé ; table ; colonne ; FAUX)</div>
+<p>RECHERCHEX lève cette contrainte : la correspondance exacte est son comportement par défaut, elle cherche indifféremment à gauche ou à droite de la clé, et elle accepte une valeur de repli en argument.</p>
+
+<h2 id="cas">Cas pratique : la clé est à droite</h2>
+<p>Un extrait de base présente les colonnes dans cet ordre : chiffre d'affaires en B, effectif en C, SIREN en D. RECHERCHEV ne peut rien faire, la clé devant être en première colonne du tableau.</p>
+<table class="tbl">
+<tr><th>Solution</th><th>Formule</th><th>Verdict</th></tr>
+<tr><td>Inverser les colonnes de la source</td><td>—</td><td>à éviter : on ne modifie pas un fichier reçu</td></tr>
+<tr><td>RECHERCHEX</td><td>RECHERCHEX(clé ; D:D ; B:B ; "absent")</td><td>la plus simple, si la version le permet</td></tr>
+<tr><td>INDEX et EQUIV</td><td>INDEX(B:B ; EQUIV(clé ; D:D ; 0))</td><td>fonctionne partout, y compris sur versions anciennes</td></tr>
+</table>
+<p>Dans INDEX-EQUIV, INDEX désigne la colonne d'où extraire et EQUIV trouve la ligne. Le troisième argument d'EQUIV, le zéro, force la correspondance exacte : c'est l'équivalent du FAUX de RECHERCHEV, et il n'est pas optionnel dans les faits.</p>
+<h2 id="controle">Contrôler une recherche plutôt que lui faire confiance</h2>
+<p>Une recherche ne se relit pas, elle se contrôle. Deux contrôles suffisent et tiennent en deux cellules.</p>
+<table class="tbl">
+<tr><th>Contrôle</th><th>Formule</th><th>Ce qu'il attrape</th></tr>
+<tr><td>Nombre de valeurs non trouvées</td><td>NB.SI(plage_résultats ; "absent")</td><td>les clés absentes de la source</td></tr>
+<tr><td>Somme reconstituée</td><td>SOMME(résultats) comparée au total de la source</td><td>les doublons de clé et les lignes manquées</td></tr>
+</table>
+<p>Le second est le plus utile : si la somme des valeurs récupérées ne retombe pas sur le total attendu, une clé est dupliquée dans la source et la recherche ne renvoie que la première occurrence, silencieusement.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Une clé texte comparée sans normalisation. Un espace insécable, une majuscule ou un espace de fin suffisent à faire échouer la correspondance. Sur des noms de sociétés, prévoir SUPPRESPACE et MAJUSCULE avant toute recherche, ou accepter des trous inexpliqués.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Ne jamais laisser un code d'erreur circuler dans un modèle. Une valeur non trouvée doit produire un repli explicite, zéro documenté ou mention « absent », et un contrôle qui compte les absents. Un #N/A propagé sur trois feuilles fait échouer des totaux très loin de sa cause.</div>
+`,
+key:["RECHERCHEV sans FAUX renvoie silencieusement une valeur fausse","RECHERCHEX cherche à gauche comme à droite, correspondance exacte par défaut","INDEX-EQUIV avec le type 0 fonctionne sur toutes les versions","Normaliser une clé texte avant de la comparer"],
+quiz:[{q:"Une RECHERCHEV renvoie une valeur plausible mais fausse. Cause la plus probable ?",o:["Recherche approximative, quatrième argument omis","La plage est trop grande","La colonne est masquée","Le fichier est corrompu"],a:0,e:"Sans FAUX, Excel renvoie la valeur immédiatement inférieure trouvée dans une liste supposée triée. L'erreur est invisible car le résultat semble cohérent."},
+   {q:"Pourquoi RECHERCHEX est-elle préférable à RECHERCHEV lorsque la clé de recherche n'est pas dans la première colonne du tableau ?",o:["Elle cherche indifféremment à gauche ou à droite et impose la correspondance exacte par défaut","Elle est plus rapide sur les grands tableaux","Elle accepte plusieurs critères de recherche simultanés","Elle renvoie automatiquement zéro si la valeur est absente"],a:0,e:"RECHERCHEV impose que la clé soit à gauche de la valeur cherchée et effectue une recherche approximative si l'on omet son quatrième argument. RECHERCHEX lève les deux contraintes, et sa gestion explicite du cas non trouvé évite qu'un code d'erreur circule dans le modèle."},
+   {q:"Vous devez récupérer le chiffre d'affaires d'une société identifiée par son SIREN, dans un tableau où la colonne SIREN se trouve à droite de celle du chiffre d'affaires, sur une version d'Excel dépourvue de RECHERCHEX. Quelle construction ?",o:["INDEX sur la colonne du chiffre d'affaires, EQUIV sur la colonne SIREN avec le type de correspondance 0","RECHERCHEV avec le quatrième argument VRAI","RECHERCHEV après avoir inversé les deux colonnes du tableau source","SOMME.SI avec le SIREN comme critère"],a:0,e:"INDEX désigne la colonne d'où extraire, EQUIV trouve la ligne, et le type 0 force la correspondance exacte. C'est la seule des quatre propositions qui fonctionne sans modifier la source : inverser des colonnes dans un fichier reçu est exactement ce qu'un audit reproche."}],
+src:["Documentation Microsoft, fonctions de recherche","FAST Standard, intégrité des liaisons"]};
+
+LESSONS["fonctions-logiques"] = {
+why:"La gestion des erreurs distingue un modèle qui circule d'un modèle qui embarrasse son auteur en réunion.",
+obj:["Choisir entre SI imbriqués, SI.CONDITIONS et table de correspondance","Utiliser SIERREUR à bon escient, c'est-à-dire après diagnostic","Préférer un drapeau à une condition enfouie dans une formule"],
+html:`
+<p class="lead">Vous devez projeter un chiffre d'affaires qui ne croît qu'à partir de la troisième année. Trois écritures sont possibles, et une seule survivra à la relecture d'un tiers dans six mois.</p>
+
+<h2 id="drapeau">Le drapeau plutôt que la condition</h2>
+<p>Une ligne de drapeau vaut 0 ou 1 par période, et se multiplie par le taux de croissance. L'hypothèse devient visible sur une ligne, lisible d'un coup d'œil, modifiable sans toucher aux formules.</p>
+<div class="formula"><span class="fl">Écriture auditable</span>Croissance appliquée = drapeau x taux de croissance</div>
+<p>Les SI imbriqués enfouissent la même règle dans chaque cellule de chaque colonne. La constante saisie en dur à partir de l'année 3 la rend introuvable. Les trois écritures donnent le même résultat, une seule se relit.</p>
+
+<h2 id="cas">Cas pratique : les trois écritures comparées</h2>
+<table class="tbl">
+<tr><th>Écriture</th><th>Où se trouve l'hypothèse</th><th>Modifiable en</th></tr>
+<tr><td>Ligne de drapeau 0 ou 1</td><td>une ligne visible</td><td>une cellule</td></tr>
+<tr><td>SI imbriqués sur le numéro d'année</td><td>dans chaque formule</td><td>autant de cellules que de colonnes</td></tr>
+<tr><td>Constante en dur à partir de la colonne 3</td><td>nulle part</td><td>introuvable</td></tr>
+</table>
+<p>Sur un modèle mensuel de soixante colonnes, la deuxième écriture demande soixante corrections et la troisième suppose de retrouver la constante. Le drapeau en demande une.</p>
+
+<h2 id="sierreur">SIERREUR, après diagnostic seulement</h2>
+<p>SIERREUR masque, il ne corrige pas. Posé par réflexe autour de toute recherche, il transforme une erreur visible en zéro silencieux qui se propage dans tout le modèle et fausse des totaux très loin de sa cause. Posé après avoir identifié la cause et choisi la valeur de repli, il documente une décision.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Au-delà de trois niveaux de SI imbriqués, personne ne relit la formule, pas même son auteur. Passer à SI.CONDITIONS, ou mieux, à une table de correspondance interrogée par RECHERCHEX : la règle devient une donnée, visible et modifiable.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>ET et OU se placent dans le test logique d'un SI, jamais seuls dans une cellule. Et un drapeau multiplié est souvent préférable à un SI : plus lisible, plus rapide au recalcul, et il se somme, ce qui permet de compter les périodes concernées comme contrôle.</div>
+`,
+key:["Un drapeau 0 ou 1 rend l'hypothèse visible et modifiable en une cellule","SIERREUR après diagnostic, jamais par réflexe","Au-delà de trois SI imbriqués : SI.CONDITIONS ou table de correspondance","Un drapeau se somme, donc il se contrôle"],
+quiz:[{q:"Pourquoi préférer un drapeau 1 ou 0 multiplié à un SI dans une ligne de projection ?",o:["Plus lisible, plus rapide et plus facile à auditer","Le SI est interdit","Le drapeau est plus précis","Aucune différence"],a:0,e:"Une multiplication par un drapeau rend la condition visible dans la ligne d'hypothèses, plutôt que cachée dans une formule."},
+   {q:"Dans quel cas l'usage de SIERREUR est-il légitime ?",o:["Une fois la cause de l'erreur identifiée et la valeur de repli choisie en connaissance de cause","Systématiquement, autour de toute formule de recherche","Jamais, la fonction est à proscrire","Uniquement dans les cellules de saisie"],a:0,e:"SIERREUR masque, il ne corrige pas. Posé par réflexe, il transforme une erreur visible en zéro silencieux qui se propage dans tout le modèle. Posé après diagnostic, il documente une décision."},
+   {q:"Vous projetez un chiffre d'affaires qui ne doit croître qu'à partir de la troisième année. Quelle écriture est la plus auditable ?",o:["Une ligne de drapeau valant 0 ou 1 par année, multipliée par le taux de croissance","Des SI imbriqués testant le numéro de l'année dans chaque colonne","Un SIERREUR englobant la formule de croissance","Le taux saisi en dur dans la formule à partir de la colonne de l'année 3"],a:0,e:"Le drapeau isole l'hypothèse sur une ligne visible, lisible d'un coup d'œil et modifiable sans toucher aux formules. Les SI imbriqués enfouissent la règle dans chaque cellule, et la constante en dur la rend introuvable."}],
+src:["Documentation Microsoft, fonctions logiques","FAST Standard, lisibilité des formules"]};
+
+LESSONS["mfc"] = {
+why:"Un contrôle qui ne se voit pas n'existe pas. La mise en forme conditionnelle est ce qui rend une erreur visible sans la chercher.",
+obj:["Poser un jeu de règles standard sur trois niveaux d'alerte","Faire survivre une règle à l'insertion de lignes","Agréger des contrôles dispersés en un indicateur unique"],
+html:`
+<p class="lead">Un modèle comporte quatorze contrôles répartis sur six feuilles. Un seul échoue. Combien de temps faut-il à son lecteur pour le savoir ? Aujourd'hui, six ouvertures de feuille. Demain, une seconde.</p>
+
+<h2 id="jeu">Un jeu de règles standard</h2>
+<table class="tbl">
+<tr><th>État</th><th>Couleur</th><th>Signification</th></tr>
+<tr><td>Échec</td><td>rouge</td><td>le contrôle ne passe pas, le modèle n'est pas exploitable</td></tr>
+<tr><td>Alerte</td><td>orange</td><td>valeur inhabituelle, à expliquer sans être bloquante</td></tr>
+<tr><td>Validé</td><td>vert</td><td>le contrôle passe</td></tr>
+</table>
+<p>Trois couleurs, une seule règle par contrôle. Superposer deux règles contradictoires sur la même cellule produit un affichage qui dépend de l'ordre de priorité, donc un affichage que personne ne sait prévoir.</p>
+
+<h2 id="cas">Cas pratique : l'indicateur agrégé</h2>
+<p>Une feuille de contrôles rassemble les quatorze tests en colonne, chacun renvoyant VRAI ou FAUX. Un seul indicateur les résume.</p>
+<div class="formula"><span class="fl">Indicateur global</span>NB.SI(plage_contrôles ; FAUX) = 0</div>
+<p>Cet indicateur unique est ensuite repris par référence en haut de chacune des six feuilles, avec une règle rouge sur faux. Le lecteur voit l'état du classeur entier depuis n'importe quelle feuille, et n'ouvre la feuille de contrôles que si l'indicateur est rouge.</p>
+
+<h2 id="plages">Survivre à l'insertion de lignes</h2>
+<p>Une règle posée sur une référence directe se décale ou se fragmente dès qu'on insère une ligne dans le tableau, et personne ne s'en aperçoit : la mise en forme disparaît silencieusement sur les nouvelles lignes. Posée sur une plage nommée, elle suit la structure.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Utiliser la mise en forme conditionnelle comme décoration : dégradés, jeux d'icônes, échelles de couleurs sur des colonnes qui ne portent aucun contrôle. La couleur perd alors sa valeur d'alerte, et le rouge du seul vrai contrôle se noie dans le reste.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Les barres de données visualisent une distribution sans créer de graphique : sur une colonne de soixante périodes, elles montrent la saisonnalité en une colonne de largeur normale. C'est le seul usage décoratif qui apporte plus qu'il ne coûte.</div>
+`,
+key:["Trois couleurs, une seule règle par contrôle","Un indicateur unique agrégé, repris en haut de chaque feuille","Les règles se posent sur des plages nommées pour survivre aux insertions","La couleur porte une alerte, jamais une décoration"],
+quiz:[{q:"Où placer l'indicateur global de contrôle d'un modèle ?",o:["En haut de chaque feuille, alimenté par la feuille de contrôles","Uniquement sur la feuille de contrôles","Dans un commentaire","Nulle part, c'est superflu"],a:0,e:"Un contrôle visible uniquement sur une feuille que personne n'ouvre ne protège de rien."},
+   {q:"Pourquoi poser les règles de mise en forme conditionnelle sur des plages nommées ?",o:["Pour qu'elles survivent à l'insertion de lignes dans le modèle","Pour accélérer le recalcul du classeur","Parce que les règles ne fonctionnent pas sur des références directes","Pour pouvoir superposer plusieurs règles sur la même cellule"],a:0,e:"Une règle posée sur une référence directe se décale ou se fragmente dès qu'on insère une ligne, et personne ne s'en aperçoit. Sur une plage nommée, elle suit la structure."},
+   {q:"Un modèle comporte quatorze contrôles répartis sur six feuilles, dont un seul échoue. Comment rendre l'information immédiatement lisible ?",o:["Un indicateur global unique en haut de chaque feuille, alimenté par la feuille de contrôles, qui passe au rouge dès qu'un contrôle échoue","Colorer en rouge les quatorze cellules de contrôle","Ajouter une règle de mise en forme par feuille, indépendante des autres","Placer un commentaire sur la cellule fautive"],a:0,e:"Le lecteur d'un modèle ne doit pas avoir à parcourir six feuilles pour savoir si le classeur est sain. Un agrégat unique, répété en haut de chaque feuille et alimenté par une seule source, donne la réponse en une seconde et pointe ensuite vers le détail."}],
+src:["Documentation Microsoft, mise en forme conditionnelle","FAST Standard, contrôles de modèle"]};
+
+LESSONS["graphiques-banking"] = {
+why:"Un graphique de banque doit se comprendre en trois secondes, sans légende à déchiffrer. C'est un outil de démonstration, pas d'illustration.",
+obj:["Choisir le graphique qui correspond à la démonstration à faire","Distinguer waterfall, football field et bridge","Appliquer les règles de couleur et d'étiquetage d'un livrable"],
+html:`
+<p class="lead">Vous devez montrer à un cédant comment une valeur d'entreprise de 12 M€ devient un prix des titres de 9,4 M€. Un tableau le dira. Un waterfall le fera comprendre avant qu'il ait fini de lire.</p>
+
+<h2 id="trois">Trois graphiques, trois démonstrations</h2>
+<table class="tbl">
+<tr><th>Graphique</th><th>Ce qu'il démontre</th><th>Exemple d'usage</th></tr>
+<tr><td>Waterfall</td><td>le passage d'un agrégat à un autre, par contributions</td><td>pont valeur d'entreprise vers prix des titres</td></tr>
+<tr><td>Football field</td><td>la comparaison de fourchettes entre méthodes</td><td>synthèse de valorisation, une barre par méthode</td></tr>
+<tr><td>Bridge</td><td>l'explication d'un écart entre deux états</td><td>EBITDA publié vers EBITDA normatif</td></tr>
+</table>
+<p>La confusion la plus fréquente porte sur les deux premiers. Le waterfall décompose un passage, le football field compare des fourchettes : ce ne sont pas deux styles, ce sont deux objets.</p>
+
+<h2 id="cas">Cas pratique : le pont en waterfall</h2>
+<table class="tbl">
+<tr><th>Barre</th><th class="n">Montant</th><th>Sens</th></tr>
+<tr><td>Valeur d'entreprise</td><td class="n">12 000</td><td>point de départ</td></tr>
+<tr><td>Dette financière</td><td class="n">- 3 100</td><td>contribution négative</td></tr>
+<tr><td>Trésorerie</td><td class="n">+ 800</td><td>contribution positive</td></tr>
+<tr><td>Compte courant d'associé</td><td class="n">- 300</td><td>contribution négative</td></tr>
+<tr><td>Prix des titres</td><td class="n">9 400</td><td>point d'arrivée</td></tr>
+</table>
+<p>Cinq barres, deux totaux encadrant trois contributions. Les étiquettes de données se posent directement sur chaque barre : le lecteur n'a pas à faire l'aller-retour vers une légende, et le graphique reste lisible imprimé en noir et blanc.</p>
+<h2 id="test">Le test des trois secondes</h2>
+<p>Avant d'envoyer un graphique, faites-le regarder trois secondes à quelqu'un qui ne connaît pas le dossier, puis demandez-lui ce qu'il a compris. S'il décrit ce qu'il voit, le graphique a échoué. S'il énonce la conclusion, il a réussi.</p>
+<p>Les trois défauts qui font échouer ce test, dans l'ordre de fréquence : un titre qui étiquette au lieu d'affirmer, une légende qui oblige à un aller-retour, et plus de trois couleurs. Aucun ne concerne les données.</p>
+<div class="callout warn"><div class="ct">Piège classique</div>Une couleur par élément, avec légende séparée. Sur un pont à cinq barres, cela fait cinq couleurs à mémoriser pour une information que la position donne déjà. Deux couleurs plus un accent suffisent : une pour les totaux, une pour les contributions, l'accent sur l'élément dont on veut parler.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>Poser le titre du graphique comme une phrase qui affirme, pas comme une étiquette. « Le pont retire 2,6 M€ à la valeur d'entreprise » vaut mieux que « Passage VE vers VFP ». Le lecteur retient la phrase, pas l'axe.</div>
+`,
+key:["Waterfall décompose un passage, football field compare des fourchettes","Étiquettes sur les barres, pas de légende séparée","Deux couleurs plus un accent : la couleur porte une information","Le titre affirme, il n'étiquette pas"],
+quiz:[{q:"Quel graphique présente une synthèse de valorisation par méthode ?",o:["Le football field","Le waterfall","Le camembert","La courbe cumulée"],a:0,e:"Le football field superpose les fourchettes de chaque méthode sur un axe de valeur commun, ce qui rend la zone de recoupement immédiatement visible."},
+   {q:"Combien de couleurs au maximum sur un graphique de livrable, et pour quel usage ?",o:["Deux, plus une couleur d'accentuation, chacune portant une information","Une par série, sans limite, pour distinguer les données","Quatre au minimum, pour rendre la lecture agréable","Autant que de catégories, avec une légende séparée"],a:0,e:"La couleur est un porteur d'information rare : dès qu'elle décore, elle cesse d'informer. Deux couleurs plus un accent suffisent à distinguer réalisé et projeté, ou base et écart, et à pointer l'élément que le lecteur doit regarder."},
+   {q:"Vous devez montrer comment une valeur d'entreprise de 12 M€ devient un prix des titres de 9,4 M€, en détaillant dette financière, trésorerie et compte courant d'associé. Quel graphique, et quelle règle d'étiquetage ?",o:["Un waterfall, étiquettes de données posées directement sur chaque barre, sans légende séparée","Un football field, avec une barre par élément du pont","Un histogramme empilé, avec légende sous le graphique","Un tableau, le pont ne se représente pas graphiquement"],a:0,e:"Le waterfall est fait pour décomposer le passage d'un agrégat à un autre en contributions positives et négatives : c'est exactement un pont valeur d'entreprise vers prix. Le football field sert à comparer des fourchettes de valorisation entre méthodes, ce n'est pas le même objet. Les étiquettes sur les barres évitent au lecteur l'aller-retour vers une légende."}],
+src:["Zelazny, Say It With Charts","Usage des banques d'affaires, matériaux de valorisation"]};
+
+LESSONS["restitution-slides"] = {
+why:"Un livrable mal présenté fait douter des calculs qu'il contient. La forme n'ajoute pas de crédibilité, mais elle peut en retirer.",
+obj:["Écrire un titre qui affirme et un corps qui prouve","Présenter un tableau qui reste triable et filtrable","Appliquer les règles de format des chiffres en français"],
+html:`
+<p class="lead">Un cédant reçoit votre note de valorisation. Il ne vérifiera pas vos calculs, il n'en a pas les moyens. Il jugera votre travail sur ce qu'il peut évaluer : la clarté du raisonnement et le soin de la présentation.</p>
+
+<h2 id="titre">Un message par page, écrit dans le titre</h2>
+<p>Le titre affirme, le corps prouve. « La valorisation ressort entre 11 et 13 M€ » est un titre. « Synthèse de valorisation » est une étiquette : elle décrit le contenant et n'apprend rien. Un lecteur qui ne lit que les titres d'un document doit en connaître les conclusions.</p>
+
+<h2 id="tableaux">Des tableaux qui restent exploitables</h2>
+<p>Un destinataire fait deux choses d'un tableau : il le trie et il le filtre. Les bandeaux fusionnés par catégorie l'en empêchent, et c'est le seul usage réel qu'il en aurait fait.</p>
+<table class="tbl">
+<tr><th>À éviter</th><th>À préférer</th><th>Pourquoi</th></tr>
+<tr><td>Bandeaux fusionnés par phase</td><td>une colonne « phase » répétée</td><td>le tri et le filtre redeviennent possibles</td></tr>
+<tr><td>Unité répétée dans chaque cellule</td><td>unité rappelée en en-tête</td><td>allège sans perdre l'information</td></tr>
+<tr><td>Aucune source</td><td>source nommée sous le tableau</td><td>sans elle, le chiffre n'est pas opposable</td></tr>
+</table>
+
+<h2 id="chiffres">Le format des chiffres en français</h2>
+<p>La virgule sépare les décimales, jamais les milliers. L'espace des milliers est insécable, pour qu'un montant ne se coupe pas en fin de ligne.</p>
+<table class="tbl">
+<tr><th>Correct</th><th>Incorrect</th></tr>
+<tr><td>1 234 567 €</td><td>1,234,567 € ou 1.234.567 EUR</td></tr>
+<tr><td>8,4 %</td><td>8.4%</td></tr>
+<tr><td>6,0x</td><td>6.0 x</td></tr>
+</table>
+<div class="callout warn"><div class="ct">Piège classique</div>Un chiffre sans source nommée. C'est le défaut qui disqualifie un document en réunion : dès qu'un participant demande d'où vient un montant et que la réponse est « du modèle », la discussion s'arrête. La source se nomme, elle ne se sous-entend pas.</div>
+<div class="callout key"><div class="ct">Réflexe d'analyste</div>La densité vient du fond, pas de la mise en forme. Pas de gras à outrance, pas de trois niveaux de couleur, pas de bordures partout. Un livrable sobre où chaque chiffre est sourcé impressionne davantage qu'une page saturée d'effets.</div>
+`,
+key:["Le titre affirme, le corps prouve","Tableaux plats, triables et filtrables, jamais de bandeaux fusionnés","Virgule décimale, espace insécable des milliers, unité en en-tête","Une source nommée sous chaque tableau, sans exception"],
+quiz:[{q:"Que doit contenir le titre d'une page de livrable ?",o:["Le message à retenir, sous forme d'affirmation","Le nom de la section","Un titre neutre","La date"],a:0,e:"Un titre affirmatif permet de lire la conclusion d'un document en parcourant seulement les titres. C'est la règle la plus efficace de la présentation professionnelle."},
+   {q:"Comment présenter un montant de 1 234 567 euros dans un livrable destiné à un cédant français ?",o:["1 234 567 €, milliers séparés par une espace insécable et unité rappelée en en-tête de colonne","1,234,567 €","1.234.567 EUR","1234567€"],a:0,e:"La virgule sépare les décimales en français, jamais les milliers, et l'espace insécable évite qu'un montant se coupe en fin de ligne. Rappeler l'unité en en-tête plutôt que sur chaque cellule allège le tableau sans perdre l'information."},
+   {q:"Un tableau de synthèse comporte des bandeaux fusionnés par phase et ne porte aucune source. Quelles corrections, et pourquoi dans cet ordre ?",o:["Nommer la source d'abord, car sans elle le tableau n'est pas opposable, puis remettre à plat pour qu'il redevienne triable et filtrable","Remettre à plat d'abord, la source étant un détail de forme","Conserver les bandeaux, qui structurent la lecture, et ajouter la source en note de bas de page","Remplacer le tableau par un graphique, qui n'exige pas de source"],a:0,e:"Un chiffre sans source nommée ne peut pas être défendu en réunion : c'est le défaut qui disqualifie le document, donc le premier à corriger. La fusion de cellules, elle, empêche le destinataire de trier et de filtrer, ce qui est le seul usage réel qu'il fera du tableau."}],
+src:["Usage des cabinets de conseil, matériaux client","Lexique des règles typographiques en usage à l'Imprimerie nationale"]};
+
 const BRIEFS = {};
 
 /* ── Phase 1, comptabilité ── */
-BRIEFS["compte-resultat"]={why:"Le compte de résultat raconte la formation du résultat sur une période. C'est la base de tout multiple.",
-pts:["Trois blocs : exploitation, financier, exceptionnel. Le M&A ne s'intéresse presque qu'au premier.","Charges par nature en PCG français, par fonction en présentation anglo-saxonne. Les deux ne se comparent pas directement.","Le chiffre d'affaires se ventile toujours par activité et par client avant toute analyse.","Le résultat exceptionnel se retraite systématiquement : par définition il ne se reproduira pas.","La marge d'EBE est le premier ratio à calculer, avant toute autre chose."],
-q:[{q:"Pourquoi retraiter le résultat exceptionnel avant de calculer un multiple ?",o:["Parce qu'il ne se reproduira pas et fausse la récurrence","Parce qu'il est non déductible","Parce qu'il est toujours négatif","Il ne se retraite jamais"],a:0,e:"Un multiple capitalise un résultat récurrent. Y inclure un élément non récurrent revient à le payer à l'infini."},
-   {q:"Une cible française présente ses charges par nature, son acquéreur anglo-saxon les présente par fonction. Quelle conséquence pour la comparaison ?",o:["Les deux présentations ne se comparent pas ligne à ligne, il faut retraiter avant tout benchmark","Aucune, les totaux sont identiques donc les lignes le sont aussi","La présentation par fonction interdit de calculer un EBE","Il suffit de convertir les montants en devise de l'acquéreur"],a:0,e:"Charges par nature en PCG français, par fonction en présentation anglo-saxonne : le résultat final est le même, mais aucune ligne intermédiaire n'est directement comparable. Un benchmark de marge brute entre les deux présentations est faux tant que le retraitement n'est pas fait."},
-   {q:"Chiffre d'affaires de 8 M€, excédent brut d'exploitation de 640 k€. Quelle est la marge d'EBE ?",o:["8 %","12,5 %","6,4 %","Impossible à dire sans le résultat net"],a:0,e:"640 / 8 000 = 8 %. C'est le premier ratio à calculer sur un compte de résultat, avant toute autre analyse, parce que c'est lui qui portera le multiple."},
-   {q:"Chiffre d'affaires 5 000, achats consommés 2 100, autres charges externes 900, impôts et taxes 80, charges de personnel 1 500, dotations aux amortissements 200. Quel est l'excédent brut d'exploitation ?",o:["420","220","500","620"],a:0,e:"5 000 - 2 100 - 900 - 80 - 1 500 = 420. Les dotations sont exclues par construction : l'excédent brut se calcule avant amortissements, c'est précisément ce qui en fait l'agrégat porteur du multiple."}]};
 
-BRIEFS["immos-amortissements"]={why:"L'âge de l'outil de production conditionne le capex que l'acquéreur devra engager.",
-pts:["Valeur brute, amortissements cumulés, valeur nette comptable : les trois se lisent ensemble.","Ratio d'usure = amortissements cumulés / valeur brute. Au-delà de 70 %, l'outil est en fin de vie.","Amortissement linéaire, dégressif ou par composants : le choix affecte le résultat, pas la trésorerie.","Une immobilisation totalement amortie mais toujours utilisée signale un actif sous-évalué au bilan.","Le tableau 2055 de la liasse donne acquisitions et cessions de l'exercice."],
-q:[{q:"Amortissements cumulés de 820 sur une valeur brute de 1 000. Que conclure ?",o:["Ratio d'usure de 82 %, un rattrapage d'investissement est probable","L'outil est neuf","La société est rentable","Le BFR est élevé"],a:0,e:"Un ratio d'usure élevé annonce des remplacements à financer, donc des flux futurs réduits pour l'acquéreur."},
-   {q:"Une machine totalement amortie est toujours en production. Que faut-il en déduire ?",o:["Un actif sous-évalué au bilan : sa valeur nette comptable est nulle alors qu'il produit encore","Que la machine doit être cédée sans délai","Que le résultat de l'exercice est surévalué","Que le BFR va augmenter"],a:0,e:"La valeur nette comptable est nulle mais la valeur d'usage ne l'est pas. C'est un cas fréquent en PME industrielle : le bilan sous-estime l'outil, et l'acquéreur doit chercher la valeur ailleurs que dans les comptes."},
-   {q:"Une société passe d'un amortissement linéaire à un amortissement dégressif. Quel effet ?",o:["Le résultat baisse les premières années, la trésorerie ne change pas","Le résultat et la trésorerie baissent tous les deux","La trésorerie baisse, le résultat est inchangé","L'EBE baisse à due concurrence"],a:0,e:"Une dotation est une charge sans sortie de caisse : elle déplace du résultat entre exercices sans toucher à la trésorerie. L'EBE, calculé avant dotations, est également inchangé."},
-   {q:"Valeur brute des immobilisations 4 000, amortissements cumulés 3 000, dotation annuelle 400, investissements réalisés 150 par an depuis trois ans. Que retenir pour la valorisation ?",o:["Ratio d'usure de 75 % et sous-investissement de 250 par an : un capex de rattrapage réduira les flux futurs","Outil de production récent, investissement maîtrisé","Ratio d'usure de 25 %, la situation est saine","Les dotations sont surévaluées, il faut les retraiter à la hausse de l'excédent brut"],a:0,e:"3 000 / 4 000 = 75 % d'usure, et 150 investis contre 400 amortis chaque année, soit 250 de sous-investissement annuel. L'acquéreur héritera d'un rattrapage à financer : c'est un argument de négociation sur le prix, pas une simple observation comptable."}]};
+
+
 
 BRIEFS["provisions"]={why:"Une provision insuffisante est un passif caché. Une provision excessive est une réserve latente.",
 pts:["Provision pour risques et charges au passif, dépréciation d'actif en diminution de l'actif.","Trois conditions : obligation à la clôture, sortie de ressources probable, montant estimable.","Les provisions pour créances douteuses se testent en comparant à la balance âgée.","Les provisions pour litiges se recoupent avec les courriers d'avocat et le tableau 2056.","Une reprise de provision non justifiée gonfle artificiellement le résultat de l'exercice."],
@@ -3071,12 +3522,7 @@ BRIEFS["goodwill"]={why:"Le goodwill inscrit au bilan raconte les acquisitions p
 pts:["Écart entre le prix payé et la juste valeur des actifs nets identifiables acquis.","En PCG, le fonds commercial n'est pas amorti si sa durée d'utilisation est indéterminée ; en IFRS, jamais amorti mais testé.","Un test de dépréciation compare valeur recouvrable et valeur comptable de l'unité génératrice de trésorerie.","Une dépréciation de goodwill est non cash mais signale une acquisition passée ratée.","Le goodwill se neutralise dans les analyses de rentabilité des capitaux employés."],
 q:{q:"Une dépréciation de goodwill de 500 k€ a quel effet sur la trésorerie ?",o:["Aucun, c'est une charge calculée","- 500 k€","+ 500 k€","Impossible à dire"],a:0,e:"La dépréciation constate une perte de valeur. Le décaissement a eu lieu lors de l'acquisition, des années plus tôt."}};
 
-BRIEFS["capitaux-propres"]={why:"Le tableau de variation des capitaux propres révèle la politique de distribution et les opérations sur capital.",
-pts:["Capital, primes, réserves, report à nouveau, résultat de l'exercice, subventions, provisions réglementées.","Capitaux propres d'ouverture + résultat - dividendes + apports = capitaux propres de clôture.","Des capitaux propres inférieurs à la moitié du capital social déclenchent une obligation légale de régularisation.","Une distribution supérieure au résultat traduit une décapitalisation, souvent en préparation de cession.","Les comptes courants d'associés ne sont pas des capitaux propres, sauf convention de blocage."],
-q:[{q:"Distribution de 400 k€ pour un résultat de 250 k€. Que faut-il en déduire ?",o:["Une décapitalisation, à examiner avant la cession","Une forte rentabilité","Une erreur comptable","Une augmentation de capital"],a:0,e:"On distribue des réserves accumulées. Le mouvement est légitime mais réduit les fonds propres livrés à l'acquéreur."},
-   {q:"Capitaux propres d'ouverture de 1 200, résultat de 300, dividendes versés de 500, aucun apport. Quels sont les capitaux propres de clôture ?",o:["1 000","1 400","1 500","900"],a:0,e:"1 200 + 300 - 500 = 1 000. La distribution excède le résultat de 200 : la société se décapitalise, mouvement à documenter avant une cession."},
-   {q:"Les capitaux propres d'une SARL tombent sous la moitié du capital social. Quelle conséquence ?",o:["Une obligation légale de régularisation, à traiter avant la cession","Une interdiction de distribuer des dividendes pendant cinq ans","Aucune, il s'agit d'un simple indicateur de gestion","La transformation automatique en société par actions simplifiée"],a:0,e:"Les associés doivent être consultés sur la poursuite de l'activité et la situation régularisée dans les délais légaux. Un acquéreur découvrant le point en audit exigera qu'il soit purgé avant signature."},
-   {q:"Capital social 500, capitaux propres d'ouverture 620, perte de l'exercice 200, aucun dividende, apport en capital de 50. Où en est-on de l'obligation de régularisation ?",o:["Capitaux propres de 470, supérieurs à la moitié du capital : aucune obligation","Capitaux propres de 470, inférieurs à la moitié du capital : régularisation obligatoire","Capitaux propres de 420, régularisation obligatoire","Impossible de conclure sans le montant du report à nouveau"],a:0,e:"620 - 200 + 50 = 470. La moitié du capital social vaut 250, et 470 lui reste supérieur : le seuil légal n'est pas franchi. La question suppose de faire le calcul puis de le comparer au bon seuil, les deux étapes étant nécessaires."}]};
+
 
 BRIEFS["leases-ifrs16"]={why:"IFRS 16 déplace les loyers de l'EBITDA vers l'amortissement et les intérêts, ce qui rend les multiples incomparables.",
 pts:["Tout contrat de location entre au bilan : droit d'utilisation à l'actif, dette de loyer au passif.","L'EBITDA augmente du montant des loyers annuels, la dette nette augmente de la valeur actualisée des loyers restants.","Le PCG français n'impose pas ce traitement : une PME reste en charge de loyer classique.","Comparer un multiple IFRS et un multiple PCG sans retraitement est une erreur méthodologique.","Retraitement rapide : dette de loyer estimée à cinq à huit fois le loyer annuel."],
@@ -3090,31 +3536,14 @@ BRIEFS["consolidation"]={why:"Un groupe se valorise sur ses comptes consolidés,
 pts:["Intégration globale au-delà du contrôle exclusif, mise en équivalence en influence notable.","Élimination des opérations intragroupe : ventes, créances, dettes, marges en stock.","Les intérêts minoritaires se déduisent pour passer à la valeur des titres du groupe.","Un périmètre qui change d'un exercice à l'autre rend les comparaisons inutilisables sans pro forma.","En small cap, l'absence de comptes consolidés impose une consolidation manuelle simplifiée."],
 q:{q:"Deux sociétés du même groupe se facturent 400 k€ par an. Effet sur le chiffre d'affaires consolidé ?",o:["Élimination intégrale des 400 k€","Aucun","Ajout de 400 k€","Réduction de 200 k€"],a:0,e:"Le chiffre d'affaires consolidé ne retient que les ventes vers l'extérieur du périmètre. Les flux internes s'éliminent en totalité."}};
 
-BRIEFS["qualite-resultat"]={why:"La qualité du résultat mesure à quel point le bénéfice affiché est converti en trésorerie durable.",
-pts:["Ratio de conversion = flux d'exploitation / EBITDA. En dessous de 70 % durablement, alerte.","Croissance du chiffre d'affaires portée par l'allongement des délais clients : signal négatif.","Marge qui progresse alors que le secteur se dégrade : chercher l'explication comptable avant l'explication opérationnelle.","Charges capitalisées en hausse, provisions en baisse, produits exceptionnels récurrents : trois marqueurs classiques.","Un changement de méthode comptable non signalé est le signal le plus fort."],
-q:[{q:"Flux d'exploitation de 380 pour un EBITDA de 900 sur trois exercices consécutifs. Quelle lecture ?",o:["Conversion faible et persistante, la qualité du résultat est en cause","Excellente performance","Situation normale","Le BFR se réduit"],a:0,e:"Une conversion durablement inférieure à 50 % signale que le résultat ne devient pas de la trésorerie : BFR qui dérive, produits non encaissés, ou habillage."},
-   {q:"Le chiffre d'affaires progresse de 15 % et le délai de règlement clients passe de 45 à 75 jours. Quelle lecture ?",o:["Une croissance partiellement financée par l'allongement des délais clients, donc de moindre qualité","Une amélioration de la performance commerciale sans réserve","Un effet mécanique sans conséquence sur la trésorerie","Une baisse du besoin en fonds de roulement"],a:0,e:"Vendre en payant plus tard n'est pas vendre mieux. La croissance consomme du cash et une partie du chiffre d'affaires nouveau peut n'être jamais encaissée. C'est un des marqueurs classiques d'un résultat de faible qualité."},
-   {q:"EBITDA de 1 200, flux net de trésorerie d'exploitation de 1 020. Quelle conclusion ?",o:["Conversion de 85 %, satisfaisante","Conversion de 85 %, insuffisante","Conversion de 118 %, anormale","La conversion ne se calcule pas ainsi"],a:0,e:"1 020 / 1 200 = 85 %. Le seuil d'alerte usuel se situe autour de 70 % : au-dessus, le résultat se transforme correctement en trésorerie. En dessous durablement, il faut chercher où le cash se perd."},
-   {q:"Sur trois exercices : chiffre d'affaires + 18 %, EBITDA + 22 %, délai clients de 40 à 68 jours, flux d'exploitation stable, charges capitalisées passées de 30 à 210. Quelle conclusion ?",o:["La progression affichée ne se convertit pas en trésorerie : crédit clients allongé et charges capitalisées croissantes expliquent l'écart, la qualité du résultat est en cause","Une performance solide, la trésorerie suivra mécaniquement l'année suivante","Une réduction du besoin en fonds de roulement, favorable à l'acquéreur","Un simple effet de périmètre, sans incidence sur la valorisation"],a:0,e:"Trois marqueurs convergent. L'EBITDA progresse plus vite que le chiffre d'affaires alors que le flux d'exploitation stagne : l'écart est financé par les clients, qui paient 28 jours plus tard, et gonflé par des charges capitalisées multipliées par sept. Aucun des trois indices ne suffirait seul, leur convergence, si."}]};
+
 
 /* ── Phase 2, Excel et outils ── */
-BRIEFS["raccourcis"]={why:"Le temps gagné au clavier se réinvestit en réflexion. C'est la différence entre subir un modèle et le piloter.",
-pts:["Navigation : Ctrl + flèches, Ctrl + Maj + flèches pour sélectionner jusqu'au bord d'une plage.","Édition : F2 modifier, F4 basculer les ancrages, Alt + = somme automatique.","Collage spécial : Alt puis E, S, V pour les valeurs, Alt E S T pour les formats.","Audit : Ctrl + accent grave pour afficher les formules, Ctrl + crochet pour suivre un antécédent.","Feuilles : Ctrl + Page suivante et précédente, Maj + F11 nouvelle feuille."],
-q:[{q:"Quel raccourci bascule les ancrages d'une référence entre relatif et absolu ?",o:["F4","F2","F9","Ctrl + F"],a:0,e:"F4 fait défiler A1, dollar A dollar 1, A dollar 1, dollar A 1. C'est le raccourci le plus utilisé en modélisation."},
-   {q:"Vous devez sélectionner une colonne de 12 000 lignes jusqu'à sa dernière valeur renseignée. Quelle combinaison ?",o:["Ctrl + Maj + flèche bas","Ctrl + A","Maj + clic sur la dernière cellule visible à l'écran","F4 puis flèche bas maintenue"],a:0,e:"Ctrl étend jusqu'au bord de la plage, Maj sélectionne au passage. C'est le geste qui remplace le défilement à la souris, et il est fiable quel que soit le nombre de lignes."},
-   {q:"Vous voulez coller uniquement les valeurs d'une plage copiée, puis vérifier visuellement toutes les formules de la feuille. Quelle séquence ?",o:["Alt puis E, S, V, puis Ctrl + accent grave","Ctrl + V puis F2","Alt puis E, S, T, puis Ctrl + crochet","F4 puis Ctrl + Maj + V"],a:0,e:"Alt E S V est le collage spécial des valeurs, Alt E S T celui des formats. Ctrl + accent grave bascule l'affichage des formules sur toute la feuille, Ctrl + crochet remonte un antécédent cellule par cellule. La séquence enchaîne donc le collage puis le contrôle d'ensemble."}]};
 
-BRIEFS["recherche-index"]={why:"Une recherche mal construite est la première cause d'erreur silencieuse dans un modèle.",
-pts:["RECHERCHEX remplace avantageusement RECHERCHEV : recherche à gauche, valeur si absent, correspondance exacte par défaut.","INDEX combiné à EQUIV reste la solution la plus robuste sur les versions anciennes.","RECHERCHEV sans le quatrième argument FAUX effectue une recherche approximative et renvoie silencieusement une valeur fausse.","Toujours prévoir la gestion du cas non trouvé, jamais laisser un code d'erreur circuler.","Une recherche sur une clé texte impose de normaliser la casse et les espaces au préalable."],
-q:[{q:"Une RECHERCHEV renvoie une valeur plausible mais fausse. Cause la plus probable ?",o:["Recherche approximative, quatrième argument omis","La plage est trop grande","La colonne est masquée","Le fichier est corrompu"],a:0,e:"Sans FAUX, Excel renvoie la valeur immédiatement inférieure trouvée dans une liste supposée triée. L'erreur est invisible car le résultat semble cohérent."},
-   {q:"Pourquoi RECHERCHEX est-elle préférable à RECHERCHEV lorsque la clé de recherche n'est pas dans la première colonne du tableau ?",o:["Elle cherche indifféremment à gauche ou à droite et impose la correspondance exacte par défaut","Elle est plus rapide sur les grands tableaux","Elle accepte plusieurs critères de recherche simultanés","Elle renvoie automatiquement zéro si la valeur est absente"],a:0,e:"RECHERCHEV impose que la clé soit à gauche de la valeur cherchée et effectue une recherche approximative si l'on omet son quatrième argument. RECHERCHEX lève les deux contraintes, et sa gestion explicite du cas non trouvé évite qu'un code d'erreur circule dans le modèle."},
-   {q:"Vous devez récupérer le chiffre d'affaires d'une société identifiée par son SIREN, dans un tableau où la colonne SIREN se trouve à droite de celle du chiffre d'affaires, sur une version d'Excel dépourvue de RECHERCHEX. Quelle construction ?",o:["INDEX sur la colonne du chiffre d'affaires, EQUIV sur la colonne SIREN avec le type de correspondance 0","RECHERCHEV avec le quatrième argument VRAI","RECHERCHEV après avoir inversé les deux colonnes du tableau source","SOMME.SI avec le SIREN comme critère"],a:0,e:"INDEX désigne la colonne d'où extraire, EQUIV trouve la ligne, et le type 0 force la correspondance exacte. C'est la seule des quatre propositions qui fonctionne sans modifier la source : inverser des colonnes dans un fichier reçu est exactement ce qu'un audit reproche."}]};
 
-BRIEFS["fonctions-logiques"]={why:"La gestion des erreurs distingue un modèle qui circule d'un modèle qui embarrasse.",
-pts:["SI imbriqués au-delà de trois niveaux : passer à SI.CONDITIONS ou à une table de correspondance.","SIERREUR masque l'erreur, il ne la corrige pas. À n'utiliser qu'après avoir compris sa cause.","ET et OU se combinent dans le test logique d'un SI, jamais séparément.","SOMME.SI.ENS et NB.SI.ENS remplacent la plupart des formules matricielles complexes.","Un drapeau 1 ou 0 multiplié vaut souvent mieux qu'un SI : plus lisible, plus rapide, plus auditable."],
-q:[{q:"Pourquoi préférer un drapeau 1 ou 0 multiplié à un SI dans une ligne de projection ?",o:["Plus lisible, plus rapide et plus facile à auditer","Le SI est interdit","Le drapeau est plus précis","Aucune différence"],a:0,e:"Une multiplication par un drapeau rend la condition visible dans la ligne d'hypothèses, plutôt que cachée dans une formule."},
-   {q:"Dans quel cas l'usage de SIERREUR est-il légitime ?",o:["Une fois la cause de l'erreur identifiée et la valeur de repli choisie en connaissance de cause","Systématiquement, autour de toute formule de recherche","Jamais, la fonction est à proscrire","Uniquement dans les cellules de saisie"],a:0,e:"SIERREUR masque, il ne corrige pas. Posé par réflexe, il transforme une erreur visible en zéro silencieux qui se propage dans tout le modèle. Posé après diagnostic, il documente une décision."},
-   {q:"Vous projetez un chiffre d'affaires qui ne doit croître qu'à partir de la troisième année. Quelle écriture est la plus auditable ?",o:["Une ligne de drapeau valant 0 ou 1 par année, multipliée par le taux de croissance","Des SI imbriqués testant le numéro de l'année dans chaque colonne","Un SIERREUR englobant la formule de croissance","Le taux saisi en dur dans la formule à partir de la colonne de l'année 3"],a:0,e:"Le drapeau isole l'hypothèse sur une ligne visible, lisible d'un coup d'œil et modifiable sans toucher aux formules. Les SI imbriqués enfouissent la règle dans chaque cellule, et la constante en dur la rend introuvable."}]};
+
+
+
 
 BRIEFS["dates-decalages"]={why:"Un calendrier de modèle mal construit condamne à réécrire toutes les formules à chaque changement d'horizon.",
 pts:["Une seule ligne de dates, en haut, reprise par toutes les feuilles par référence.","FIN.MOIS et MOIS.DECALER génèrent les périodes sans saisie manuelle.","Un drapeau historique ou projeté par colonne pilote la bascule des formules.","Les décalages de paiement se modélisent par DECALER ou par des colonnes de retard explicites.","Pour un modèle mensuel, prévoir dès l'origine l'agrégation trimestrielle et annuelle par SOMME.SI.ENS."],
@@ -3124,11 +3553,7 @@ BRIEFS["tcd"]={why:"Le FEC contient tout. Un tableau croisé le rend exploitable
 pts:["Le fichier des écritures comptables est obligatoire et normalisé : il se demande systématiquement.","Un tableau croisé sur le FEC donne le chiffre d'affaires par client, par mois, par compte, sans intervention du cédant.","Les champs calculés évitent de polluer la source avec des colonnes intermédiaires.","Grouper par date permet de reconstituer une saisonnalité mensuelle en trois clics.","Toujours conserver la source brute intacte sur une feuille séparée."],
 q:{q:"Quel fichier permet de reconstituer le chiffre d'affaires par client sans passer par le cédant ?",o:["Le FEC","La liasse fiscale","Le Kbis","Les statuts"],a:0,e:"Le fichier des écritures comptables contient chaque écriture avec son libellé et son compte auxiliaire. C'est la source la plus riche disponible."}};
 
-BRIEFS["mfc"]={why:"Un contrôle qui ne se voit pas n'existe pas. La mise en forme conditionnelle rend l'erreur visible.",
-pts:["Un jeu de règles standard : erreur en rouge, alerte en orange, contrôle validé en vert.","Les barres de données visualisent une distribution sans créer de graphique.","Les règles se posent sur des plages nommées pour survivre à l'insertion de lignes.","Une seule règle par contrôle, jamais de superposition de règles contradictoires.","Un indicateur global unique en haut de chaque feuille, alimenté par la feuille de contrôles."],
-q:[{q:"Où placer l'indicateur global de contrôle d'un modèle ?",o:["En haut de chaque feuille, alimenté par la feuille de contrôles","Uniquement sur la feuille de contrôles","Dans un commentaire","Nulle part, c'est superflu"],a:0,e:"Un contrôle visible uniquement sur une feuille que personne n'ouvre ne protège de rien."},
-   {q:"Pourquoi poser les règles de mise en forme conditionnelle sur des plages nommées ?",o:["Pour qu'elles survivent à l'insertion de lignes dans le modèle","Pour accélérer le recalcul du classeur","Parce que les règles ne fonctionnent pas sur des références directes","Pour pouvoir superposer plusieurs règles sur la même cellule"],a:0,e:"Une règle posée sur une référence directe se décale ou se fragmente dès qu'on insère une ligne, et personne ne s'en aperçoit. Sur une plage nommée, elle suit la structure."},
-   {q:"Un modèle comporte quatorze contrôles répartis sur six feuilles, dont un seul échoue. Comment rendre l'information immédiatement lisible ?",o:["Un indicateur global unique en haut de chaque feuille, alimenté par la feuille de contrôles, qui passe au rouge dès qu'un contrôle échoue","Colorer en rouge les quatorze cellules de contrôle","Ajouter une règle de mise en forme par feuille, indépendante des autres","Placer un commentaire sur la cellule fautive"],a:0,e:"Le lecteur d'un modèle ne doit pas avoir à parcourir six feuilles pour savoir si le classeur est sain. Un agrégat unique, répété en haut de chaque feuille et alimenté par une seule source, donne la réponse en une seconde et pointe ensuite vers le détail."}]};
+
 
 BRIEFS["circulaires"]={why:"Une circularité non maîtrisée transforme un modèle en boîte noire instable.",
 pts:["Cause la plus fréquente : intérêts calculés sur un solde moyen qui dépend du résultat, qui dépend des intérêts.","Solution 1 : calcul itératif activé, précision réglée, avec un interrupteur pour couper la boucle.","Solution 2 : intérêts calculés sur le solde d'ouverture, sans circularité, moins exact mais robuste.","Un interrupteur de coupure permet de repartir d'un état sain après une erreur en chaîne.","Ne jamais diffuser un modèle itératif sans avertir le destinataire, l'option est désactivée par défaut."],
@@ -3142,24 +3567,12 @@ BRIEFS["power-query"]={why:"Nettoyer 200 000 lignes de grand livre à la main es
 pts:["Import du FEC ou d'un export comptable, transformation en étapes visibles et réversibles.","Chaque étape est enregistrée : la transformation se rejoue automatiquement sur un nouveau fichier.","Opérations les plus utiles : dépivoter, fusionner des requêtes, grouper, extraire des colonnes de texte.","Le résultat se charge dans un tableau structuré, directement exploitable en tableau croisé.","Un traitement Power Query documenté est auditable, contrairement à un nettoyage manuel."],
 q:{q:"Quel avantage principal de Power Query sur un nettoyage manuel ?",o:["La transformation est enregistrée et se rejoue sur un nouveau fichier","Il est plus rapide à apprendre","Il ne nécessite pas Excel","Il corrige les erreurs comptables"],a:0,e:"La reproductibilité est décisive : à chaque nouvel export du client, le traitement se relance en un clic, sans risque d'erreur humaine."}};
 
-BRIEFS["graphiques-banking"]={why:"Un graphique de banque doit se comprendre en trois secondes, sans légende à déchiffrer.",
-pts:["Waterfall pour un pont : évolution d'un agrégat décomposée en contributions positives et négatives.","Football field pour une synthèse de valorisation : une barre horizontale par méthode, avec la fourchette.","Bridge d'EBITDA pour expliquer un écart entre deux exercices ou entre présenté et normatif.","Étiquettes de données directement sur le graphique, jamais de légende séparée quand on peut l'éviter.","Deux couleurs maximum plus une couleur d'accentuation. La couleur porte une information, jamais une décoration."],
-q:[{q:"Quel graphique présente une synthèse de valorisation par méthode ?",o:["Le football field","Le waterfall","Le camembert","La courbe cumulée"],a:0,e:"Le football field superpose les fourchettes de chaque méthode sur un axe de valeur commun, ce qui rend la zone de recoupement immédiatement visible."},
-   {q:"Combien de couleurs au maximum sur un graphique de livrable, et pour quel usage ?",o:["Deux, plus une couleur d'accentuation, chacune portant une information","Une par série, sans limite, pour distinguer les données","Quatre au minimum, pour rendre la lecture agréable","Autant que de catégories, avec une légende séparée"],a:0,e:"La couleur est un porteur d'information rare : dès qu'elle décore, elle cesse d'informer. Deux couleurs plus un accent suffisent à distinguer réalisé et projeté, ou base et écart, et à pointer l'élément que le lecteur doit regarder."},
-   {q:"Vous devez montrer comment une valeur d'entreprise de 12 M€ devient un prix des titres de 9,4 M€, en détaillant dette financière, trésorerie et compte courant d'associé. Quel graphique, et quelle règle d'étiquetage ?",o:["Un waterfall, étiquettes de données posées directement sur chaque barre, sans légende séparée","Un football field, avec une barre par élément du pont","Un histogramme empilé, avec légende sous le graphique","Un tableau, le pont ne se représente pas graphiquement"],a:0,e:"Le waterfall est fait pour décomposer le passage d'un agrégat à un autre en contributions positives et négatives : c'est exactement un pont valeur d'entreprise vers prix. Le football field sert à comparer des fourchettes de valorisation entre méthodes, ce n'est pas le même objet. Les étiquettes sur les barres évitent au lecteur l'aller-retour vers une légende."}]};
 
-BRIEFS["restitution-slides"]={why:"Un livrable mal présenté fait douter des calculs qu'il contient.",
-pts:["Un message par page, écrit dans le titre. Le titre affirme, le corps prouve.","Tableaux plats et filtrables, jamais de bandeaux fusionnés qui empêchent le tri.","Chiffres au format français : virgule décimale, espace insécable pour les milliers, unité rappelée en en-tête.","Une source nommée sous chaque tableau et chaque graphique, sans exception.","La densité vient du fond, pas de la mise en forme. Pas de gras à outrance."],
-q:[{q:"Que doit contenir le titre d'une page de livrable ?",o:["Le message à retenir, sous forme d'affirmation","Le nom de la section","Un titre neutre","La date"],a:0,e:"Un titre affirmatif permet de lire la conclusion d'un document en parcourant seulement les titres. C'est la règle la plus efficace de la présentation professionnelle."},
-   {q:"Comment présenter un montant de 1 234 567 euros dans un livrable destiné à un cédant français ?",o:["1 234 567 €, milliers séparés par une espace insécable et unité rappelée en en-tête de colonne","1,234,567 €","1.234.567 EUR","1234567€"],a:0,e:"La virgule sépare les décimales en français, jamais les milliers, et l'espace insécable évite qu'un montant se coupe en fin de ligne. Rappeler l'unité en en-tête plutôt que sur chaque cellule allège le tableau sans perdre l'information."},
-   {q:"Un tableau de synthèse comporte des bandeaux fusionnés par phase et ne porte aucune source. Quelles corrections, et pourquoi dans cet ordre ?",o:["Nommer la source d'abord, car sans elle le tableau n'est pas opposable, puis remettre à plat pour qu'il redevienne triable et filtrable","Remettre à plat d'abord, la source étant un détail de forme","Conserver les bandeaux, qui structurent la lecture, et ajouter la source en note de bas de page","Remplacer le tableau par un graphique, qui n'exige pas de source"],a:0,e:"Un chiffre sans source nommée ne peut pas être défendu en réunion : c'est le défaut qui disqualifie le document, donc le premier à corriger. La fusion de cellules, elle, empêche le destinataire de trier et de filtrer, ce qui est le seul usage réel qu'il fera du tableau."}]};
+
+
 
 /* ── Phase 3, modélisation ── */
-BRIEFS["hypotheses-drivers"]={why:"Un modèle vaut ce que valent ses inducteurs. Le reste n'est que de l'arithmétique.",
-pts:["Un inducteur est une variable qui explique un agrégat et sur laquelle on a une observation historique.","Chiffre d'affaires par volume et prix vaut mieux qu'un taux de croissance global.","Chaque hypothèse porte trois informations : valeur, source, plage de variation raisonnable.","Une hypothèse sans historique de référence est une conviction, à identifier comme telle.","Le nombre d'hypothèses se limite : au-delà de trente inducteurs, plus personne ne les pilote."],
-q:[{q:"Quelle projection de chiffre d'affaires est la plus défendable ?",o:["Volume multiplié par prix, chacun projeté séparément","Un taux de croissance global de 5 pour cent","La moyenne des trois dernières années","Le budget du dirigeant"],a:0,e:"Décomposer permet de discuter séparément l'effet volume et l'effet prix, et de confronter chacun à une réalité observable."},
-   {q:"Qu'est-ce qui distingue un inducteur d'une hypothèse ordinaire ?",o:["Il explique un agrégat et l'on dispose d'une observation historique pour le calibrer","Il est saisi en bleu dans le modèle","Il porte toujours sur le chiffre d'affaires","Il est validé par le cédant"],a:0,e:"Sans historique, on ne calibre rien : on postule. Cela reste parfois nécessaire, mais il faut alors l'appeler une conviction et l'assortir d'une plage de variation, pas la présenter comme un inducteur."},
-   {q:"Votre modèle compte quarante-six inducteurs, dont trois n'ont aucun historique de référence. Quelle décision ?",o:["Réduire le nombre d'inducteurs pour que le modèle reste pilotable, et identifier explicitement les trois sans historique comme des convictions, avec leur plage de variation","Conserver les quarante-six : la précision augmente avec le nombre d'inducteurs","Supprimer les trois sans historique, qui ne sont pas modélisables","Remplacer les trois par une moyenne sectorielle, sans le mentionner dans les hypothèses"],a:0,e:"Au-delà d'une trentaine d'inducteurs, plus personne ne les pilote et le modèle devient une boîte noire : la précision apparente augmente pendant que la fiabilité baisse. Quant aux trois sans historique, les supprimer appauvrit le modèle et les déguiser en moyenne sectorielle non signalée est le seul choix véritablement fautif des quatre."}]};
+
 
 BRIEFS["projection-ca"]={why:"Le chiffre d'affaires est la première ligne du modèle et la source de toutes les autres erreurs.",
 pts:["Décomposer par activité, par segment client ou par zone selon ce qui pilote réellement l'activité.","Distinguer la base récurrente du nouveau : leurs taux de croissance n'ont rien à voir.","Pour une base contractuelle : chiffre d'affaires récurrent = base précédente x (1 - attrition) x (1 + indexation) + affaires nouvelles.","Le carnet de commandes ou le portefeuille en cours donne la visibilité sur les douze premiers mois.","Toute projection supérieure à la croissance historique doit s'appuyer sur un fait, pas sur un espoir."],
@@ -3167,11 +3580,7 @@ q:[{q:"Base récurrente de 1 000, attrition de 6 %, indexation de 2 %, affaires 
    {q:"Base récurrente de 2 400, attrition de 8 %, indexation de 3 %, affaires nouvelles de 150. Quel chiffre d'affaires récurrent l'année suivante ?",o:["2 424","2 550","2 358","2 274"],a:0,e:"2 400 x 0,92 x 1,03 = 2 274, puis + 150 = 2 424. L'ordre compte : l'indexation s'applique à la base qui reste après attrition, pas à la base de départ. Et les affaires nouvelles s'ajoutent après, sans être indexées puisqu'elles arrivent en cours d'année."},
    {q:"Une projection retient une croissance de 12 % quand l'historique des trois derniers exercices s'établit à 4 %. Qu'exige cette hypothèse ?",o:["Un fait documenté : contrat signé, carnet de commandes, ouverture d'un site, recrutement commercial déjà réalisé","L'accord écrit du cédant sur le chiffre retenu","Une note de synthèse expliquant la stratégie de l'entreprise","Rien de particulier, une projection est par nature une hypothèse"],a:0,e:"Toute projection supérieure à la tendance observée doit s'appuyer sur un fait, pas sur une intention. La différence est opérationnelle : un fait se vérifie en audit, une intention se renégocie."}]};
 
-BRIEFS["projection-couts"]={why:"Modéliser tous les coûts en pourcentage du chiffre d'affaires fait disparaître le levier opérationnel.",
-pts:["Classer chaque poste : variable, fixe, semi-variable. Le classement se fait sur l'historique, par régression simple.","Les coûts variables se projettent en pourcentage du chiffre d'affaires ou du volume.","Les coûts fixes se projettent en valeur, indexés sur l'inflation.","Les coûts semi-variables se projettent par paliers : un palier par tranche d'activité.","Le levier opérationnel est ce qui rend la marge sensible à la croissance. L'écraser rend le modèle inutile."],
-q:[{q:"Pourquoi ne pas projeter les loyers en pourcentage du chiffre d'affaires ?",o:["Ce sont des coûts fixes : le pourcentage efface le levier opérationnel","Parce que la TVA s'applique","Parce qu'ils sont déductibles","Aucune raison particulière"],a:0,e:"Un coût fixe modélisé en pourcentage augmente automatiquement avec l'activité, ce qui supprime l'effet d'échelle qui fait la valeur de la croissance."},
-   {q:"Historique d'un poste de charges : 600 pour un chiffre d'affaires de 4 000, puis 660 pour 5 000, puis 690 pour 5 500. Comment le classer et le projeter ?",o:["Semi-variable : environ 360 de part fixe, plus 6 % du chiffre d'affaires","Variable, à 15 % du chiffre d'affaires","Fixe, à indexer sur l'inflation","Variable, à 12,5 % du chiffre d'affaires"],a:0,e:"Entre les deux premiers exercices, le chiffre d'affaires progresse de 1 000 et la charge de 60, soit un taux marginal de 6 %, confirmé sur la période suivante (+ 500 et + 30). La part fixe s'en déduit : 600 - 6 % x 4 000 = 360. Retenir 15 %, soit 600 / 4 000, revient à traiter la part fixe comme variable et gonfle mécaniquement les charges projetées."},
-   {q:"Pourquoi le levier opérationnel disparaît-il si l'on projette toutes les charges en pourcentage du chiffre d'affaires ?",o:["Parce que la marge devient constante par construction, alors que c'est la part fixe qui la fait varier avec la croissance","Parce que les charges variables sont surestimées","Parce que le chiffre d'affaires n'est pas un bon inducteur","Il ne disparaît pas, il devient simplement plus régulier"],a:0,e:"Si toute charge suit le chiffre d'affaires, la marge est la même à 5 M€ et à 15 M€. Or c'est exactement l'inverse qui intéresse un acquéreur : savoir combien de marge supplémentaire produit un euro de croissance. Un modèle sans part fixe ne répond plus à cette question."}]};
+
 
 BRIEFS["masse-salariale"]={why:"En société de services, la masse salariale représente 50 à 70 % des charges. Elle mérite sa propre feuille.",
 pts:["Modéliser par effectif et par coût moyen chargé, jamais par un montant global indexé.","Distinguer les catégories : production, commercial, support. Leurs évolutions diffèrent.","Prévoir l'augmentation générale, l'augmentation individuelle et l'effet de noria séparément.","Le taux de charges patronales se calcule sur l'historique réel, pas sur un barème théorique.","Les recrutements se positionnent au mois près la première année, l'effet année pleine se voit la seconde."],
@@ -3187,11 +3596,7 @@ BRIEFS["capex"]={why:"Confondre capex de maintenance et capex de croissance cond
 pts:["Capex de maintenance : ce qu'il faut dépenser pour maintenir la capacité actuelle. Proche des dotations en régime permanent.","Capex de croissance : ce qui augmente la capacité. Doit s'accompagner d'une hausse d'activité modélisée.","Le flux disponible normatif retient le capex de maintenance, jamais le capex de croissance seul.","Historique du ratio capex sur chiffre d'affaires sur cinq ans : première référence de calibrage.","Un capex de croissance sans effet chiffré sur le chiffre d'affaires est une incohérence de modèle."],
 q:{q:"Un plan prévoit 500 k€ de capex de croissance sans hausse d'activité associée. Que conclure ?",o:["Le modèle est incohérent, l'investissement doit produire un effet","Le plan est prudent","C'est du capex de maintenance","Le capex est trop faible"],a:0,e:"Investir pour croître sans croissance projetée détruit de la valeur dans le modèle. Soit l'investissement est de maintenance, soit l'effet manque."}};
 
-BRIEFS["controles-equilibre"]={why:"Un modèle sans contrôles est un modèle dont personne ne peut garantir les résultats, à commencer par son auteur.",
-pts:["Contrôle 1 : actif moins passif égale zéro, sur chaque colonne.","Contrôle 2 : trésorerie du bilan égale trésorerie du tableau de flux.","Contrôle 3 : trésorerie jamais inférieure au plancher défini.","Contrôle 4 : soldes de dette jamais négatifs, jamais supérieurs aux montants autorisés.","Contrôle 5 : somme des pourcentages de répartition égale cent, partout où c'est applicable."],
-q:[{q:"Quel contrôle détecte une liaison manquante entre le tableau de flux et le bilan ?",o:["Trésorerie du bilan comparée à celle du tableau de flux","Le contrôle des pourcentages","Le plancher de trésorerie","Le solde de dette"],a:0,e:"Si les deux trésoreries divergent, un flux n'est pas reporté ou une variation de bilan n'a pas de contrepartie."},
-   {q:"Pourquoi contrôler que la somme des pourcentages de répartition vaut exactement cent ?",o:["Parce qu'une répartition incomplète fait disparaître silencieusement une part du montant réparti","Parce qu'Excel refuse les répartitions incomplètes","Pour respecter la convention de couleurs du modèle","Parce que le bilan ne s'équilibre pas sinon"],a:0,e:"Une répartition à 97 % ne produit aucune erreur visible : elle réduit simplement le total de 3 %, sur toutes les périodes, sans qu'aucune cellule ne s'affiche en rouge. C'est le type d'écart qu'on ne trouve jamais par relecture, seulement par contrôle automatique."},
-   {q:"Le bilan s'équilibre sur les cinq années projetées, mais la trésorerie du bilan diffère de celle du tableau de flux à partir de l'année 3. Que faut-il en conclure ?",o:["La trésorerie du bilan n'est pas alimentée par le tableau de flux : l'équilibre est probablement obtenu par une variable d'ajustement qui masque l'erreur","Une simple accumulation d'arrondis, sans conséquence","Le bilan étant équilibré, il n'y a pas d'erreur à chercher","Il manque un contrôle de plancher de trésorerie"],a:0,e:"Un bilan équilibré ne prouve rien si le bouclage passe par une ligne d'ajustement : c'est justement son rôle d'absorber l'erreur. Le seul contrôle qui la révèle est la comparaison des deux trésoreries, et le fait que l'écart apparaisse à partir d'une année précise désigne la période où la liaison a été rompue."}]};
+
 
 BRIEFS["scenarios-cas"]={why:"Un seul cas est une prévision. Trois cas sont une analyse.",
 pts:["Cas bas, central, haut. Le cas central n'est pas la moyenne des deux autres, c'est le plus probable.","Faire varier deux à quatre inducteurs seulement, cohérents entre eux.","Le cas bas doit rester réaliste : un scénario de faillite n'apporte rien à une discussion de prix.","Documenter en une ligne l'histoire de chaque cas, en langage courant.","Le cas bas sert au banquier, le cas central à la valorisation, le cas haut à la discussion d'earn out."],
@@ -4321,7 +4726,7 @@ function warnStorage(){
   setTimeout(()=>toast("Stockage local indisponible : la progression ne sera pas conservée après fermeture.","err"),900);
 }
 
-const APP_BUILD = "1.30-corr-rang-2026-07-30";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
+const APP_BUILD = "1.35-lotA2b-2026-07-30";  /* visible dans l\'UI et la console : élimine tout doute sur la version servie */
 console.log("Hub M&A Triactis · build "+APP_BUILD);
 /** Clone profond sans dépendance à structuredClone : notre état est un objet
     purement JSON, donc round-trip JSON suffit et fonctionne partout. */
