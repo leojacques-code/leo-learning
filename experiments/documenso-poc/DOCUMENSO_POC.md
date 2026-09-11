@@ -302,10 +302,19 @@ git push origin --delete leolearning
 
 ---
 
+## Résultats du test
+
+Le parcours complet a été exécuté le 2026-09-11 : **GO AVEC RÉSERVES**.
+Détail, preuves et réserves dans `RESULTATS_TEST_2026-09-11.md`.
+
+Réserve de méthode à connaître : le test a été mené sur Documenso construit
+depuis les sources, à la même version et même configuration, et non via ce
+`compose.yml` (les CDN d'images Docker étaient inaccessibles depuis
+l'environnement d'audit). Rejouer le parcours via `compose.yml` sur un poste
+est le seul écart restant entre le testé et le livré.
+
 ## Ce qui reste à faire
 
-- [ ] Générer le NDA de test : `./scripts/04-generate-test-nda.py`
-- [ ] Lancer le parcours complet et consigner les résultats
-- [ ] Tester la page de signature en largeur mobile
-- [ ] Vérifier la persistance après `03-down.sh` puis `02-up.sh`
-- [ ] Statuer GO / GO AVEC RÉSERVES / NO GO
+- [ ] Rejouer le parcours via `compose.yml` sur un poste
+- [ ] Reprendre la signature mobile à la main sur un vrai téléphone
+- [ ] Arbitrer le placement manuel des champs sur les templates réels
