@@ -1,0 +1,104 @@
+# POC Documenso Triactis : stack isolée, locale, gratuite.
+#
+# Isolation : le nom de projet `documenso-poc` préfixe conteneurs, réseau et
+# volumes. Rien n'est partagé avec une autre stack Docker de la machine.
+# Les ports sont décalés pour ne pas entrer en conflit avec un service existant.
+#
+# Aucun code Documenso n'est embarqué dans ce dépôt : on consomme l'image
+# officielle, épinglée. Voir VERCEL_POC_NOTES.md.
+
+name: documenso-poc
+
+services:
+  database:
+    image: postgres:15
+    container_name: documenso-poc-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: documenso
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?manquant, lancer scripts/00-generate-secrets.sh}"
+      POSTGRES_DB: documenso_poc
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U documenso -d documenso_poc']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      # Décalé : 55432 au lieu de 5432, pour ne pas heurter un PostgreSQL local.
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - poc-db:/var/lib/postgresql/data
+
+  # Boîte aux lettres locale : capture tous les mails sortants de Documenso et
+  # les affiche dans une interface web. Zéro compte, zéro DNS, zéro euro.
+  # Pour basculer sur un envoi réel, voir DOCUMENSO_POC.md section Email.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: documenso-poc-mail
+    restart: unless-stopped
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - '127.0.0.1:8025:8025' # interface web
+      - '127.0.0.1:1025:1025' # SMTP
+
+  documenso:
+    image: documenso/documenso:v2.18.0
+    container_name: documenso-poc-app
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+
+      # Secrets : générés par scripts/00-generate-secrets.sh, lus depuis .env,
+      # jamais versionnés.
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?manquant, lancer scripts/00-generate-secrets.sh}"
+      NEXT_PRIVATE_ENCRYPTION_KEY: "${NEXT_PRIVATE_ENCRYPTION_KEY:?manquant}"
+      NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY: "${NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY:?manquant}"
+
+      # URLs. En local les deux sont identiques et stables : c'est précisément
+      # ce que l'architecture serverless ne permettait pas.
+      NEXT_PUBLIC_WEBAPP_URL: "http://localhost:3000"
+      NEXT_PRIVATE_INTERNAL_WEBAPP_URL: "http://localhost:3000"
+
+      # Base dédiée au POC. `database` est le nom de service, résolu par le
+      # réseau Docker interne : le port 55432 exposé ne concerne que l'hôte.
+      NEXT_PRIVATE_DATABASE_URL: "postgres://documenso:${POSTGRES_PASSWORD}@database:5432/documenso_poc"
+      NEXT_PRIVATE_DIRECT_DATABASE_URL: "postgres://documenso:${POSTGRES_PASSWORD}@database:5432/documenso_poc"
+
+      # Les PDF sont stockés dans PostgreSQL. Aucun S3, R2, MinIO ni Azure.
+      NEXT_PUBLIC_UPLOAD_TRANSPORT: database
+
+      # Jobs de fond : provider `local`, adossé à PostgreSQL. Fiable ici parce
+      # que le processus est permanent (cf. VERCEL_POC_NOTES.md § 3).
+      NEXT_PRIVATE_JOBS_PROVIDER: local
+
+      # Certificat de signature auto-signé, monté en lecture seule.
+      NEXT_PRIVATE_SIGNING_TRANSPORT: local
+      NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH: /opt/documenso/cert.p12
+      NEXT_PRIVATE_SIGNING_PASSPHRASE: "${NEXT_PRIVATE_SIGNING_PASSPHRASE:?manquant, lancer scripts/01-generate-certificate.sh}"
+
+      # Email capté par Mailpit.
+      NEXT_PRIVATE_SMTP_TRANSPORT: smtp-auth
+      NEXT_PRIVATE_SMTP_HOST: mailpit
+      NEXT_PRIVATE_SMTP_PORT: 1025
+      NEXT_PRIVATE_SMTP_USERNAME: poc
+      NEXT_PRIVATE_SMTP_PASSWORD: poc
+      NEXT_PRIVATE_SMTP_SECURE: 'false'
+      NEXT_PRIVATE_SMTP_UNSAFE_IGNORE_TLS: 'true'
+      NEXT_PRIVATE_SMTP_FROM_NAME: Triactis Signature POC
+      NEXT_PRIVATE_SMTP_FROM_ADDRESS: poc@triactis.test
+
+      # Pas de télémétrie sortante depuis un poste du cabinet.
+      DOCUMENSO_DISABLE_TELEMETRY: 'true'
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - ./certs/cert.p12:/opt/documenso/cert.p12:ro
+
+volumes:
+  poc-db:
+    name: documenso-poc-db

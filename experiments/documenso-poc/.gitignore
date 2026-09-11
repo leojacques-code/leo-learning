@@ -1,0 +1,15 @@
+# Secrets et matériel cryptographique : jamais versionnés.
+.env
+.env.local
+*.p12
+*.pfx
+*.key
+*.crt
+*.pem
+certs/*
+!certs/.gitkeep
+
+# Templates de test : déposés en local, hors dépôt.
+# Garantit qu'aucun document, même fictif, ne part sur GitHub par mégarde.
+test-templates/*
+!test-templates/README.md
