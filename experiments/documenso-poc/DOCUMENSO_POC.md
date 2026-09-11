@@ -192,8 +192,9 @@ PDF uniquement pour ce premier POC. Pas de DOCX : la conversion exigerait
 Gotenberg ou LibreOffice, donc un service de plus et davantage de mémoire.
 Le DOCX sera testé après validation du parcours PDF.
 
-Premier document attendu : `NDA_TEST_TRIACTIS.pdf`, intégralement fictif, avec
-les champs Nom, Prénom, Société, Fonction, Date, Signature.
+Le NDA de test est généré par `./scripts/04-generate-test-nda.py`, sans
+dépendance externe. Contenu intégralement fictif. Champs à poser : Nom,
+Prénom, Société, Fonction, Date, Signature.
 
 Le placement des champs se fait à la main dans l'interface Documenso. Il n'est
 pas automatisé : deviner des coordonnées sur un PDF dont la mise en page n'est
@@ -214,6 +215,7 @@ cd experiments/documenso-poc
 ./scripts/00-generate-secrets.sh       # secrets dans .env
 ./scripts/01-generate-certificate.sh   # certificat auto-signé
 ./scripts/02-up.sh                     # démarrage, attend /api/health
+./scripts/04-generate-test-nda.py      # NDA de test fictif
 ```
 
 Le premier démarrage prend quelques minutes : téléchargement des images puis
@@ -302,7 +304,7 @@ git push origin --delete leolearning
 
 ## Ce qui reste à faire
 
-- [ ] Déposer `NDA_TEST_TRIACTIS.pdf` (fictif) dans `test-templates/`
+- [ ] Générer le NDA de test : `./scripts/04-generate-test-nda.py`
 - [ ] Lancer le parcours complet et consigner les résultats
 - [ ] Tester la page de signature en largeur mobile
 - [ ] Vérifier la persistance après `03-down.sh` puis `02-up.sh`

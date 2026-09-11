@@ -25,9 +25,24 @@ NDA réels non anonymisés.
 Le contenu de ce dossier est ignoré par Git (voir `../.gitignore`) : seul ce
 README est versionné. Aucun document, même fictif, ne part sur GitHub.
 
-## Premier document attendu
+## Premier document
 
-Un fichier nommé `NDA_TEST_TRIACTIS.pdf`, intégralement fictif.
+Le NDA de test est généré, pas fourni :
+
+```bash
+./scripts/04-generate-test-nda.py
+```
+
+Le script produit `NDA_TEST_TRIACTIS.pdf` (2 pages, A4) sans aucune dépendance
+externe : Python 3 suffit, ni reportlab ni LibreOffice. Le contenu est
+intégralement fictif et ne reprend aucun NDA du cabinet.
+
+C'est un script et non un PDF versionné, pour trois raisons : le contenu est
+relisible en clair dans la revue de code, il est reproductible, et la règle
+« aucun document dans Git » reste intacte.
+
+Le document réserve des cadres vides en page 2 pour repérer visuellement où
+poser les champs. Ce ne sont pas des champs de formulaire actifs.
 
 Champs à placer une fois le document importé dans Documenso :
 
