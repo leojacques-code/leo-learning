@@ -110,6 +110,11 @@ confidentielles et les lire d'un coup d'œil aide plus que ça ne coûte.
 **Ne jamais régénérer `NEXT_PRIVATE_ENCRYPTION_KEY`** sur une base contenant
 déjà des données : elles deviendraient illisibles.
 
+**Sauvegarder `.env` comme un secret**, au même titre que le certificat.
+Vérifié le 2026-09-12 : sans ce fichier l'application refuse de démarrer, et
+sa régénération invalide toutes les sessions. Les PDF déjà scellés, eux, ne
+sont pas affectés (voir `RESULTATS_TEST_2026-09-12.md`, constat 2).
+
 ---
 
 ## Certificat
@@ -249,6 +254,32 @@ docker compose ps                    # état des conteneurs
 5. **Instance unique.** Ni haute disponibilité, ni sauvegarde automatique.
    Le volume `documenso-poc-db` est le seul dépositaire des données du POC.
 
+## Avant tout hébergement : point de sécurité à traiter
+
+Sans objet en local, dirimant dès qu'un reverse proxy est placé devant
+l'application.
+
+Les formulaires `/signin`, `/signup` et `/forgot-password` sont servis sans
+attribut `method`, donc en GET par défaut, et ne sont rattrapés que par le
+gestionnaire JavaScript. Tant que le JavaScript n'est pas hydraté, une
+soumission envoie **les identifiants en clair dans la query string**.
+
+Documenso ne les journalise pas, mais sa propre documentation exige un reverse
+proxy en production, et nginx, Caddy, Traefik comme les load balancers cloud
+journalisent la query string par défaut.
+
+Parade, sans toucher à Documenso : configurer le proxy pour ne pas journaliser
+la query string sur ces trois chemins. Constat détaillé et vérifié dans
+`RESULTATS_TEST_2026-09-12.md`, constat 3.
+
+## Détection automatique des champs : écartée
+
+L'éditeur propose un bouton « Detect with AI ». Il exige un projet Google Cloud
+avec facturation active et envoie le contenu des documents à Google Vertex AI.
+Payant, et incompatible avec la confidentialité attendue sur des NDA et des
+dossiers de cession. Le placement manuel reste la voie retenue : il se fait une
+fois par modèle, pas à chaque envoi.
+
 ---
 
 ## Procédure de rollback
@@ -304,8 +335,13 @@ git push origin --delete leolearning
 
 ## Résultats du test
 
-Le parcours complet a été exécuté le 2026-09-11 : **GO AVEC RÉSERVES**.
-Détail, preuves et réserves dans `RESULTATS_TEST_2026-09-11.md`.
+Parcours complet exécuté sur deux journées : **GO AVEC RÉSERVES**.
+
+- `RESULTATS_TEST_2026-09-11.md` : parcours bureau de bout en bout, PDF scellé
+  et vérifié cryptographiquement.
+- `RESULTATS_TEST_2026-09-12.md` : parcours mobile de bout en bout, persistance
+  à travers un redémarrage complet du conteneur, et trois constats nouveaux
+  dont un point de sécurité à traiter avant tout hébergement.
 
 Réserve de méthode à connaître : le test a été mené sur Documenso construit
 depuis les sources, à la même version et même configuration, et non via ce
@@ -315,6 +351,7 @@ est le seul écart restant entre le testé et le livré.
 
 ## Ce qui reste à faire
 
-- [ ] Rejouer le parcours via `compose.yml` sur un poste
-- [ ] Reprendre la signature mobile à la main sur un vrai téléphone
-- [ ] Arbitrer le placement manuel des champs sur les templates réels
+- [ ] Rejouer le parcours via `compose.yml` sur un poste (seul écart restant
+      entre le testé et le livré)
+- [ ] Mesurer le comportement sur vos vrais modèles de documents
+- [ ] Arbitrer la charge du placement manuel, une fois ces modèles connus
