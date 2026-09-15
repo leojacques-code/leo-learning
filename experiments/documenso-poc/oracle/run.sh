@@ -3,9 +3,9 @@
 # Orchestrateur exécuté sur la VM Oracle par le workflow GitHub Actions.
 #
 # Enchaîne, dans l'ordre et de façon idempotente :
-#   bootstrap hôte → déploiement → inventaire → amorçage applicatif →
-#   fermeture de l'inscription → contrôles → test de persistance →
-#   sauvegarde → restitution chiffrée des éléments sensibles.
+#   bootstrap hôte → déploiement → amorçage applicatif → fermeture de
+#   l'inscription → contrôles → test de persistance → sauvegarde → restitution
+#   chiffrée des éléments sensibles → inventaire applicatif.
 #
 # N'affiche jamais de valeur sensible : voir l'en-tête de oracle/relay.sh pour
 # le canal de retour utilisé.
@@ -107,12 +107,6 @@ bash "$ORACLE_DIR/deploy.sh"
 set -a; . "$POC_STATE_DIR/oracle.env"; . "$POC_STATE_DIR/state/auth.env"; set +a
 PHASE="$(cat "$POC_STATE_DIR/state/last-phase")"
 
-# Inventaire en lecture seule. Il ne modifie rien et ne peut pas faire échouer
-# le déploiement : son intérêt est de laisser dans le journal du run l'état
-# exact des comptes, des espaces et des modèles au moment du déploiement.
-log "INVENTAIRE APPLICATIF (LECTURE SEULE)"
-bash "$ORACLE_DIR/audit-inventory.sh" || echo "[run] inventaire incomplet, voir ci-dessus"
-
 log "3/8 GÉNÉRATION DES MODÈLES DE DÉMONSTRATION"
 python3 "$POC_SRC_DIR/scripts/05-generate-demo-templates.py"
 
@@ -165,3 +159,9 @@ if [[ "$SEED_DEGRADED" -eq 1 ]]; then
 else
   echo "[run] terminé."
 fi
+
+# Inventaire en lecture seule, en dernier : c'est par la fin qu'on lit le
+# journal d'un run. Il ne modifie rien et ne peut pas faire échouer le
+# déploiement.
+log "INVENTAIRE APPLICATIF (LECTURE SEULE)"
+bash "$ORACLE_DIR/audit-inventory.sh" || echo "[run] inventaire incomplet, voir ci-dessus"
