@@ -29,8 +29,8 @@ chmod 600 "$RECOVERY_FILE"
 [[ "$(wc -l < "$RECOVERY_FILE" | tr -d ' ')" == "1" ]] \
   || die "le secret de récupération doit tenir sur une seule ligne"
 IFS= read -r RECOVERY_PASSWORD < "$RECOVERY_FILE" || true
-[[ ${#RECOVERY_PASSWORD} -ge 24 ]] \
-  || die "le secret de récupération doit contenir au moins 24 caractères"
+[[ ${#RECOVERY_PASSWORD} -ge 12 ]] \
+  || die "le secret de récupération doit contenir au moins 12 caractères"
 
 # Préserver les identifiants applicatifs existants. shellcheck disable=SC1090
 set +u

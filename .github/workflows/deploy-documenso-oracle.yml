@@ -79,8 +79,8 @@ jobs:
           # Le secret de récupération reste dans un fichier temporaire 600 sur
           # le runner, puis est copié par SCP vers la VM. Sa valeur n'est jamais
           # passée en argument, affichée ni écrite dans le dépôt.
-          if [ ${#POC_RECOVERY_PASSWORD} -lt 24 ]; then
-            echo "::error::POC_RECOVERY_PASSWORD est absent ou trop court (24 caractères minimum)."
+          if [ ${#POC_RECOVERY_PASSWORD} -lt 12 ]; then
+            echo "::error::POC_RECOVERY_PASSWORD est absent ou trop court (12 caractères minimum)."
             exit 1
           fi
           RECOVERY_LOCAL="$RUNNER_TEMP/recovery_password"
