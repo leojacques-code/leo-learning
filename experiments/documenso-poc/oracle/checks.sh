@@ -30,6 +30,15 @@ dc() {
     "$@"
 }
 
+# Valeur effective d'une variable d'environnement du conteneur applicatif.
+# On lit ce qui tourne réellement, pas ce que le dépôt prévoit : c'est la
+# seule lecture qui vaille pour un constat de sécurité.
+app_env() {
+  docker inspect documenso-poc-app \
+    --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null \
+    | awk -F= -v k="$1" '$1 == k { sub(/^[^=]*=/, ""); print; exit }'
+}
+
 # ---------------------------------------------------------------------------
 section "Conteneurs"
 # ---------------------------------------------------------------------------
@@ -59,17 +68,44 @@ code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://$POC_HOSTN
 code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://$POC_HOSTNAME/signin" || echo 000)"
 [[ "$code" == "200" ]] && ok "HTTPS public /signin : 200" || ko "HTTPS public /signin : $code"
 
-# L'inscription publique doit être fermée une fois le compte POC créé.
+# ---------------------------------------------------------------------------
+section "Inscription publique"
+# ---------------------------------------------------------------------------
+# Deux états sont acceptables :
+#   - fermée : NEXT_PUBLIC_DISABLE_SIGNUP=true, personne ne crée de compte ;
+#   - ouverte mais restreinte : NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS non vide,
+#     seules les adresses de ces domaines peuvent créer un compte. C'est le
+#     mode temporaire employé pour créer les comptes de démonstration.
+# Ouverte sans restriction est un échec : l'instance serait offerte à Internet.
+#
+# L'adresse sonde est volontairement hors de tout domaine d'entreprise : elle
+# doit être refusée dans les deux modes. Valeurs fictives, jamais un vrai
+# identifiant.
+signup_disabled="$(app_env NEXT_PUBLIC_DISABLE_SIGNUP)"
+signup_domains="$(app_env NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS)"
+
 code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 \
         -X POST -H 'Content-Type: application/json' \
         -d '{"name":"probe","email":"probe@triactis.test","password":"Probe-Probe-Probe!7"}' \
         "https://$POC_HOSTNAME/api/auth/email-password/signup" || echo 000)"
 if [[ "$code" == "400" || "$code" == "403" ]]; then
-  ok "inscription publique : refusée par l'API (HTTP $code)"
+  ok "inscription depuis un domaine non autorisé : refusée (HTTP $code)"
 else
-  ko "inscription publique : l'API a répondu $code, elle devrait refuser"
+  ko "inscription depuis un domaine non autorisé : l'API a répondu $code, elle devrait refuser"
 fi
 
+if [[ "$signup_disabled" == "true" ]]; then
+  ok "inscription publique : fermée (NEXT_PUBLIC_DISABLE_SIGNUP=true)"
+elif [[ -n "$signup_domains" ]]; then
+  warn "inscription publique : OUVERTE, restreinte au(x) domaine(s) « $signup_domains »"
+  warn "  mode temporaire, à refermer une fois les comptes de démonstration créés"
+else
+  ko "inscription publique : OUVERTE ET SANS RESTRICTION DE DOMAINE, à refermer"
+fi
+
+# ---------------------------------------------------------------------------
+section "Certificat TLS"
+# ---------------------------------------------------------------------------
 # Le certificat TLS doit être public et valide, pas auto-signé.
 issuer="$(echo | openssl s_client -connect "$POC_HOSTNAME:443" -servername "$POC_HOSTNAME" 2>/dev/null \
           | openssl x509 -noout -issuer 2>/dev/null || true)"
