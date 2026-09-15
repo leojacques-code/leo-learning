@@ -18,11 +18,18 @@ même en-tête : les deux ne peuvent pas coexister sur une même requête. Donc 
 Le parcours public reste vérifié de bout en bout par oracle/checks.sh et par
 la sonde externe du workflow.
 
+LE MOT DE PASSE HUMAIN N'EST PAS UNE DÉPENDANCE.
+Sur une instance déjà amorcée, le jeton d'API conservé en 600 sur la machine
+suffit à tout ce qui reste à faire. Il est essayé en premier ; la connexion
+par mot de passe n'intervient que s'il ne répond pas. Un changement de mot de
+passe depuis l'interface ne casse donc plus la recette, et ce script ne
+modifie jamais un mot de passe pour se débloquer.
+
 Ce que fait ce script, chaque étape étant idempotente et consignée :
 
   1. création du compte POC (données fictives)
   2. jeton de confirmation récupéré dans Mailpit, vérification du compte
-  3. connexion, création d'un jeton d'API
+  3. session si nécessaire, puis jeton d'API
   4. création des trois modèles, champs déjà positionnés
   5. lien direct sur le modèle NDA Acquéreur
   6. recette de bout en bout : document depuis modèle, envoi, signature,
@@ -371,6 +378,27 @@ def step_account(http, state):
     return account
 
 
+def stored_token_works(http, state):
+    """
+    Le jeton d'API conservé sur la machine répond-il encore ?
+
+    C'est ce qui décide s'il faut ouvrir une session par mot de passe. Sur une
+    instance en service, la réponse est oui et le mot de passe humain n'est
+    jamais sollicité, donc jamais un point de rupture.
+    """
+    token = state.get("api_token")
+    if not token:
+        return False
+    previous = http.token
+    http.token = token
+    status, _ = http.v2("GET", "/template?perPage=1")
+    if status < 400:
+        return True
+    http.token = previous
+    log(f"jeton d'API conservé inutilisable (HTTP {status})")
+    return False
+
+
 def step_signin(http, account):
     status, body, _ = http.request("GET", "/api/auth/csrf")
     csrf = body.get("csrfToken") if isinstance(body, dict) else None
@@ -380,7 +408,15 @@ def step_signin(http, account):
         "email": account["email"], "password": account["password"], "csrfToken": csrf,
     })
     if status not in (200, 201):
-        fail(f"connexion refusée (HTTP {status}) : {json.dumps(body)[:200]}")
+        fail(
+            f"connexion refusée (HTTP {status}) : {json.dumps(body)[:200]}\n"
+            "[seed] Le mot de passe enregistré dans state/seed-state.json ne correspond\n"
+            "[seed] plus à celui de la base, et aucun jeton d'API valide n'a pris le\n"
+            "[seed] relais. Deux voies, aucune ne modifie le mot de passe du compte :\n"
+            "[seed]   - inscrire le mot de passe courant dans state/seed-state.json ;\n"
+            "[seed]   - ou supprimer state/seed-state.json pour repartir d'un compte de\n"
+            "[seed]     démonstration neuf, les données existantes étant conservées."
+        )
     log("connexion au compte POC : réussie")
 
 
@@ -396,14 +432,9 @@ def step_api_token(http, state, account):
     state.set("team_id", int(team_id))
     http.team_id = int(team_id)
 
-    token = state.get("api_token")
-    if token:
-        http.token = token
-        status, _ = http.v2("GET", "/template?perPage=1")
-        if status < 400:
-            log("jeton d'API : déjà présent et valide")
-            return token
-        log(f"jeton d'API existant inutilisable (HTTP {status}), régénération")
+    if http.token:
+        log("jeton d'API : déjà présent et valide")
+        return http.token
 
     status, out = http.trpc("apiToken.create", {
         "teamId": int(team_id), "tokenName": "Triactis POC automation", "expirationDate": None,
@@ -823,7 +854,7 @@ def step_bulk_send(http, state, templates, csv_path):
 
 
 def step_webhook(http, state):
-    # L'étape se rejoue tant qu'elle n'a pas abouti : un échat antérieur ne doit
+    # L'étape se rejoue tant qu'elle n'a pas abouti : un échec antérieur ne doit
     # pas être figé dans l'état.
     if (state.get("webhook") or {}).get("configured"):
         log("webhook : déjà configuré")
@@ -888,7 +919,14 @@ def main():
     manifest = json.loads((pdf_dir / "templates.json").read_text(encoding="utf-8"))
 
     account = step_account(http, state)
-    step_signin(http, account)
+
+    # Le jeton d'API d'abord : s'il répond, la session par mot de passe n'a
+    # aucune raison d'être ouverte, et un changement de mot de passe côté
+    # interface reste sans effet sur la recette.
+    if stored_token_works(http, state):
+        log("session par mot de passe : inutile, le jeton d'API conservé répond")
+    else:
+        step_signin(http, account)
     step_api_token(http, state, account)
 
     templates = step_templates(http, state, manifest, pdf_dir)
