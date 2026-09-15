@@ -36,22 +36,18 @@ q() {
 }
 
 section "Configuration effective du conteneur applicatif"
-for k in NEXT_PUBLIC_DISABLE_SIGNUP NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS NEXT_PUBLIC_WEBAPP_URL; do
+for k in NEXT_PUBLIC_DISABLE_SIGNUP NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS; do
   v="$(docker inspect documenso-poc-app \
         --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null \
         | awk -F= -v key="$k" '$1 == key { sub(/^[^=]*=/, ""); print; exit }')"
   printf '  %s = %s\n' "$k" "${v:-<absent>}"
 done
 
-section "Tables presentes"
-q "select table_name from information_schema.tables
-   where table_schema = 'public' order by table_name;"
-
-section "Colonnes des tables d'identite, d'organisation et de modele"
-q "select table_name, string_agg(column_name, ', ' order by ordinal_position) as colonnes
+section "Schema : tables d'identite, d'espace et de modele"
+q "select table_name, string_agg(column_name, ',' order by ordinal_position) as colonnes
    from information_schema.columns
    where table_schema = 'public'
-     and table_name ~* '(user|organisation|organization|team|member|group|template|envelope|apitoken|webhook)'
+     and table_name ~* '^(User|Organisation|OrganisationMember|OrganisationGroup|OrganisationGroupMember|Team|TeamMember|TeamGroup|Template|Envelope|ApiToken|Webhook|TemplateDirectLink)$'
    group by table_name order by table_name;"
 
 section "Comptes"
@@ -63,12 +59,11 @@ q "select id,
 
 section "Organisations"
 q "select * from \"Organisation\" order by id;"
-q "select id, name, \"ownerUserId\" from \"Organisation\" order by id;"
 
 section "Appartenances aux organisations"
 q "select * from \"OrganisationMember\" order by 1;"
 
-section "Groupes d'organisation et leurs membres"
+section "Groupes d'organisation"
 q "select * from \"OrganisationGroup\" order by 1;"
 q "select * from \"OrganisationGroupMember\" order by 1;"
 
@@ -80,36 +75,29 @@ q "select * from \"TeamMember\" order by 1;"
 q "select * from \"TeamGroup\" order by 1;"
 
 section "Modeles"
-q "select id, type, title, \"templateType\", visibility, \"externalId\",
+q "select id, title, \"templateType\", visibility, \"externalId\",
           \"teamId\", \"userId\", \"createdAt\"::date as cree_le
    from \"Envelope\" where type = 'TEMPLATE' order by id;"
 q "select id, title, \"templateType\", visibility, \"externalId\",
-          \"teamId\", \"userId\", \"createdAt\"::date as cree_le
-   from \"Template\" order by id;"
+          \"teamId\", \"userId\" from \"Template\" order by id;"
 
 section "Destinataires et champs par modele"
-q "select e.id, left(e.title, 40) as titre,
-          (select count(*) from \"Recipient\" r where r.\"envelopeId\" = e.id) as destinataires,
+q "select e.id, left(e.title, 38) as titre,
+          (select count(*) from \"Recipient\" r where r.\"envelopeId\" = e.id) as dest,
           (select count(*) from \"Field\" f where f.\"envelopeId\" = e.id) as champs
    from \"Envelope\" e where e.type = 'TEMPLATE' order by e.id;"
 
-section "Documents et enveloppes"
-q "select type, status, visibility, \"teamId\", count(*) as n
-   from \"Envelope\" group by 1, 2, 3, 4 order by 1, 2, 3, 4;"
-q "select id, type, status, left(title, 45) as titre, \"teamId\", \"userId\",
-          \"externalId\", \"createdAt\"::date as cree_le
-   from \"Envelope\" order by id;"
+section "Enveloppes par type, statut et espace"
+q "select type, status, visibility, \"teamId\", \"userId\", count(*) as n
+   from \"Envelope\" group by 1,2,3,4,5 order by 1,2,3,4,5;"
 
 section "Jetons d'API (jamais la valeur du jeton)"
-q "select id, name, \"userId\", \"teamId\", expires, \"createdAt\"::date as cree_le
+q "select id, name, \"userId\", \"teamId\", expires
    from \"ApiToken\" order by id;"
 
 section "Lien direct et webhooks"
-q "select id, \"envelopeId\", token is not null as jeton_present, enabled
-   from \"TemplateDirectLink\" order by id;"
-q "select id, \"webhookUrl\" is not null as url_presente, enabled,
-          \"eventTriggers\", \"userId\", \"teamId\"
-   from \"Webhook\" order by id;"
+q "select id, \"envelopeId\", \"templateId\", enabled from \"TemplateDirectLink\" order by id;"
+q "select id, enabled, \"eventTriggers\", \"userId\", \"teamId\" from \"Webhook\" order by id;"
 
 section "Etat du fichier d'amorcage"
 if [[ -f "$POC_STATE_DIR/state/seed-state.json" ]]; then
