@@ -71,9 +71,32 @@ jobs:
         env:
           ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
           ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          POC_RECOVERY_PASSWORD: ${{ secrets.POC_RECOVERY_PASSWORD }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+
+          # Le secret de récupération reste dans un fichier temporaire 600 sur
+          # le runner, puis est copié par SCP vers la VM. Sa valeur n'est jamais
+          # passée en argument, affichée ni écrite dans le dépôt.
+          if [ ${#POC_RECOVERY_PASSWORD} -lt 24 ]; then
+            echo "::error::POC_RECOVERY_PASSWORD est absent ou trop court (24 caractères minimum)."
+            exit 1
+          fi
+          RECOVERY_LOCAL="$RUNNER_TEMP/recovery_password"
+          umask 077
+          printf '%s\n' "$POC_RECOVERY_PASSWORD" > "$RECOVERY_LOCAL"
+          chmod 600 "$RECOVERY_LOCAL"
+
+          scp -q -i "$RUNNER_TEMP/ssh/id" \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
+              -o ConnectTimeout=20 \
+              "$RECOVERY_LOCAL" \
+              "$ORACLE_USER@$ORACLE_HOST:/tmp/documenso-poc-recovery-password"
+          rm -f "$RECOVERY_LOCAL"
+          unset POC_RECOVERY_PASSWORD
+
           # Le dépôt est public : la VM le clone elle-même, sans identifiant.
           # Elle déploie le commit EXACT qui a déclenché ce workflow, pas la
           # tête de branche, qui pourrait déjà avoir bougé.
@@ -183,12 +206,13 @@ jobs:
           done
           [ "$fail" -eq 0 ] || { echo "::error::$fail anomalie(s) d'exposition réseau."; exit 1; }
 
-      - name: Effacer la clé SSH
+      - name: Effacer la clé SSH et les fichiers temporaires
         if: always()
         run: |
           set -euo pipefail
+          rm -f "$RUNNER_TEMP/recovery_password" 2>/dev/null || true
           if [ -d "$RUNNER_TEMP/ssh" ]; then
             find "$RUNNER_TEMP/ssh" -type f -exec shred -u {} + 2>/dev/null || true
             rm -rf "$RUNNER_TEMP/ssh"
           fi
-          echo "Matériel SSH effacé du runner."
+          echo "Matériel SSH et fichiers temporaires effacés du runner."

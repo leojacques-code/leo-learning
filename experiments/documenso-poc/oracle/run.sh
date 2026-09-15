@@ -47,6 +47,15 @@ else
   echo "[run] 1/8 bootstrap déjà passé, poursuite dans le shell portant le groupe docker"
 fi
 
+# Un secret de récupération peut être déposé temporairement par GitHub Actions.
+# Il ne transite jamais en argument de commande ni dans les logs. Le script le
+# consomme avant le rendu Caddy, puis le détruit.
+RECOVERY_FILE=/tmp/documenso-poc-recovery-password
+if [[ -f "$RECOVERY_FILE" ]]; then
+  log "APPLICATION DU MOT DE PASSE DE RÉCUPÉRATION"
+  bash "$ORACLE_DIR/apply-recovery-password.sh" "$RECOVERY_FILE"
+fi
+
 log "2/8 DÉPLOIEMENT DE LA PILE"
 bash "$ORACLE_DIR/deploy.sh"
 
