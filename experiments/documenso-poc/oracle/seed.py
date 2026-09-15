@@ -2,16 +2,28 @@
 """
 Amorçage et recette fonctionnelle du POC Documenso sur Oracle Cloud.
 
-Exécuté SUR la VM par oracle/run.sh. Pilote l'instance par son API, en HTTPS,
-à travers Caddy, exactement comme le ferait un intégrateur.
+Exécuté SUR la VM par oracle/run.sh. Pilote l'instance par son API, comme le
+ferait un intégrateur.
 
-Ce qu'il fait, dans l'ordre, chaque étape étant idempotente et consignée dans
-un fichier d'état :
+DEUX CHEMINS D'ACCÈS, ET C'EST VOULU.
+Pendant la phase d'amorçage, Caddy protège tout le site par Basic Auth, qui
+voyage dans l'en-tête Authorization. Le jeton d'API Documenso voyage dans le
+même en-tête : les deux ne peuvent pas coexister sur une même requête. Donc :
+
+  - création de compte, vérification, connexion, appels tRPC de session :
+    par l'URL publique HTTPS, avec le Basic Auth du proxy ;
+  - appels authentifiés par jeton d'API : par la boucle locale, en deçà du
+    proxy, où l'en-tête Authorization est libre.
+
+Le parcours public reste vérifié de bout en bout par oracle/checks.sh et par
+la sonde externe du workflow.
+
+Ce que fait ce script, chaque étape étant idempotente et consignée :
 
   1. création du compte POC (données fictives)
-  2. récupération du jeton de confirmation dans Mailpit, vérification du compte
+  2. jeton de confirmation récupéré dans Mailpit, vérification du compte
   3. connexion, création d'un jeton d'API
-  4. création des trois modèles de démonstration, champs déjà positionnés
+  4. création des trois modèles, champs déjà positionnés
   5. lien direct sur le modèle NDA Acquéreur
   6. recette de bout en bout : document depuis modèle, envoi, signature,
      finalisation, scellement, téléchargement, contrôle cryptographique du PDF
@@ -19,13 +31,12 @@ un fichier d'état :
   8. envoi en masse depuis un CSV fictif
   9. webhook vers le récepteur local de démonstration
 
-CONFIDENTIALITÉ. Les journaux de ce script partent dans un job GitHub Actions
-public. Il n'écrit sur la sortie standard aucun mot de passe, aucun jeton
-d'API, aucun jeton de signature, aucun lien de signature. Ces valeurs sont
-écrites dans /opt/documenso-poc/artifacts/handoff.json (permissions 600), que
-oracle/relay.sh chiffre vers le certificat de relais.
+CONFIDENTIALITÉ. Les journaux partent dans un job GitHub Actions public. Ce
+script n'écrit sur la sortie standard aucun mot de passe, aucun jeton d'API,
+aucun jeton de signature, aucun lien de signature. Ces valeurs vont dans
+/opt/documenso-poc/artifacts/handoff.json (600), que oracle/relay.sh chiffre.
 
-Bibliothèque standard uniquement : rien à installer sur la VM.
+Bibliothèque standard uniquement.
 """
 
 import argparse
@@ -46,6 +57,7 @@ import urllib.request
 from http.cookiejar import CookieJar
 
 MAILPIT = "http://127.0.0.1:8025"
+LOOPBACK = "http://127.0.0.1:3000"
 DB_CONTAINER = "documenso-poc-db"
 WEBHOOK_URL = "http://webhook-sink:9000/"
 
@@ -55,11 +67,11 @@ POC_ACCOUNT_NAME = "Triactis POC"
 POC_ACCOUNT_EMAIL = "poc-admin@triactis.test"
 
 
-def log(msg: str) -> None:
+def log(msg):
     print(f"[seed] {msg}", flush=True)
 
 
-def fail(msg: str):
+def fail(msg):
     print(f"[seed] ERREUR : {msg}", file=sys.stderr, flush=True)
     sys.exit(1)
 
@@ -69,10 +81,11 @@ def fail(msg: str):
 # ---------------------------------------------------------------------------
 
 class Http:
-    """Client minimal : cookies de session, Basic Auth, multipart, tRPC, API v2."""
+    """Cookies de session, Basic Auth du proxy, multipart, tRPC, API v2."""
 
-    def __init__(self, base, basic_auth=None):
+    def __init__(self, base, basic_auth=None, api_base=LOOPBACK):
         self.base = base.rstrip("/")
+        self.api_base = api_base.rstrip("/")
         self.basic_auth = basic_auth
         self.token = None
         self.jar = CookieJar()
@@ -82,17 +95,20 @@ class Http:
         )
 
     def request(self, method, path, body=None, headers=None,
-                use_token=False, raw=False, timeout=120):
-        url = path if path.startswith("http") else f"{self.base}{path}"
+                use_token=False, raw=False, timeout=180):
+        # Les appels au jeton d'API passent sous le proxy : son Basic Auth
+        # occuperait sinon l'en-tête Authorization dont le jeton a besoin.
+        root = self.api_base if use_token else self.base
+        url = path if path.startswith("http") else f"{root}{path}"
+
         head = {"Accept": "application/json", "User-Agent": "triactis-poc-seed/1.0"}
-        if self.basic_auth:
+        if use_token:
+            if not self.token:
+                fail("appel authentifié par jeton sans jeton disponible")
+            head["Authorization"] = f"Bearer {self.token}"
+        elif self.basic_auth:
             raw_auth = f"{self.basic_auth[0]}:{self.basic_auth[1]}".encode()
             head["Authorization"] = "Basic " + base64.b64encode(raw_auth).decode()
-        if use_token and self.token:
-            # Le jeton d'API prend le pas sur le Basic Auth du proxy : ils ne
-            # jouent pas au même niveau, l'un protège le site, l'autre
-            # authentifie l'appelant auprès de Documenso.
-            head["Authorization"] = f"Bearer {self.token}"
         head.update(headers or {})
 
         req = urllib.request.Request(url, data=body, headers=head, method=method)
@@ -124,13 +140,9 @@ class Http:
         )
         return status, body
 
-    def trpc(self, proc, payload, method="POST"):
+    def trpc(self, proc, payload):
         """Appel tRPC. Le transformateur est superjson : {"json": <entrée>}."""
-        if method == "GET":
-            qs = urllib.parse.urlencode({"input": json.dumps({"json": payload})})
-            status, body, _ = self.request("GET", f"/api/trpc/{proc}?{qs}")
-        else:
-            status, body = self.post_json(f"/api/trpc/{proc}", {"json": payload})
+        status, body = self.post_json(f"/api/trpc/{proc}", {"json": payload})
         if isinstance(body, dict) and "result" in body:
             data = body["result"].get("data")
             if isinstance(data, dict) and "json" in data:
@@ -249,11 +261,23 @@ class State:
 # ---------------------------------------------------------------------------
 
 def gen_password():
-    """Mot de passe fort, lisible et saisissable au doigt sur un téléphone."""
+    """
+    Mot de passe fort, lisible et saisissable au doigt sur un téléphone.
+
+    La politique de Documenso exige, en deçà de 25 caractères, une majuscule,
+    une minuscule, un chiffre et un caractère spécial. Le suffixe les apporte
+    par construction : les tirer au hasard laisserait une chance non nulle
+    (environ 6 % pour le chiffre) de produire un mot de passe refusé.
+    """
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
-    return "-".join(
+    core = "-".join(
         "".join(secrets.choice(alphabet) for _ in range(6)) for _ in range(3)
-    ) + "!7"
+    )
+    return core + "-Poc7x!"
+
+
+def user_exists(email):
+    return psql(f"SELECT 1 FROM \"User\" WHERE lower(email) = lower('{email}');") == "1"
 
 
 def step_account(http, state):
@@ -261,6 +285,13 @@ def step_account(http, state):
     if account and account.get("verified"):
         log("compte POC : déjà créé et vérifié")
         return account
+
+    # Un amorçage interrompu avant la création effective laisse un mot de passe
+    # en état sans compte en face. On repart d'un mot de passe neuf plutôt que
+    # de rejouer indéfiniment celui qui vient d'échouer.
+    if account and not user_exists(account["email"]):
+        log("compte absent en base : régénération du mot de passe")
+        account = None
 
     if not account:
         account = {"name": POC_ACCOUNT_NAME, "email": POC_ACCOUNT_EMAIL,
@@ -275,7 +306,7 @@ def step_account(http, state):
     blob = json.dumps(body) if body is not None else ""
     if status in (200, 201):
         log("compte POC créé")
-    elif "already exists" in blob.lower() or "UNIQUE" in blob:
+    elif "already exists" in blob.lower():
         log("compte POC : déjà présent côté Documenso")
     elif "SignupDisabled" in blob:
         fail("l'inscription est désactivée alors que le compte n'existe pas encore")
@@ -293,7 +324,7 @@ def step_account(http, state):
             log("jeton de confirmation récupéré dans Mailpit")
 
     if token:
-        status, body = http.post_json("/api/auth/email-password/verify-email", {"token": token})
+        status, _ = http.post_json("/api/auth/email-password/verify-email", {"token": token})
         log(f"vérification par l'API : HTTP {status}")
 
     verified = psql("SELECT \"emailVerified\" IS NOT NULL FROM \"User\" "
@@ -334,7 +365,7 @@ def step_api_token(http, state, account):
         if status < 400:
             log("jeton d'API : déjà présent et valide")
             return token
-        log("jeton d'API existant invalide, régénération")
+        log(f"jeton d'API existant inutilisable (HTTP {status}), régénération")
 
     team_id = psql(
         "SELECT t.id FROM \"Team\" t "
@@ -372,6 +403,7 @@ def step_api_token(http, state, account):
     if status >= 400:
         fail(f"le jeton d'API ne fonctionne pas (HTTP {status}) : {json.dumps(out)[:200]}")
     state.set("api_token", token)
+    log("jeton d'API vérifié sur l'API v2")
     return token
 
 
@@ -451,7 +483,7 @@ def step_templates(http, state, manifest, pdf_dir):
                                         [("files", spec["pdf"], blob)])
         if status >= 400 or not isinstance(out, dict) or not out.get("id"):
             fail(f"création du modèle « {spec['title']} » refusée (HTTP {status}) : "
-                 f"{json.dumps(out)[:500]}")
+                 f"{json.dumps(out)[:600]}")
 
         envelope_id = out["id"]
         status, detail = http.v2("GET", f"/envelope/{envelope_id}")
@@ -557,7 +589,7 @@ def step_signed_flow(http, state, templates):
     )
     if status >= 400 or not isinstance(out, dict):
         fail(f"création du document depuis le modèle refusée (HTTP {status}) : "
-             f"{json.dumps(out)[:500]}")
+             f"{json.dumps(out)[:600]}")
 
     envelope_id = out["id"]
     recipients = out.get("recipients", [])
@@ -601,14 +633,14 @@ def step_signed_flow(http, state, templates):
         status, out = http.trpc("envelope.field.sign",
                                 {"token": token, "fieldId": field["id"], "fieldValue": value})
         if status >= 400:
-            fail(f"signature du champ {ftype} refusée (HTTP {status}) : {json.dumps(out)[:300]}")
+            fail(f"signature du champ {ftype} refusée (HTTP {status}) : {json.dumps(out)[:400]}")
         signed += 1
     log(f"{signed} champs renseignés et signés via le lien destinataire")
 
     status, out = http.trpc("recipient.completeDocumentWithToken",
                             {"token": token, "documentId": document_id})
     if status >= 400:
-        fail(f"finalisation refusée (HTTP {status}) : {json.dumps(out)[:300]}")
+        fail(f"finalisation refusée (HTTP {status}) : {json.dumps(out)[:400]}")
     log("finalisation demandée")
 
     # Le scellement est un job de fond : on attend qu'il aboutisse.
@@ -699,7 +731,7 @@ def step_pending(http, state, templates):
         "Projet Atlas - NDA Cedant - ALPHA CONSEIL SAS", True,
     )
     if status >= 400 or not isinstance(out, dict):
-        fail(f"création de l'enveloppe iPhone refusée (HTTP {status}) : {json.dumps(out)[:300]}")
+        fail(f"création de l'enveloppe iPhone refusée (HTTP {status}) : {json.dumps(out)[:400]}")
 
     url = out["recipients"][0].get("signingUrl")
     result = {"envelopeId": out["id"], "externalId": "DEAL-DEMO-002", "signingUrl": url}
@@ -773,10 +805,11 @@ def step_webhook(http, state):
                           "DOCUMENT_CANCELLED"],
         "secret": None, "enabled": True,
     })
-    result = {"configured": status < 400, "http": status, "url": WEBHOOK_URL,
-              "detail": json.dumps(out)[:200] if status >= 400 else ""}
+    ok = status < 400
+    result = {"configured": ok, "http": status, "url": WEBHOOK_URL,
+              "detail": "" if ok else json.dumps(out)[:300]}
     state.set("webhook", result)
-    log(f"webhook local : {'configuré' if result['configured'] else 'refusé (HTTP ' + str(status) + ')'}")
+    log("webhook local : " + ("configuré" if ok else f"refusé (HTTP {status})"))
     return result
 
 
