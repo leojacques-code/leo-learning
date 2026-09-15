@@ -50,6 +50,11 @@ HTTPS existe par ailleurs, déployée sur Oracle Cloud depuis GitHub Actions :
 voir `ORACLE_DEPLOYMENT.md`. Les deux cohabitent, `compose.yml` reste le socle
 commun.
 
+Différence à connaître : le POC local est mono-utilisateur par nature, alors
+que l'instance publique a un **espace de travail partagé**, où les modèles
+appartiennent à l'équipe et non à une personne. Voir `ORACLE_DEPLOYMENT.md`
+§ 9, « Utilisation multi-utilisateurs ».
+
 | Service | Adresse |
 | --- | --- |
 | Documenso | http://localhost:3000 |
