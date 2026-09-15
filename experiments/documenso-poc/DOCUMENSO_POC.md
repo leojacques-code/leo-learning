@@ -45,7 +45,10 @@ un numéro de tag dans `compose.yml`.
 
 ## URL
 
-Pas d'URL publique : le POC tourne sur le poste.
+Ce document décrit le POC **local**, sur le poste. Une instance publique en
+HTTPS existe par ailleurs, déployée sur Oracle Cloud depuis GitHub Actions :
+voir `ORACLE_DEPLOYMENT.md`. Les deux cohabitent, `compose.yml` reste le socle
+commun.
 
 | Service | Adresse |
 | --- | --- |
@@ -242,9 +245,10 @@ docker compose ps                    # état des conteneurs
 
 ## Limites
 
-1. **Pas d'URL publique.** Le POC tourne sur le poste. Tester un signataire
-   distant réel suppose soit un tunnel, soit un hébergement (voir
-   `VERCEL_POC_NOTES.md` § 5).
+1. **Pas d'URL publique dans cette configuration.** Le POC décrit ici tourne sur
+   le poste. Cette limite est levée par le déploiement Oracle Cloud décrit dans
+   `ORACLE_DEPLOYMENT.md` : instance publique en HTTPS valide, signataire
+   distant réel testé depuis un téléphone.
 2. **Certificat auto-signé.** Les lecteurs PDF afficheront la signature comme
    non vérifiable auprès d'une autorité reconnue. Attendu, et sans portée
    juridique.
@@ -270,7 +274,8 @@ journalisent la query string par défaut.
 
 Parade, sans toucher à Documenso : configurer le proxy pour ne pas journaliser
 la query string sur ces trois chemins. Constat détaillé et vérifié dans
-`RESULTATS_TEST_2026-09-12.md`, constat 3.
+`RESULTATS_TEST_2026-09-12.md`, constat 3. Parade appliquée et vérifiée sur
+l'instance Oracle : voir `ORACLE_DEPLOYMENT.md`.
 
 ## Détection automatique des champs : écartée
 
@@ -343,15 +348,17 @@ Parcours complet exécuté sur deux journées : **GO AVEC RÉSERVES**.
   à travers un redémarrage complet du conteneur, et trois constats nouveaux
   dont un point de sécurité à traiter avant tout hébergement.
 
-Réserve de méthode à connaître : le test a été mené sur Documenso construit
-depuis les sources, à la même version et même configuration, et non via ce
-`compose.yml` (les CDN d'images Docker étaient inaccessibles depuis
-l'environnement d'audit). Rejouer le parcours via `compose.yml` sur un poste
-est le seul écart restant entre le testé et le livré.
+Réserve de méthode, levée depuis : ces deux journées de test avaient été
+menées sur Documenso construit depuis les sources, à la même version et même
+configuration, et non via ce `compose.yml` (les CDN d'images Docker étaient
+inaccessibles depuis l'environnement d'audit). Le parcours a depuis été rejoué
+de bout en bout via ce `compose.yml`, avec l'image officielle épinglée
+`documenso/documenso:v2.18.0`, sur la machine Oracle : voir
+`ORACLE_DEPLOYMENT.md`. L'écart entre le testé et le livré est donc fermé.
 
 ## Ce qui reste à faire
 
-- [ ] Rejouer le parcours via `compose.yml` sur un poste (seul écart restant
-      entre le testé et le livré)
+- [x] Rejouer le parcours via `compose.yml` avec l'image officielle
+      (fait sur Oracle, cf. `ORACLE_DEPLOYMENT.md`)
 - [ ] Mesurer le comportement sur vos vrais modèles de documents
 - [ ] Arbitrer la charge du placement manuel, une fois ces modèles connus
