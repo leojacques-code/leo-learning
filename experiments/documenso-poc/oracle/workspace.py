@@ -13,33 +13,37 @@ CE QU'IL FAIT
      destinataire signe sans compte Documenso.
 
 CE QU'IL NE FAIT PAS
-  Il ne déplace aucun modèle, ne supprime rien, ne touche à aucun mot de passe,
-  ne modifie aucun document existant, et laisse intacts les espaces personnels
-  des comptes rattachés, y compris leurs propres modèles.
+  Il ne déplace aucun modèle, ne supprime aucune donnée métier, ne touche à
+  aucun mot de passe, ne modifie aucun document existant, et laisse intacts
+  les espaces personnels des comptes rattachés, y compris leurs propres
+  modèles.
 
 CONFIDENTIALITÉ. Les journaux partent dans un job GitHub Actions public. Rien
-ici n'écrit d'adresse complète, de mot de passe, de jeton ni de lien de
-signature sur la sortie standard : les comptes sont désignés par leur
-empreinte courte et leur domaine.
+ici n'écrit d'adresse complète, de mot de passe, de jeton, d'empreinte de
+jeton ni de lien de signature sur la sortie standard : les comptes sont
+désignés par leur empreinte courte et leur domaine.
 """
 
 import hashlib
 import json
 import pathlib
+import re
 import secrets
 import string
+import subprocess
 import sys
 import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from seed import (  # noqa: E402  (le chemin doit être posé avant l'import)
-    Http, _prefill_for, _use_template, log, psql, wait_for_mail,
+    DB_CONTAINER, Http, _prefill_for, _use_template, log, psql, wait_for_mail,
 )
 
 STATE = pathlib.Path("/opt/documenso-poc/state/seed-state.json")
 CABINET_DOMAIN = "triactis.com"
 WORKSPACE_NAME = "Triactis"
+TOKEN_PREFIX = "Recette second compte"
 
 
 def fail(msg):
@@ -59,6 +63,21 @@ def ident(prefix):
 def ref(email):
     """Empreinte courte : suit un compte d'une ligne à l'autre sans le nommer."""
     return hashlib.md5(email.lower().encode()).hexdigest()[:6]
+
+
+def scrub(text):
+    """Retire toute longue chaîne hexadécimale d'un message avant journal."""
+    return re.sub(r"[0-9a-fA-F]{32,}", "<expurgé>", text or "")
+
+
+def psql_rc(sql):
+    """Comme psql(), mais rend le code de retour et l'erreur, pour diagnostiquer."""
+    out = subprocess.run(
+        ["docker", "exec", "-i", DB_CONTAINER,
+         "psql", "-U", "documenso", "-d", "documenso_poc", "-t", "-A", "-c", sql],
+        capture_output=True, text=True, check=False,
+    )
+    return out.returncode, out.stdout.strip(), out.stderr.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -109,8 +128,9 @@ def share_workspace(team_id):
             f"VALUES ('{ident('group_member_')}', '{member_group}', '{member_id}');",
             "COMMIT;",
         ]
-        if psql(" ".join(statements)) is None:
-            fail(f"rattachement du compte {ref(email)} refusé")
+        code, _, err = psql_rc(" ".join(statements))
+        if code != 0:
+            fail(f"rattachement du compte {ref(email)} refusé : {scrub(err)[:300]}")
         note(f"compte {ref(email)}@{CABINET_DOMAIN} rattaché comme MEMBER")
 
     # Nommage, seulement si l'espace porte encore son nom par défaut : on ne
@@ -155,6 +175,24 @@ def prove_membership(team_id):
 # Recette depuis le second compte
 # ---------------------------------------------------------------------------
 
+def sweep_stale_tokens():
+    """
+    Supprime les jetons de recette laissés par des exécutions antérieures.
+
+    Ces lignes n'appartiennent qu'à ce script, leur valeur en clair est perdue
+    et donc inutilisable. Aucune autre ligne n'est touchée.
+    """
+    code, out, err = psql_rc(
+        f"DELETE FROM \"ApiToken\" WHERE name LIKE '{TOKEN_PREFIX}%' RETURNING id;"
+    )
+    if code != 0:
+        note(f"nettoyage des jetons de recette impossible : {scrub(err)[:200]}")
+        return
+    removed = [line for line in out.splitlines() if line.strip()]
+    if removed:
+        note(f"{len(removed)} jeton(s) de recette antérieur(s) supprimé(s)")
+
+
 def temp_token(user_id, team_id):
     """
     Jeton d'API temporaire au nom du second compte.
@@ -162,22 +200,33 @@ def temp_token(user_id, team_id):
     Documenso stocke le SHA-512 hexadécimal du jeton, jamais le jeton lui-même.
     Il est détruit à la fin de la recette. Le mot de passe du compte n'est ni
     lu, ni modifié : c'est précisément ce qu'on cherche à éviter.
+
+    L'identifiant est relu par un SELECT sur un nom unique plutôt que par un
+    RETURNING : c'est la lecture du retour qui échouait, pas l'insertion.
     """
     token = "api_" + secrets.token_hex(24)
     digest = hashlib.sha512(token.encode()).hexdigest()
-    row = psql(
+    name = f"{TOKEN_PREFIX} {secrets.token_hex(4)}"
+
+    code, _, err = psql_rc(
         'INSERT INTO "ApiToken" (name, token, "userId", "teamId", "createdAt") '
-        f"VALUES ('Recette second compte (temporaire)', '{digest}', {user_id}, {team_id}, NOW()) "
-        "RETURNING id;"
+        f"VALUES ('{name}', '{digest}', {user_id}, {team_id}, NOW());"
     )
+    if code != 0:
+        fail(f"insertion du jeton de recette refusée par PostgreSQL : {scrub(err)[:400]}")
+
+    row = psql(f"SELECT id FROM \"ApiToken\" WHERE name = '{name}';")
     if not row.strip().isdigit():
-        fail("création du jeton temporaire impossible")
+        fail(f"jeton de recette inséré mais introuvable à la relecture : {scrub(row)[:200]}")
     return token, int(row.strip())
 
 
 def drop_token(token_id):
-    psql(f'DELETE FROM "ApiToken" WHERE id = {token_id};')
-    note("jeton temporaire du second compte détruit")
+    code, _, err = psql_rc(f'DELETE FROM "ApiToken" WHERE id = {token_id};')
+    if code != 0:
+        note(f"suppression du jeton temporaire impossible : {scrub(err)[:200]}")
+    else:
+        note("jeton temporaire du second compte détruit")
 
 
 def second_account_test(state, members, team_id):
@@ -195,6 +244,7 @@ def second_account_test(state, members, team_id):
     target = others[0]
     note(f"recette depuis le compte {target['ref']}@{target['domain']} (rôle {target['teamRole']})")
 
+    sweep_stale_tokens()
     token, token_id = temp_token(target["userId"], team_id)
     result = {"applicable": True, "ref": target["ref"], "teamRole": target["teamRole"]}
     try:
