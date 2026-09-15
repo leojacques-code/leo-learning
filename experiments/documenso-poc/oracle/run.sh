@@ -3,9 +3,9 @@
 # Orchestrateur exécuté sur la VM Oracle par le workflow GitHub Actions.
 #
 # Enchaîne, dans l'ordre et de façon idempotente :
-#   bootstrap hôte → déploiement → amorçage applicatif → fermeture de
-#   l'inscription → contrôles → test de persistance → sauvegarde → restitution
-#   chiffrée des éléments sensibles → inventaire applicatif.
+#   bootstrap hôte → déploiement → amorçage applicatif → espace partagé et
+#   recette du second compte → contrôles → test de persistance → sauvegarde →
+#   restitution chiffrée → inventaire applicatif.
 #
 # N'affiche jamais de valeur sensible : voir l'en-tête de oracle/relay.sh pour
 # le canal de retour utilisé.
@@ -19,19 +19,16 @@ ORACLE_DIR="$POC_SRC_DIR/oracle"
 log() { printf '\n########## %s ##########\n' "$*"; }
 
 SEED_DEGRADED=0
+WORKSPACE_FAILED=0
 
 # Amorçage d'une instance DÉJÀ amorcée.
 #
 # Il n'y a alors plus rien à créer : chaque étape se contente de constater que
 # le compte, les modèles, le lien direct et le parcours signé sont déjà là.
-# Mais l'amorçage se connecte au compte POC avec le mot de passe enregistré
-# dans state/seed-state.json. Si ce mot de passe a été changé depuis
-# l'interface Documenso, geste d'exploitation parfaitement légitime, la
-# connexion échoue et, sous `set -e`, emportait jusqu'ici tout le reste du
-# déploiement : contrôles, persistance et sauvegarde compris.
-#
-# Ce cas précis, et lui seul, devient un avertissement. Toute autre erreur
-# d'amorçage interrompt toujours le déploiement.
+# Depuis que le jeton d'API conservé sur la machine est essayé avant toute
+# session, un mot de passe changé depuis l'interface ne casse plus rien. Ce
+# filet reste là pour le cas où ni le jeton ni le mot de passe ne répondent :
+# le déploiement, les contrôles et la sauvegarde doivent continuer.
 run_seed_idempotent() {
   local log_file rc=0
   log_file="$(mktemp)"
@@ -50,11 +47,10 @@ run_seed_idempotent() {
     rm -f "$log_file"
     SEED_DEGRADED=1
     echo
-    echo "[run] AVERTISSEMENT : le mot de passe du compte POC enregistré dans"
-    echo "[run] state/seed-state.json ne correspond plus à celui de la base."
-    echo "[run] Il a vraisemblablement été changé depuis l'interface Documenso."
-    echo "[run] L'instance étant déjà amorcée, l'amorçage n'avait rien à créer :"
-    echo "[run] le déploiement se poursuit, contrôles et sauvegarde compris."
+    echo "[run] AVERTISSEMENT : ni le jeton d'API conservé ni le mot de passe"
+    echo "[run] enregistré dans state/seed-state.json ne permettent d'agir sur"
+    echo "[run] l'instance. L'amorçage est ignoré ; le reste du déploiement se"
+    echo "[run] poursuit, contrôles et sauvegarde compris."
     return 0
   fi
 
@@ -131,6 +127,20 @@ else
   log "5/8 INSCRIPTION DÉJÀ FERMÉE, BASIC AUTH APPLICATIF DÉJÀ RETIRÉ"
 fi
 
+# Espace de travail partagé. Cette étape écrit dans la base : la sauvegarde qui
+# la précède est la contrepartie de cette écriture, pas une formalité.
+if [[ "$SEED_DEGRADED" -eq 0 ]]; then
+  log "ESPACE PARTAGÉ TRIACTIS ET RECETTE DU SECOND COMPTE"
+  bash "$POC_SRC_DIR/scripts/oracle-backup.sh"
+  if ! python3 "$ORACLE_DIR/workspace.py"; then
+    WORKSPACE_FAILED=1
+    echo "[run] ÉCHEC de la mise en partage, voir ci-dessus. Le reste du"
+    echo "[run] déploiement se poursuit pour ne pas perdre contrôles et sauvegarde."
+  fi
+else
+  echo "[run] mise en partage non tentée : l'amorçage n'a pas pu agir sur l'instance"
+fi
+
 # Configuration de la page de démonstration : uniquement le chemin du lien
 # direct, qui est fait pour être partagé. Aucun jeton d'API, aucun secret.
 python3 "$ORACLE_DIR/write-demo-config.py"
@@ -149,13 +159,17 @@ bash "$ORACLE_DIR/relay.sh"
 
 echo
 if [[ "$SEED_DEGRADED" -eq 1 ]]; then
-  echo "[run] terminé, AVEC UNE RÉSERVE : l'amorçage n'a pas pu se connecter au"
-  echo "[run] compte POC. Le mot de passe enregistré dans state/seed-state.json"
-  echo "[run] est périmé. Pour le resynchroniser, deux voies :"
+  echo "[run] terminé, AVEC UNE RÉSERVE : l'amorçage n'a pas pu agir sur"
+  echo "[run] l'instance. Ni le jeton d'API conservé ni le mot de passe"
+  echo "[run] enregistré dans state/seed-state.json ne répondent. Deux voies,"
+  echo "[run] dont aucune ne modifie le mot de passe d'un compte :"
   echo "[run]   - inscrire le mot de passe courant dans state/seed-state.json ;"
   echo "[run]   - ou supprimer state/seed-state.json pour repartir d'un compte"
   echo "[run]     de démonstration neuf. Les données existantes sont conservées,"
   echo "[run]     mais les modèles et le parcours de démonstration sont recréés."
+elif [[ "$WORKSPACE_FAILED" -eq 1 ]]; then
+  echo "[run] terminé, AVEC UNE RÉSERVE : la mise en partage de l'espace"
+  echo "[run] Triactis a échoué. Le déploiement lui-même est intact."
 else
   echo "[run] terminé."
 fi
