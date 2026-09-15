@@ -1,0 +1,93 @@
+# Surcharge Oracle Cloud du POC Documenso.
+#
+# À utiliser EN PLUS de compose.yml, jamais à sa place :
+#
+#   docker compose \
+#     --project-directory /opt/leo-learning/experiments/documenso-poc \
+#     --env-file /opt/documenso-poc/.env \
+#     --env-file /opt/documenso-poc/oracle.env \
+#     -f compose.yml -f compose.oracle.yml up -d
+#
+# compose.yml reste la description du POC local et n'est pas modifié. Cette
+# surcharge n'ajoute qu'une chose au montage : Caddy, seul point d'entrée
+# Internet. Elle ne publie aucun port supplémentaire côté conteneurs
+# applicatifs : database, mailpit et documenso restent liés à 127.0.0.1 par
+# compose.yml, et Caddy les joint par le réseau Docker interne.
+#
+# Les chemins de volumes sont ABSOLUS et pointent hors du dépôt Git : l'état
+# d'exécution (secrets, certificat, configuration Caddy) vit dans
+# /opt/documenso-poc/ et survit à n'importe quel `git fetch` ou `git checkout`.
+
+services:
+  # En local, perdre la boîte aux lettres au redémarrage est sans conséquence.
+  # Ici les courriels font partie de la démonstration : l'invitation de
+  # signature et la notification de complétion doivent encore être là le
+  # lendemain. On donne donc un volume à Mailpit.
+  mailpit:
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: '500'
+    volumes:
+      - poc-mailpit:/data
+
+  documenso:
+    environment:
+      # URL publique : c'est elle qui construit les liens de signature envoyés
+      # aux destinataires. Elle doit être le hostname HTTPS public.
+      NEXT_PUBLIC_WEBAPP_URL: "https://${POC_HOSTNAME:?manquant, rendu par oracle/deploy.sh}"
+
+      # URL interne : l'auto-appel HTTP du dispatcher de jobs. Il doit rester
+      # sur la boucle locale du conteneur et NE PAS repasser par Caddy, sinon
+      # le Basic Auth de bootstrap casserait le scellement des PDF.
+      NEXT_PRIVATE_INTERNAL_WEBAPP_URL: "http://localhost:3000"
+
+      # Interrupteur maître d'inscription. `false` seulement le temps de créer
+      # le compte POC, derrière le Basic Auth Caddy ; passé à `true` avant que
+      # l'application ne soit accessible sans authentification.
+      NEXT_PUBLIC_DISABLE_SIGNUP: "${POC_DISABLE_SIGNUP:-true}"
+
+    volumes:
+      # Même cible que dans compose.yml : Compose fusionne les montages par
+      # chemin de destination, celui-ci remplace donc ./certs/cert.p12.
+      - /opt/documenso-poc/certs/cert.p12:/opt/documenso/cert.p12:ro
+
+  # Réception des webhooks Documenso, pour la démonstration du suivi de statut.
+  # Purement local : écoute sur le réseau Docker, jamais publié.
+  webhook-sink:
+    image: python:3.12-alpine
+    container_name: documenso-poc-webhook-sink
+    restart: unless-stopped
+    working_dir: /app
+    command: ['python', '/app/webhook_sink.py']
+    volumes:
+      - /opt/documenso-poc/webhook/webhook_sink.py:/app/webhook_sink.py:ro
+      - poc-webhook:/data
+    environment:
+      PYTHONUNBUFFERED: '1'
+
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: documenso-poc-caddy
+    restart: unless-stopped
+    depends_on:
+      - documenso
+      - mailpit
+    # Seuls ports ouverts sur Internet de toute la pile.
+    ports:
+      - '0.0.0.0:80:80'
+      - '0.0.0.0:443:443'
+    volumes:
+      - /opt/documenso-poc/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/documenso-poc/demo:/srv/demo:ro
+      - poc-caddy-data:/data
+      - poc-caddy-config:/config
+
+volumes:
+  poc-mailpit:
+    name: documenso-poc-mailpit
+  poc-caddy-data:
+    name: documenso-poc-caddy-data
+  poc-caddy-config:
+    name: documenso-poc-caddy-config
+  poc-webhook:
+    name: documenso-poc-webhook
