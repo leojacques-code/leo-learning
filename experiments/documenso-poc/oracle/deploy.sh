@@ -105,8 +105,43 @@ grep -q '^NEXT_PRIVATE_SIGNING_PASSPHRASE=.\+' "$POC_STATE_DIR/.env" \
 # ---------------------------------------------------------------------------
 AUTH_FILE="$POC_STATE_DIR/state/auth.env"
 
-if [[ ! -f "$AUTH_FILE" ]]; then
-  log "génération des identifiants Basic Auth"
+# Un fichier présent mais incomplet est pire qu'absent : il serait considéré
+# comme déjà généré et le Basic Auth ne protégerait rien. On vérifie donc que
+# les trois hashes sont bien des hashes bcrypt et que les mots de passe en
+# clair correspondants sont présents.
+auth_file_complete() {
+  [[ -f "$AUTH_FILE" ]] || return 1
+  local key
+  for key in POC_MAIL_HASH POC_DEMO_HASH POC_APP_HASH; do
+    grep -q "^$key=\\\$2[aby]\\\$" "$AUTH_FILE" || return 1
+  done
+  for key in POC_MAIL_PASSWORD POC_DEMO_PASSWORD POC_APP_BOOTSTRAP_PASSWORD POC_AUTH_USER; do
+    grep -qE "^$key=.{4,}" "$AUTH_FILE" || return 1
+  done
+  return 0
+}
+
+# Le mot de passe passe par stdin, jamais en argument : il n'apparaît ainsi ni
+# dans la table des processus ni dans la ligne de commande du conteneur.
+# `caddy hash-password` lit une ligne : la fin de ligne est indispensable,
+# faute de quoi il échoue sur EOF.
+hash_pw() {
+  local pw="$1" out=''
+  out="$(printf '%s\n' "$pw" \
+         | docker run --rm -i "$CADDY_IMAGE" caddy hash-password 2>/dev/null \
+         | tr -d '\r\n')"
+  if [[ "$out" != \$2* ]]; then
+    # Repli si une version de Caddy n'accepte le mot de passe qu'en argument.
+    out="$(docker run --rm "$CADDY_IMAGE" caddy hash-password --plaintext "$pw" 2>/dev/null \
+           | tr -d '\r\n')"
+  fi
+  [[ "$out" == \$2* ]] || return 1
+  printf '%s' "$out"
+}
+
+if ! auth_file_complete; then
+  [[ -f "$AUTH_FILE" ]] && log "identifiants Basic Auth incomplets : régénération" \
+                        || log "génération des identifiants Basic Auth"
   docker pull -q "$CADDY_IMAGE" >/dev/null
 
   # 32 caractères base64url : nettement au-delà des ~24 demandés, le hash
@@ -115,9 +150,11 @@ if [[ ! -f "$AUTH_FILE" ]]; then
 
   _mail_pw="$(gen_pw)"; _demo_pw="$(gen_pw)"; _app_pw="$(gen_pw)"
 
-  # Le mot de passe passe par stdin, jamais en argument : il n'apparaît donc
-  # ni dans la table des processus ni dans la ligne de commande du conteneur.
-  hash_pw() { printf '%s' "$1" | docker run --rm -i "$CADDY_IMAGE" caddy hash-password; }
+  # Les hashes sont calculés et contrôlés AVANT d'écrire le fichier : sinon un
+  # échec de hachage laisserait un fichier d'apparence valide aux hashes vides.
+  _mail_hash="$(hash_pw "$_mail_pw")" || die "hachage bcrypt impossible (mailpit)"
+  _demo_hash="$(hash_pw "$_demo_pw")" || die "hachage bcrypt impossible (démo)"
+  _app_hash="$(hash_pw "$_app_pw")"   || die "hachage bcrypt impossible (application)"
 
   umask 077
   {
@@ -125,14 +162,17 @@ if [[ ! -f "$AUTH_FILE" ]]; then
     printf 'POC_MAIL_PASSWORD=%s\n' "$_mail_pw"
     printf 'POC_DEMO_PASSWORD=%s\n' "$_demo_pw"
     printf 'POC_APP_BOOTSTRAP_PASSWORD=%s\n' "$_app_pw"
-    printf 'POC_MAIL_HASH=%s\n' "$(hash_pw "$_mail_pw")"
-    printf 'POC_DEMO_HASH=%s\n' "$(hash_pw "$_demo_pw")"
-    printf 'POC_APP_HASH=%s\n' "$(hash_pw "$_app_pw")"
+    printf 'POC_MAIL_HASH=%s\n' "$_mail_hash"
+    printf 'POC_DEMO_HASH=%s\n' "$_demo_hash"
+    printf 'POC_APP_HASH=%s\n' "$_app_hash"
   } > "$AUTH_FILE"
   chmod 600 "$AUTH_FILE"
-  unset _mail_pw _demo_pw _app_pw
+  unset _mail_pw _demo_pw _app_pw _mail_hash _demo_hash _app_hash
+
+  auth_file_complete || die "le fichier d'identifiants reste incomplet après génération"
+  log "identifiants Basic Auth générés et vérifiés"
 else
-  log "identifiants Basic Auth : déjà présents, conservés"
+  log "identifiants Basic Auth : déjà présents et complets, conservés"
 fi
 
 # shellcheck disable=SC1090
