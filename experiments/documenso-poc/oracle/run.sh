@@ -18,8 +18,34 @@ ORACLE_DIR="$POC_SRC_DIR/oracle"
 
 log() { printf '\n########## %s ##########\n' "$*"; }
 
-log "1/8 BOOTSTRAP DE L'HÔTE"
-bash "$ORACLE_DIR/bootstrap.sh"
+# ---------------------------------------------------------------------------
+# Groupe docker
+# ---------------------------------------------------------------------------
+# bootstrap.sh ajoute l'utilisateur au groupe `docker`, mais l'appartenance
+# aux groupes est lue à l'ouverture de session : la session SSH en cours ne la
+# porte pas encore, et le premier appel à docker échoue sur la socket.
+#
+# Plutôt que de basculer toute la pile sur `sudo docker` (ce qui rendrait les
+# scripts inutilisables tels quels par un humain connecté normalement), on se
+# relance une seule fois dans un shell qui porte le groupe. Aux exécutions
+# suivantes la session SSH l'a déjà et cette branche n'est pas prise.
+if [[ "${POC_DOCKER_GROUP_OK:-}" != "1" ]]; then
+  log "1/8 BOOTSTRAP DE L'HÔTE"
+  bash "$ORACLE_DIR/bootstrap.sh"
+
+  if ! docker info >/dev/null 2>&1; then
+    if id -nG "$USER" | tr ' ' '\n' | grep -qx docker; then
+      echo "[run] groupe docker acquis mais pas encore effectif : relance via sg"
+      exec sg docker -c "POC_DOCKER_GROUP_OK=1 bash '$ORACLE_DIR/run.sh'"
+    fi
+    echo "[run] ERREUR : la socket Docker est injoignable et l'utilisateur" >&2
+    echo "[run] n'appartient pas au groupe docker." >&2
+    exit 1
+  fi
+  export POC_DOCKER_GROUP_OK=1
+else
+  echo "[run] 1/8 bootstrap déjà passé, poursuite dans le shell portant le groupe docker"
+fi
 
 log "2/8 DÉPLOIEMENT DE LA PILE"
 bash "$ORACLE_DIR/deploy.sh"
@@ -29,7 +55,7 @@ set -a; . "$POC_STATE_DIR/oracle.env"; . "$POC_STATE_DIR/state/auth.env"; set +a
 PHASE="$(cat "$POC_STATE_DIR/state/last-phase")"
 
 log "3/8 GÉNÉRATION DES MODÈLES DE DÉMONSTRATION"
-python3 "$POC_SRC_DIR/scripts/05-generate-demo-templates.py" || true
+python3 "$POC_SRC_DIR/scripts/05-generate-demo-templates.py"
 
 log "4/8 AMORÇAGE APPLICATIF ET RECETTE FONCTIONNELLE"
 if [[ "$PHASE" == bootstrap ]]; then
