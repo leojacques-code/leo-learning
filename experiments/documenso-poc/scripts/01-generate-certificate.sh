@@ -9,7 +9,10 @@
 
 set -euo pipefail
 
-POC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Le POC local écrit dans le dossier du dépôt. Le déploiement Oracle passe
+# DOCUMENSO_POC_STATE_DIR pour que secrets et certificat vivent hors du dépôt
+# Git (/opt/documenso-poc), et survivent donc à tout `git fetch`/`git checkout`.
+POC_DIR="${DOCUMENSO_POC_STATE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 CERT_DIR="$POC_DIR/certs"
 ENV_FILE="$POC_DIR/.env"
 P12="$CERT_DIR/cert.p12"
