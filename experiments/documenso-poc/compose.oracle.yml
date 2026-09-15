@@ -30,10 +30,12 @@ services:
     environment:
       NEXT_PUBLIC_WEBAPP_URL: "https://${POC_HOSTNAME:?manquant, rendu par oracle/deploy.sh}"
       NEXT_PRIVATE_INTERNAL_WEBAPP_URL: "http://localhost:3000"
-      NEXT_PUBLIC_DISABLE_SIGNUP: "${POC_DISABLE_SIGNUP:-true}"
-      # Quand les inscriptions sont temporairement ouvertes, limiter la création
-      # de comptes au domaine d'entreprise plutôt que d'ouvrir l'instance au public.
-      NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS: "${POC_ALLOWED_SIGNUP_DOMAINS:-}"
+
+      # TEMPORAIRE POUR LA DEMO : autoriser la création de comptes, mais
+      # uniquement avec une adresse @triactis.com. À remettre à true après
+      # création des comptes de démonstration.
+      NEXT_PUBLIC_DISABLE_SIGNUP: "false"
+      NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS: "triactis.com"
 
     volumes:
       - /opt/documenso-poc/certs/cert.p12:/opt/documenso/cert.p12:ro
