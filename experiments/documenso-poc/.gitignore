@@ -1,0 +1,26 @@
+# Secrets et matériel cryptographique : jamais versionnés.
+.env
+.env.local
+*.p12
+*.pfx
+*.key
+*.crt
+*.pem
+certs/*
+!certs/.gitkeep
+
+# Seule exception à la règle *.pem ci-dessus : le certificat de relais est un
+# certificat PUBLIC. Il sert à CHIFFRER vers l'agent de déploiement, jamais à
+# déchiffrer. La clé privée correspondante n'est pas dans ce dépôt, n'y entrera
+# pas, et n'a jamais quitté l'environnement de l'agent. Voir oracle/relay.sh.
+!oracle/relay-cert.pem
+
+# Templates de test : déposés en local, hors dépôt.
+# Garantit qu'aucun document, même fictif, ne part sur GitHub par mégarde.
+test-templates/*
+!test-templates/README.md
+
+# Modèles de démonstration : générés par scripts/05-generate-demo-templates.py,
+# sur la machine qui en a besoin. La règle « aucun document dans Git » vaut
+# aussi pour les documents fictifs.
+demo/generated/

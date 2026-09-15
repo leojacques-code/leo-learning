@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Triactis — démonstration signature électronique</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#faf9f7; --card:#ffffff; --ink:#1c1b19; --muted:#6b6862;
+    --line:#e4e1da; --accent:#6b542a; --accent-soft:#f3efe4;
+    --warn:#8a6d1f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#16150f; --card:#1f1e17; --ink:#f2f0ea; --muted:#a8a49a;
+      --line:#34322a; --accent:#d8c08a; --accent-soft:#2a271d;
+      --warn:#d8bb6a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:28px 16px 64px}
+  header{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:28px}
+  .kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+          font-weight:700;margin:0 0 6px}
+  h1{font-size:23px;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0;font-size:14px}
+  h2{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+     margin:34px 0 12px;font-weight:700}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+        padding:16px 18px;margin-bottom:10px}
+  .card h3{margin:0 0 4px;font-size:15px}
+  .card p{margin:0;color:var(--muted);font-size:13.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  a.btn{display:inline-block;margin-top:10px;padding:8px 14px;border-radius:7px;
+        background:var(--accent-soft);color:var(--accent);text-decoration:none;
+        font-weight:600;font-size:13.5px;border:1px solid var(--line)}
+  a.btn:hover{filter:brightness(.97)}
+  ol.steps{margin:0;padding-left:20px;color:var(--muted);font-size:13.5px}
+  ol.steps li{margin:4px 0}
+  ol.steps b{color:var(--ink);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  code{background:var(--accent-soft);padding:1px 5px;border-radius:4px;font-size:12.5px}
+  pre.flow{background:var(--card);border:1px solid var(--line);border-radius:10px;
+           padding:16px;overflow-x:auto;font-size:12.5px;line-height:1.5;color:var(--muted);margin:0}
+  .note{border-left:3px solid var(--warn);padding:10px 14px;background:var(--card);
+        border-radius:0 8px 8px 0;font-size:13px;color:var(--muted);margin-top:10px}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
+         color:var(--muted);font-size:12.5px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;
+       padding:2px 7px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+  .tbl{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Triactis · proof of concept</p>
+  <h1>Signature électronique — parcours de démonstration</h1>
+  <p class="sub">Instance Documenso auto-hébergée. Données intégralement fictives, aucun courriel réel n'est expédié.</p>
+</header>
+
+<h2>Accès</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Application</h3>
+    <p>Modèles, documents, suivi des signatures.</p>
+    <a class="btn" id="lnk-app" href="#">Ouvrir Documenso</a>
+  </div>
+  <div class="card">
+    <h3>Boîte aux lettres</h3>
+    <p>Tous les courriels sortants sont capturés ici. Rien ne part vers l'extérieur.</p>
+    <a class="btn" id="lnk-mail" href="#">Ouvrir Mailpit</a>
+  </div>
+  <div class="card">
+    <h3>Flux d'événements</h3>
+    <p>Ce qu'un CRM recevrait en temps réel : créé, envoyé, ouvert, signé, terminé.</p>
+    <a class="btn" href="webhooks/">Ouvrir le flux</a>
+  </div>
+</div>
+
+<h2>Démonstration 1 — le modèle est préparé une fois</h2>
+<div class="card">
+  <h3>Trois modèles prêts à l'emploi</h3>
+  <p>NDA Cédant, NDA Acquéreur, Lettre de mission. Les champs de signature, de date,
+     de société et de fonction sont déjà positionnés : ils ne sont plus jamais replacés.</p>
+  <a class="btn" id="lnk-templates" href="#">Voir les modèles</a>
+</div>
+
+<h2>Démonstration 2 — cinq données changent, pas le document</h2>
+<div class="card">
+  <p>Le corps du document ne se ressaisit pas. Seules varient les données propres au dossier
+     et au destinataire :</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Variable</th><th>Exemple</th><th>Origine demain</th></tr></thead>
+    <tbody>
+      <tr><td><code>MV_PROJET</code></td><td>Projet Atlas</td><td>Zoho · Deal_Name</td></tr>
+      <tr><td><code>MV_SOCIETE</code></td><td>ALPHA CONSEIL SAS</td><td>Zoho · Account_Name</td></tr>
+      <tr><td><code>MV_PRENOM</code> <code>MV_NOM</code></td><td>Jean Dupont</td><td>Zoho · Contact</td></tr>
+      <tr><td><code>MV_FONCTION</code></td><td>Président</td><td>Zoho · Contact.Title</td></tr>
+      <tr><td><code>MV_EMAIL</code></td><td>jean.dupont@example.test</td><td>Zoho · Contact.Email</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note">Un appel d'API et le document est créé, le destinataire configuré, les champs
+    déjà placés et pré-remplis. L'opérateur ne touche jamais au PDF.</div>
+</div>
+
+<h2>Démonstration 3 — envoi en masse</h2>
+<div class="card">
+  <h3>Un CSV, autant de documents individualisés</h3>
+  <p>Douze acquéreurs fictifs dans le fichier. Chaque ligne produit son propre document,
+     son propre lien et son propre suivi.</p>
+  <a class="btn" href="bulk-send-demo.csv" download>Télécharger le CSV de démonstration</a>
+</div>
+
+<h2>Démonstration 4 — lien direct réutilisable</h2>
+<div class="card">
+  <h3>Un lien, autant de signatures que nécessaire</h3>
+  <p>À la différence de l'envoi en masse, ce lien n'est pas nominatif : la personne qui l'ouvre
+     renseigne elle-même son identité, et <b>un nouveau document est créé à chaque utilisation</b>.
+     Utile pour un NDA acquéreur diffusé à une liste connue.</p>
+  <a class="btn" id="lnk-direct" href="#">Ouvrir le lien direct</a>
+</div>
+
+<h2>Démonstration 5 — signature depuis un téléphone</h2>
+<div class="card">
+  <p>Le destinataire reçoit un lien, l'ouvre depuis son iPhone, signe au doigt et valide.
+     Aucun compte à créer, aucune application à installer.</p>
+  <ol class="steps">
+    <li><b>Ouvrir</b> le lien reçu par courriel</li>
+    <li><b>Renseigner</b> les champs restants</li>
+    <li><b>Signer</b> au doigt dans le pavé de signature</li>
+    <li><b>Valider</b> : le document passe en terminé et le PDF scellé est produit</li>
+  </ol>
+</div>
+
+<h2>Démonstration 6 — suivi</h2>
+<div class="card">
+  <p>Chaque document porte un identifiant externe de dossier (<code>DEAL-DEMO-001</code>)
+     qui le relie proprement à une fiche CRM, sans passer par un nom ou une adresse
+     électronique comme clé métier.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Étape</th><th>Statut Documenso</th><th>Statut CRM cible</th></tr></thead>
+    <tbody>
+      <tr><td>Document envoyé</td><td>SENT</td><td>NDA_STATUS = Sent</td></tr>
+      <tr><td>Lien ouvert</td><td>OPENED</td><td>NDA_STATUS = Opened</td></tr>
+      <tr><td>Signé</td><td>SIGNED</td><td>NDA_STATUS = Signed</td></tr>
+      <tr><td>Terminé, PDF scellé</td><td>COMPLETED</td><td>document_url renseigné</td></tr>
+      <tr><td>Refusé</td><td>REJECTED</td><td>NDA_STATUS = Rejected</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<h2>Démonstration 7 — Zoho, demain</h2>
+<pre class="flow">
+  ZOHO CRM                     MIDDLEWARE                   DOCUMENSO
+  --------                     ----------                   ---------
+  Deal / Contact  --------&gt;   lecture des champs
+                               du dossier
+                                     |
+                                     v
+                               choix du modele      -----&gt;  POST /envelope/use
+                               + valeurs variables           (prefillFields)
+                                                                  |
+                                                                  v
+                                                            envoi au signataire
+                                                                  |
+                                                                  v
+  NDA_STATUS = Signed  &lt;-----  mise a jour  &lt;--------------  webhook COMPLETED
+  document_url         &lt;-----  de la fiche                   externalId = DEAL-...
+</pre>
+<div class="note">Rien n'est connecté à Zoho aujourd'hui. Le schéma décrit l'intégration
+  préparée, documentée dans <code>ZOHO_INTEGRATION_BLUEPRINT.md</code>.</div>
+
+<footer>
+  <p><span class="tag">POC technique</span> Le certificat de signature est auto-signé et sert
+     uniquement à la démonstration. Il ne constitue ni une signature qualifiée eIDAS, ni une QES,
+     ni une AES, ni un équivalent juridique d'un prestataire de confiance.</p>
+  <p>Aucune donnée réelle, aucun dossier client, aucun courriel expédié vers l'extérieur.</p>
+</footer>
+
+</div>
+<script>
+// Les hostnames se déduisent de celui de cette page : demo.<hote> -> <hote>.
+(function () {
+  var host = location.hostname.replace(/^demo\./, '');
+  var app = location.protocol + '//' + host;
+  var mail = location.protocol + '//mail.' + host;
+  document.getElementById('lnk-app').href = app;
+  document.getElementById('lnk-mail').href = mail;
+  document.getElementById('lnk-templates').href = app + '/templates';
+
+  // Chemin du lien direct : écrit par le déploiement, jamais un secret d'API.
+  fetch('config.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (cfg) {
+      var el = document.getElementById('lnk-direct');
+      if (cfg && cfg.directLinkPath) {
+        el.href = app + cfg.directLinkPath;
+      } else {
+        el.textContent = 'Lien direct non configuré';
+        el.removeAttribute('href');
+      }
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>

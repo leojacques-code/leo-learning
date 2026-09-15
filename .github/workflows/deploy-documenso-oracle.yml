@@ -1,0 +1,218 @@
+name: Déploiement Documenso sur Oracle Cloud
+
+# Déclenché par un push sur `leolearning` touchant le POC ou ce workflow.
+# `workflow_dispatch` est déclaré pour mémoire : GitHub ne l'expose que pour les
+# workflows présents sur la branche par défaut, ce qui n'est pas le cas ici. Le
+# déclencheur réel et suffisant est donc le push.
+on:
+  push:
+    branches: [leolearning]
+    paths:
+      - 'experiments/documenso-poc/**'
+      - '.github/workflows/deploy-documenso-oracle.yml'
+  workflow_dispatch:
+
+# Lecture seule : ce workflow ne pousse rien, ne commente rien, n'écrit rien
+# sur GitHub. Il n'a besoin que de récupérer la référence du commit.
+permissions:
+  contents: read
+
+# Un seul déploiement à la fois. `cancel-in-progress: false` est délibéré :
+# interrompre un déploiement en cours d'installation Docker ou de migration
+# Prisma laisserait la machine dans un état intermédiaire.
+concurrency:
+  group: documenso-oracle
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Déployer et recetter
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      # Aucune action tierce n'est utilisée dans ce job : la clé SSH privée y
+      # transite, et lui adjoindre du code qu'on n'a pas lu serait le maillon
+      # faible de tout le dispositif. ssh et bash suffisent.
+      - name: Préparer la clé SSH
+        env:
+          ORACLE_SSH_PRIVATE_KEY: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          # Pas de `set -x` ici ni dans les étapes suivantes : la trace shell
+          # exposerait le contenu des variables.
+          install -d -m 700 "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$ORACLE_SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh/id"
+          chmod 600 "$RUNNER_TEMP/ssh/id"
+          # Une clé mal collée (retours à la ligne perdus) est la panne la plus
+          # fréquente : on la détecte ici plutôt qu'au premier ssh.
+          if ! ssh-keygen -y -f "$RUNNER_TEMP/ssh/id" > "$RUNNER_TEMP/ssh/id.pub" 2>/dev/null; then
+            echo "::error::Le secret ORACLE_SSH_PRIVATE_KEY n'est pas une clé privée OpenSSH exploitable."
+            exit 1
+          fi
+          echo "Clé privée chargée, type : $(awk '{print $1}' "$RUNNER_TEMP/ssh/id.pub")"
+
+      - name: Attendre que le port SSH réponde
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if nc -z -w 5 "$ORACLE_HOST" 22 2>/dev/null; then
+              echo "Port 22 ouvert après $i tentative(s)."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Le port 22 de la VM Oracle ne répond pas après 5 minutes."
+          exit 1
+
+      - name: Déployer et recetter sur la VM
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          POC_RECOVERY_PASSWORD: ${{ secrets.POC_RECOVERY_PASSWORD }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Le secret de récupération reste dans un fichier temporaire 600 sur
+          # le runner, puis est copié par SCP vers la VM. Sa valeur n'est jamais
+          # passée en argument, affichée ni écrite dans le dépôt.
+          if [ ${#POC_RECOVERY_PASSWORD} -lt 12 ]; then
+            echo "::error::POC_RECOVERY_PASSWORD est absent ou trop court (12 caractères minimum)."
+            exit 1
+          fi
+          RECOVERY_LOCAL="$RUNNER_TEMP/recovery_password"
+          umask 077
+          printf '%s\n' "$POC_RECOVERY_PASSWORD" > "$RECOVERY_LOCAL"
+          chmod 600 "$RECOVERY_LOCAL"
+
+          scp -q -i "$RUNNER_TEMP/ssh/id" \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
+              -o ConnectTimeout=20 \
+              "$RECOVERY_LOCAL" \
+              "$ORACLE_USER@$ORACLE_HOST:/tmp/documenso-poc-recovery-password"
+          rm -f "$RECOVERY_LOCAL"
+          unset POC_RECOVERY_PASSWORD
+
+          # Le dépôt est public : la VM le clone elle-même, sans identifiant.
+          # Elle déploie le commit EXACT qui a déclenché ce workflow, pas la
+          # tête de branche, qui pourrait déjà avoir bougé.
+          ssh -i "$RUNNER_TEMP/ssh/id" \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=60 \
+              -o ConnectTimeout=20 \
+              "$ORACLE_USER@$ORACLE_HOST" \
+              'bash -s' -- "$COMMIT_SHA" <<'REMOTE'
+          set -euo pipefail
+          SHA="$1"
+          REPO_URL=https://github.com/leojacques-code/leo-learning.git
+          REPO_DIR=/opt/leo-learning
+
+          echo "[remote] commit demandé : $SHA"
+
+          sudo mkdir -p "$REPO_DIR"
+          sudo chown "$USER":"$USER" "$REPO_DIR"
+
+          if [ ! -d "$REPO_DIR/.git" ]; then
+            git clone --no-checkout "$REPO_URL" "$REPO_DIR"
+          fi
+
+          cd "$REPO_DIR"
+          git remote set-url origin "$REPO_URL"
+          git fetch --force origin leolearning
+          # `git checkout` seul ne supprime aucun fichier non suivi, et
+          # `git clean` n'est jamais appelé : l'état d'exécution vit de toute
+          # façon dans /opt/documenso-poc, hors de ce dépôt.
+          git checkout --force "$SHA"
+          echo "[remote] HEAD : $(git rev-parse HEAD)"
+
+          chmod +x experiments/documenso-poc/oracle/*.sh experiments/documenso-poc/scripts/*.sh
+          bash experiments/documenso-poc/oracle/run.sh
+          REMOTE
+
+      # Un redémarrage de la machine n'est pas une routine : il n'a lieu qu'une
+      # fois, pour prouver que le POC repart seul. Le marqueur est posé sur la
+      # VM au premier succès, et cette étape devient alors un simple constat.
+      - name: Test de redémarrage de la machine
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $RUNNER_TEMP/ssh/id -o StrictHostKeyChecking=accept-new"
+          SSH_OPTS="$SSH_OPTS -o UserKnownHostsFile=$RUNNER_TEMP/ssh/known_hosts"
+          SSH_OPTS="$SSH_OPTS -o ConnectTimeout=20 -o ServerAliveInterval=30"
+
+          # shellcheck disable=SC2086
+          if ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" \
+               'test -f /opt/documenso-poc/state/reboot-tested' 2>/dev/null; then
+            echo "Test de redémarrage déjà passé sur cette machine, non rejoué."
+            exit 0
+          fi
+
+          echo "Redémarrage de la machine."
+          # La connexion tombe pendant le redémarrage : c'est attendu, et c'est
+          # précisément ce que le workflow doit savoir encaisser.
+          # shellcheck disable=SC2086
+          ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" 'sudo systemctl reboot' || true
+
+          sleep 25
+          echo "Attente du retour du port 22."
+          back=0
+          for i in $(seq 1 60); do
+            if nc -z -w 5 "$ORACLE_HOST" 22 2>/dev/null; then
+              echo "Port 22 de nouveau ouvert après $i tentative(s)."
+              back=1; break
+            fi
+            sleep 5
+          done
+          [ "$back" -eq 1 ] || { echo "::error::La machine n'est pas revenue."; exit 1; }
+
+          # Le port 22 répond avant que le démon SSH n'accepte les sessions.
+          sleep 20
+          # shellcheck disable=SC2086
+          ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" \
+            'bash /opt/leo-learning/experiments/documenso-poc/oracle/reboot-check.sh'
+
+      - name: Vérifier depuis l'extérieur que les ports privés sont fermés
+        if: always()
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+        run: |
+          set -euo pipefail
+          # Ce runner est sur Internet : c'est le bon endroit pour constater ce
+          # qui est joignable de l'extérieur. L'hôte n'est jamais affiché.
+          fail=0
+          for port in 22 80 443; do
+            if nc -z -w 5 "$ORACLE_HOST" "$port" 2>/dev/null; then
+              echo "  [ OK ] port $port ouvert depuis Internet, attendu"
+            else
+              echo "  [ KO ] port $port injoignable depuis Internet"
+              fail=$((fail + 1))
+            fi
+          done
+          for port in 3000 5432 55432 8025 1025 2019; do
+            if nc -z -w 5 "$ORACLE_HOST" "$port" 2>/dev/null; then
+              echo "  [ KO ] port $port RÉPOND depuis Internet, il ne devrait pas"
+              fail=$((fail + 1))
+            else
+              echo "  [ OK ] port $port fermé depuis Internet"
+            fi
+          done
+          [ "$fail" -eq 0 ] || { echo "::error::$fail anomalie(s) d'exposition réseau."; exit 1; }
+
+      - name: Effacer la clé SSH et les fichiers temporaires
+        if: always()
+        run: |
+          set -euo pipefail
+          rm -f "$RUNNER_TEMP/recovery_password" 2>/dev/null || true
+          if [ -d "$RUNNER_TEMP/ssh" ]; then
+            find "$RUNNER_TEMP/ssh" -type f -exec shred -u {} + 2>/dev/null || true
+            rm -rf "$RUNNER_TEMP/ssh"
+          fi
+          echo "Matériel SSH et fichiers temporaires effacés du runner."
