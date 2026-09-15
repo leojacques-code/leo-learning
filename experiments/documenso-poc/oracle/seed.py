@@ -88,6 +88,10 @@ class Http:
         self.api_base = api_base.rstrip("/")
         self.basic_auth = basic_auth
         self.token = None
+        # Le contexte d'équipe des appels tRPC vient de l'en-tête x-team-id
+        # (packages/trpc/server/context.ts). Sans lui, les procédures qui
+        # travaillent sur un espace de travail répondent 404.
+        self.team_id = None
         self.jar = CookieJar()
         self.opener = urllib.request.build_opener(
             urllib.request.HTTPCookieProcessor(self.jar),
@@ -134,15 +138,19 @@ class Http:
             return payload[:400].decode("utf-8", "replace")
 
     # -- couches -----------------------------------------------------------
-    def post_json(self, path, data):
+    def post_json(self, path, data, headers=None):
         status, body, _ = self.request(
-            "POST", path, json.dumps(data).encode(), {"Content-Type": "application/json"}
+            "POST", path, json.dumps(data).encode(),
+            dict({"Content-Type": "application/json"}, **(headers or {})),
         )
         return status, body
 
     def trpc(self, proc, payload):
         """Appel tRPC. Le transformateur est superjson : {"json": <entrée>}."""
-        status, body = self.post_json(f"/api/trpc/{proc}", {"json": payload})
+        headers = {}
+        if self.team_id:
+            headers["x-team-id"] = str(self.team_id)
+        status, body = self.post_json(f"/api/trpc/{proc}", {"json": payload}, headers)
         if isinstance(body, dict) and "result" in body:
             data = body["result"].get("data")
             if isinstance(data, dict) and "json" in data:
@@ -231,6 +239,25 @@ def psql(sql):
     if out.returncode != 0:
         return ""
     return out.stdout.strip()
+
+
+def seal_job_status():
+    """
+    Statut du dernier job de scellement.
+
+    Recherche par motif : le nom exact de la file a changé entre versions, et
+    un nom codé en dur renverrait « inconnu » sans que rien ne soit cassé.
+    """
+    for sql in (
+        "SELECT status FROM \"BackgroundJob\" WHERE name ILIKE '%seal%' "
+        "ORDER BY \"createdAt\" DESC LIMIT 1;",
+        "SELECT status FROM \"BackgroundJob\" WHERE \"jobId\" ILIKE '%seal%' "
+        "ORDER BY \"createdAt\" DESC LIMIT 1;",
+    ):
+        out = psql(sql)
+        if out:
+            return out.splitlines()[0].strip()
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -358,15 +385,6 @@ def step_signin(http, account):
 
 
 def step_api_token(http, state, account):
-    token = state.get("api_token")
-    if token:
-        http.token = token
-        status, _ = http.v2("GET", "/template?perPage=1")
-        if status < 400:
-            log("jeton d'API : déjà présent et valide")
-            return token
-        log(f"jeton d'API existant inutilisable (HTTP {status}), régénération")
-
     team_id = psql(
         "SELECT t.id FROM \"Team\" t "
         "JOIN \"Organisation\" o ON o.id = t.\"organisationId\" "
@@ -376,6 +394,16 @@ def step_api_token(http, state, account):
     if not team_id.isdigit():
         fail("espace de travail (team) introuvable pour le compte POC")
     state.set("team_id", int(team_id))
+    http.team_id = int(team_id)
+
+    token = state.get("api_token")
+    if token:
+        http.token = token
+        status, _ = http.v2("GET", "/template?perPage=1")
+        if status < 400:
+            log("jeton d'API : déjà présent et valide")
+            return token
+        log(f"jeton d'API existant inutilisable (HTTP {status}), régénération")
 
     status, out = http.trpc("apiToken.create", {
         "teamId": int(team_id), "tokenName": "Triactis POC automation", "expirationDate": None,
@@ -643,18 +671,18 @@ def step_signed_flow(http, state, templates):
         fail(f"finalisation refusée (HTTP {status}) : {json.dumps(out)[:400]}")
     log("finalisation demandée")
 
-    # Le scellement est un job de fond : on attend qu'il aboutisse.
-    final_status, seal, detail = "", "", {}
-    for _ in range(72):
+    # Le scellement est un job de fond. On attend l'enveloppe, pas le job :
+    # attendre les deux ferait épuiser la boucle si le nom du job changeait,
+    # alors que la preuve de scellement est le PDF lui-même.
+    final_status, detail = "", {}
+    for _ in range(90):
         status, detail = http.v2("GET", f"/envelope/{envelope_id}")
         final_status = detail.get("status") if isinstance(detail, dict) else ""
-        seal = psql("SELECT status FROM \"BackgroundJob\" "
-                    "WHERE name = 'internal.seal-document' "
-                    "ORDER BY \"createdAt\" DESC LIMIT 1;")
-        if final_status == "COMPLETED" and seal == "COMPLETED":
+        if final_status == "COMPLETED":
             break
-        time.sleep(5)
-    log(f"statut enveloppe : {final_status} · job internal.seal-document : {seal or 'inconnu'}")
+        time.sleep(4)
+    seal = seal_job_status()
+    log(f"statut enveloppe : {final_status} · job de scellement : {seal or 'non retrouvé en base'}")
 
     items = detail.get("envelopeItems") or [{}]
     item_id = items[0].get("id")
@@ -768,7 +796,7 @@ def step_two_signers(http, state, templates):
 
 
 def step_bulk_send(http, state, templates, csv_path):
-    if state.get("bulk"):
+    if (state.get("bulk") or {}).get("available"):
         log("envoi en masse : déjà effectué")
         return state.get("bulk")
 
@@ -795,9 +823,12 @@ def step_bulk_send(http, state, templates, csv_path):
 
 
 def step_webhook(http, state):
-    if state.get("webhook"):
+    # L'étape se rejoue tant qu'elle n'a pas abouti : un échat antérieur ne doit
+    # pas être figé dans l'état.
+    if (state.get("webhook") or {}).get("configured"):
         log("webhook : déjà configuré")
         return state.get("webhook")
+
     status, out = http.trpc("webhook.createWebhook", {
         "webhookUrl": WEBHOOK_URL,
         "eventTriggers": ["DOCUMENT_CREATED", "DOCUMENT_SENT", "DOCUMENT_OPENED",
