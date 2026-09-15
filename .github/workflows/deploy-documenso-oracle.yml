@@ -112,6 +112,50 @@ jobs:
           bash experiments/documenso-poc/oracle/run.sh
           REMOTE
 
+      # Un redémarrage de la machine n'est pas une routine : il n'a lieu qu'une
+      # fois, pour prouver que le POC repart seul. Le marqueur est posé sur la
+      # VM au premier succès, et cette étape devient alors un simple constat.
+      - name: Test de redémarrage de la machine
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $RUNNER_TEMP/ssh/id -o StrictHostKeyChecking=accept-new"
+          SSH_OPTS="$SSH_OPTS -o UserKnownHostsFile=$RUNNER_TEMP/ssh/known_hosts"
+          SSH_OPTS="$SSH_OPTS -o ConnectTimeout=20 -o ServerAliveInterval=30"
+
+          # shellcheck disable=SC2086
+          if ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" \
+               'test -f /opt/documenso-poc/state/reboot-tested' 2>/dev/null; then
+            echo "Test de redémarrage déjà passé sur cette machine, non rejoué."
+            exit 0
+          fi
+
+          echo "Redémarrage de la machine."
+          # La connexion tombe pendant le redémarrage : c'est attendu, et c'est
+          # précisément ce que le workflow doit savoir encaisser.
+          # shellcheck disable=SC2086
+          ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" 'sudo systemctl reboot' || true
+
+          sleep 25
+          echo "Attente du retour du port 22."
+          back=0
+          for i in $(seq 1 60); do
+            if nc -z -w 5 "$ORACLE_HOST" 22 2>/dev/null; then
+              echo "Port 22 de nouveau ouvert après $i tentative(s)."
+              back=1; break
+            fi
+            sleep 5
+          done
+          [ "$back" -eq 1 ] || { echo "::error::La machine n'est pas revenue."; exit 1; }
+
+          # Le port 22 répond avant que le démon SSH n'accepte les sessions.
+          sleep 20
+          # shellcheck disable=SC2086
+          ssh $SSH_OPTS "$ORACLE_USER@$ORACLE_HOST" \
+            'bash /opt/leo-learning/experiments/documenso-poc/oracle/reboot-check.sh'
+
       - name: Vérifier depuis l'extérieur que les ports privés sont fermés
         if: always()
         env:
