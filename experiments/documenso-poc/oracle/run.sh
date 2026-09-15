@@ -18,6 +18,50 @@ ORACLE_DIR="$POC_SRC_DIR/oracle"
 
 log() { printf '\n########## %s ##########\n' "$*"; }
 
+SEED_DEGRADED=0
+
+# Amorçage d'une instance DÉJÀ amorcée.
+#
+# Il n'y a alors plus rien à créer : chaque étape se contente de constater que
+# le compte, les modèles, le lien direct et le parcours signé sont déjà là.
+# Mais l'amorçage se connecte au compte POC avec le mot de passe enregistré
+# dans state/seed-state.json. Si ce mot de passe a été changé depuis
+# l'interface Documenso, geste d'exploitation parfaitement légitime, la
+# connexion échoue et, sous `set -e`, emportait jusqu'ici tout le reste du
+# déploiement : contrôles, persistance et sauvegarde compris.
+#
+# Ce cas précis, et lui seul, devient un avertissement. Toute autre erreur
+# d'amorçage interrompt toujours le déploiement.
+run_seed_idempotent() {
+  local log_file rc=0
+  log_file="$(mktemp)"
+
+  set +e
+  "$@" 2>&1 | tee "$log_file"
+  rc=${PIPESTATUS[0]}
+  set -e
+
+  if [[ "$rc" -eq 0 ]]; then
+    rm -f "$log_file"
+    return 0
+  fi
+
+  if grep -q 'INVALID_CREDENTIALS' "$log_file"; then
+    rm -f "$log_file"
+    SEED_DEGRADED=1
+    echo
+    echo "[run] AVERTISSEMENT : le mot de passe du compte POC enregistré dans"
+    echo "[run] state/seed-state.json ne correspond plus à celui de la base."
+    echo "[run] Il a vraisemblablement été changé depuis l'interface Documenso."
+    echo "[run] L'instance étant déjà amorcée, l'amorçage n'avait rien à créer :"
+    echo "[run] le déploiement se poursuit, contrôles et sauvegarde compris."
+    return 0
+  fi
+
+  rm -f "$log_file"
+  return "$rc"
+}
+
 # ---------------------------------------------------------------------------
 # Groupe docker
 # ---------------------------------------------------------------------------
@@ -70,6 +114,7 @@ log "4/8 AMORÇAGE APPLICATIF ET RECETTE FONCTIONNELLE"
 if [[ "$PHASE" == bootstrap ]]; then
   # L'application est encore derrière le Basic Auth de bootstrap : l'inscription
   # est ouverte côté Documenso mais personne d'autre ne peut l'atteindre.
+  # Ici le compte n'existe pas encore : la moindre erreur est bloquante.
   python3 "$ORACLE_DIR/seed.py" \
     --base "https://$POC_HOSTNAME" \
     --basic-auth "$POC_AUTH_USER:$POC_APP_BOOTSTRAP_PASSWORD" \
@@ -80,7 +125,7 @@ if [[ "$PHASE" == bootstrap ]]; then
   log "5/8 FERMETURE DE L'INSCRIPTION ET RETRAIT DU BASIC AUTH APPLICATIF"
   bash "$ORACLE_DIR/deploy.sh"
 else
-  python3 "$ORACLE_DIR/seed.py" \
+  run_seed_idempotent python3 "$ORACLE_DIR/seed.py" \
     --base "https://$POC_HOSTNAME" \
     --repo-dir "$POC_SRC_DIR"
   log "5/8 INSCRIPTION DÉJÀ FERMÉE, BASIC AUTH APPLICATIF DÉJÀ RETIRÉ"
@@ -103,4 +148,14 @@ bash "$POC_SRC_DIR/scripts/oracle-backup.sh"
 bash "$ORACLE_DIR/relay.sh"
 
 echo
-echo "[run] terminé."
+if [[ "$SEED_DEGRADED" -eq 1 ]]; then
+  echo "[run] terminé, AVEC UNE RÉSERVE : l'amorçage n'a pas pu se connecter au"
+  echo "[run] compte POC. Le mot de passe enregistré dans state/seed-state.json"
+  echo "[run] est périmé. Pour le resynchroniser, deux voies :"
+  echo "[run]   - inscrire le mot de passe courant dans state/seed-state.json ;"
+  echo "[run]   - ou supprimer state/seed-state.json pour repartir d'un compte"
+  echo "[run]     de démonstration neuf. Les données existantes sont conservées,"
+  echo "[run]     mais les modèles et le parcours de démonstration sont recréés."
+else
+  echo "[run] terminé."
+fi
