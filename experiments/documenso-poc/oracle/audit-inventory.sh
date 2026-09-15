@@ -43,13 +43,6 @@ for k in NEXT_PUBLIC_DISABLE_SIGNUP NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS; do
   printf '  %s = %s\n' "$k" "${v:-<absent>}"
 done
 
-section "Schema : tables d'identite, d'espace et de modele"
-q "select table_name, string_agg(column_name, ',' order by ordinal_position) as colonnes
-   from information_schema.columns
-   where table_schema = 'public'
-     and table_name ~* '^(User|Organisation|OrganisationMember|OrganisationGroup|OrganisationGroupMember|Team|TeamMember|TeamGroup|Template|Envelope|ApiToken|Webhook|TemplateDirectLink)$'
-   group by table_name order by table_name;"
-
 section "Comptes"
 q "select id,
           substr(md5(lower(email)), 1, 6) as ref,
@@ -57,29 +50,29 @@ q "select id,
           \"createdAt\"::date as cree_le
    from \"User\" order by id;"
 
-section "Organisations"
-q "select * from \"Organisation\" order by id;"
+section "Organisations et equipes"
+q "select o.id as organisation, o.name as nom_org, o.\"ownerUserId\" as proprietaire,
+          t.id as team, t.name as nom_team
+   from \"Organisation\" o join \"Team\" t on t.\"organisationId\" = o.id
+   order by t.id;"
 
-section "Appartenances aux organisations"
-q "select * from \"OrganisationMember\" order by 1;"
-
-section "Groupes d'organisation"
-q "select * from \"OrganisationGroup\" order by 1;"
-q "select * from \"OrganisationGroupMember\" order by 1;"
-
-section "Equipes"
-q "select * from \"Team\" order by id;"
-
-section "Appartenances aux equipes"
-q "select * from \"TeamMember\" order by 1;"
-q "select * from \"TeamGroup\" order by 1;"
+section "Qui atteint quelle equipe, et avec quel role"
+q "select tg.\"teamId\" as team,
+          u.id as compte,
+          substr(md5(lower(u.email)), 1, 6) as ref,
+          split_part(u.email, '@', 2) as domaine,
+          g.\"organisationRole\" as role_org,
+          tg.\"teamRole\" as role_team
+   from \"User\" u
+   join \"OrganisationMember\" m on m.\"userId\" = u.id
+   join \"OrganisationGroupMember\" gm on gm.\"organisationMemberId\" = m.id
+   join \"OrganisationGroup\" g on g.id = gm.\"groupId\"
+   join \"TeamGroup\" tg on tg.\"organisationGroupId\" = g.id
+   order by tg.\"teamId\", u.id;"
 
 section "Modeles"
-q "select id, title, \"templateType\", visibility, \"externalId\",
-          \"teamId\", \"userId\", \"createdAt\"::date as cree_le
-   from \"Envelope\" where type = 'TEMPLATE' order by id;"
-q "select id, title, \"templateType\", visibility, \"externalId\",
-          \"teamId\", \"userId\" from \"Template\" order by id;"
+q "select id, title, visibility, \"externalId\", \"teamId\", \"userId\"
+   from \"Envelope\" where type = 'TEMPLATE' order by \"teamId\", id;"
 
 section "Destinataires et champs par modele"
 q "select e.id, left(e.title, 38) as titre,
@@ -88,24 +81,39 @@ q "select e.id, left(e.title, 38) as titre,
    from \"Envelope\" e where e.type = 'TEMPLATE' order by e.id;"
 
 section "Enveloppes par type, statut et espace"
-q "select type, status, visibility, \"teamId\", \"userId\", count(*) as n
-   from \"Envelope\" group by 1,2,3,4,5 order by 1,2,3,4,5;"
+q "select type, status, \"teamId\", \"userId\", count(*) as n
+   from \"Envelope\" group by 1,2,3,4 order by 1,2,3,4;"
 
 section "Jetons d'API (jamais la valeur du jeton)"
-q "select id, name, \"userId\", \"teamId\", expires
-   from \"ApiToken\" order by id;"
+q "select id, name, \"userId\", \"teamId\", expires from \"ApiToken\" order by id;"
 
 section "Lien direct et webhooks"
-q "select id, \"envelopeId\", \"templateId\", enabled from \"TemplateDirectLink\" order by id;"
-q "select id, enabled, \"eventTriggers\", \"userId\", \"teamId\" from \"Webhook\" order by id;"
+q "select id, \"envelopeId\", enabled from \"TemplateDirectLink\" order by id;"
+q "select id, enabled, \"userId\", \"teamId\" from \"Webhook\" order by id;"
+
+section "Compte rendu de l'espace partage"
+# Deja consigne par oracle/workspace.py dans l'etat d'amorcage. Ne contient ni
+# adresse complete, ni jeton, ni lien de signature : uniquement des empreintes,
+# des domaines, des roles et des statuts.
+python3 - "$POC_STATE_DIR/state/seed-state.json" <<'PY' 2>&1 | sed 's/^/  /'
+import json, sys
+try:
+    state = json.load(open(sys.argv[1]))
+except Exception as exc:
+    print(f"etat d'amorcage illisible : {exc}")
+    raise SystemExit(0)
+report = state.get("workspace")
+if not report:
+    print("aucun compte rendu : la mise en partage n'a pas encore tourne")
+else:
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+PY
 
 section "Etat du fichier d'amorcage"
 if [[ -f "$POC_STATE_DIR/state/seed-state.json" ]]; then
   printf '  seed-state.json : present, %s octets, permissions %s\n' \
     "$(stat -c %s "$POC_STATE_DIR/state/seed-state.json")" \
     "$(stat -c %a "$POC_STATE_DIR/state/seed-state.json")"
-  printf '  cles presentes : %s\n' \
-    "$(python3 -c "import json;print(', '.join(sorted(json.load(open('$POC_STATE_DIR/state/seed-state.json')).keys())))" 2>&1)"
 else
   printf '  seed-state.json : absent\n'
 fi
