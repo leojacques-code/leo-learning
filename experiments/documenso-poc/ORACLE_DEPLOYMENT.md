@@ -49,7 +49,7 @@ Aucun des services applicatifs n'est publié sur une interface publique :
 | Mémoire | 12 Go |
 | Disque de démarrage | ~47 Go |
 | Système | Ubuntu 24.04 LTS (ARM64) |
-| Adresse publique | IPv4 **éphémère** (voir § 12) |
+| Adresse publique | IPv4 **éphémère** (voir § 13) |
 | Coût | 0 € — aucune ressource payante n'a été créée |
 
 L'architecture ARM64 impose de vérifier chaque image. Les images utilisées
@@ -142,6 +142,10 @@ Par leur nom seulement :
 - `ORACLE_HOST`
 - `ORACLE_USER`
 - `ORACLE_SSH_PRIVATE_KEY`
+- `POC_RECOVERY_PASSWORD` — facultatif : s'il est présent, il devient le mot de
+  passe Basic Auth de Mailpit et de la page de démonstration. C'est la voie de
+  récupération quand ces mots de passe ont été perdus. Il ne touche à aucun
+  compte Documenso.
 
 Aucun secret Documenso n'est stocké dans GitHub, et aucun n'y remonte.
 
@@ -156,6 +160,10 @@ unique : `oracle/relay-cert.pem` est un certificat **public**, versionné sans
 risque ; la machine chiffre les valeurs vers ce certificat et n'imprime que le
 chiffré. Seul le détenteur de la clé privée, qui n'a jamais quitté
 l'environnement de l'agent, peut le lire.
+
+Les mêmes valeurs sont lisibles directement sur la machine, en SSH, dans
+`/opt/documenso-poc/state/auth.env` et `/opt/documenso-poc/state/seed-state.json`,
+tous deux en permissions 600.
 
 ---
 
@@ -237,9 +245,11 @@ lui adjoindre du code non relu serait le maillon faible du dispositif.
 | 3 | génération des modèles de démonstration |
 | 4 | amorçage applicatif et recette fonctionnelle |
 | 5 | fermeture de l'inscription, retrait du Basic Auth applicatif |
+| — | espace partagé Triactis et recette depuis un second compte (§ 9) |
 | 6 | contrôles d'après déploiement |
 | 7 | test de persistance |
 | 8 | sauvegarde et restitution chiffrée |
+| — | inventaire applicatif, en lecture seule, publié en fin de journal |
 
 Toutes les étapes sont idempotentes.
 
@@ -248,13 +258,22 @@ Toutes les étapes sont idempotentes.
 L'inscription n'est jamais ouverte sur une instance joignable sans
 authentification :
 
-1. premier déploiement : `NEXT_PUBLIC_DISABLE_SIGNUP=false`, mais **tout le
-   site est derrière un Basic Auth Caddy** ;
-2. le compte POC est créé par l'API, depuis la machine ;
+1. premier déploiement : l'inscription est ouverte, mais **tout le site est
+   derrière un Basic Auth Caddy** ;
+2. le compte d'administration est créé par l'API, depuis la machine ;
 3. un marqueur `state/bootstrapped` est posé ;
-4. `deploy.sh` est relancé : `NEXT_PUBLIC_DISABLE_SIGNUP=true`, le Basic Auth
-   applicatif est retiré, Caddy redémarré ;
+4. `deploy.sh` est relancé : l'inscription se ferme, le Basic Auth applicatif
+   est retiré, Caddy redémarré ;
 5. le Basic Auth reste en place devant Mailpit et la page de démonstration.
+
+L'interrupteur est la variable `POC_DISABLE_SIGNUP` de
+`/opt/documenso-poc/oracle.env`, dont la valeur par défaut ferme l'inscription.
+Elle n'est **jamais** écrite en dur dans `compose.oracle.yml` : une valeur en
+dur survit à l'oubli et rouvre l'instance à chaque déploiement.
+
+Seconde barrière, indépendante : `NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS` est
+câblée sur le domaine du cabinet. Elle ne sert à rien tant que l'interrupteur
+ferme tout, et elle évite qu'une réouverture ouvre l'instance au premier venu.
 
 ### Deux chemins d'accès pendant l'amorçage
 
@@ -265,9 +284,98 @@ vérification et la connexion, et la boucle locale pour les appels authentifiés
 par jeton d'API. Le parcours public reste vérifié par `oracle/checks.sh` et par
 la sonde externe du workflow.
 
+### Le mot de passe humain n'est pas une dépendance
+
+Sur une instance déjà amorcée, l'amorçage essaie d'abord le jeton d'API
+conservé en 600 sur la machine. S'il répond, aucune session par mot de passe
+n'est ouverte : changer le mot de passe du compte depuis l'interface, geste
+d'exploitation parfaitement légitime, ne casse donc plus la recette.
+
+Si le jeton ne répond plus, la connexion classique prend le relais, et si elle
+échoue à son tour le message dit quoi faire. **Aucun script ne modifie le mot
+de passe d'un compte pour se débloquer.**
+
 ---
 
-## 9. Exploitation courante
+## 9. Utilisation multi-utilisateurs
+
+### L'espace partagé
+
+| Élément | Valeur |
+| --- | --- |
+| Organisation | `Triactis` |
+| Équipe | `Triactis` |
+| Modèles de démonstration | propriété de l'équipe, visibilité `EVERYONE` |
+| Rôle du compte d'administration | `ADMIN` |
+| Rôle d'un collaborateur | `MEMBER` |
+
+Un `MEMBER` voit les modèles de l'équipe, en crée des documents et les envoie.
+Il n'administre pas l'espace. C'est le niveau par défaut d'un collaborateur, et
+donner `ADMIN` à tout le monde serait une facilité coûteuse.
+
+Chaque compte garde par ailleurs son organisation et son équipe personnelles,
+invisibles des autres. Le partage d'équipe **n'aspire pas** les espaces
+personnels : un document de dossier déposé là y reste.
+
+### Le modèle d'appartenance de Documenso v2.18
+
+Il n'existe **ni table `Template`, ni table `TeamMember`**. Les modèles sont des
+`Envelope` de type `TEMPLATE`, et l'accès à une équipe passe par une chaîne de
+groupes :
+
+```
+User → OrganisationMember → OrganisationGroupMember
+     → OrganisationGroup → TeamGroup → Team
+```
+
+Conséquence pratique : rattacher un compte au groupe interne
+`INTERNAL_ORGANISATION` / `MEMBER` d'une organisation lui ouvre à la fois
+l'organisation **et** les équipes auxquelles ce groupe est relié. Deux
+insertions suffisent, et aucune autre écriture n'est nécessaire.
+
+Une requête écrite de mémoire sur un schéma supposé produirait un inventaire
+faux : `oracle/audit-inventory.sh` cartographie le schéma avant de l'interroger.
+
+### Pourquoi les modèles n'ont pas été déplacés
+
+Le lien direct, l'envoi en masse et le webhook sont tous rattachés à l'équipe
+qui porte les modèles. Les déménager vers une nouvelle équipe aurait cassé les
+trois d'un coup, pour un résultat identique. On fait donc entrer les comptes
+dans l'équipe existante, qu'on renomme : rien ne bouge, seule l'appartenance
+s'ajoute.
+
+### Ajouter un collaborateur plus tard
+
+```bash
+# 1. rouvrir l'inscription, geste explicite
+sudo sed -i 's/^POC_DISABLE_SIGNUP=.*/POC_DISABLE_SIGNUP=false/' \
+  /opt/documenso-poc/oracle.env
+```
+
+2. relancer le déploiement : n'importe quel push sur `leolearning` suffit ;
+3. créer le compte depuis `/signup`, avec une adresse du domaine du cabinet —
+   les autres domaines restent refusés ;
+4. refermer : remettre `POC_DISABLE_SIGNUP=true` et relancer.
+
+Le rattachement à l'espace Triactis est automatique au déploiement suivant :
+`oracle/workspace.py` rattache tout compte du domaine du cabinet qui ne l'est
+pas encore, et ne fait rien pour ceux qui le sont déjà.
+
+### Écritures directes en base : la règle
+
+L'API d'invitation de Documenso existe, mais l'acceptation d'une invitation
+suppose d'être connecté en tant qu'invité, donc de disposer de son mot de
+passe. C'est ce qui rend l'écriture directe nécessaire ici, et non un raccourci
+de confort.
+
+Toute écriture directe est soumise aux mêmes conditions, et `oracle/run.sh`
+les applique : sauvegarde immédiatement avant, transaction, idempotence, et
+relecture en base pour preuve. Un échec de la mise en partage n'emporte ni les
+contrôles, ni la persistance, ni la sauvegarde.
+
+---
+
+## 10. Exploitation courante
 
 ```bash
 cd /opt/leo-learning/experiments/documenso-poc
@@ -293,15 +401,16 @@ Pour valider la composition **sans afficher les secrets** :
 $DC config --quiet          # jamais `config` tout court
 ```
 
-Contrôles complets :
+Contrôles complets, et inventaire en lecture seule :
 
 ```bash
 bash oracle/checks.sh
+bash oracle/audit-inventory.sh
 ```
 
 ---
 
-## 10. Sauvegarde et restauration
+## 11. Sauvegarde et restauration
 
 ### Sauvegarde
 
@@ -341,7 +450,7 @@ chiffrées illisibles. Ce rapprochement est fait à la main, en conscience.
 
 ---
 
-## 11. Arrêt, rollback, suppression
+## 12. Arrêt, rollback, suppression
 
 ```bash
 bash scripts/oracle-stop.sh            # arrêt, volumes CONSERVÉS
@@ -360,7 +469,7 @@ données ne sont pas touchées.
 
 ---
 
-## 12. Si l'adresse publique change
+## 13. Si l'adresse publique change
 
 L'adresse IPv4 est **éphémère** : Oracle peut l'attribuer à nouveau après un
 arrêt prolongé de l'instance. Aucune adresse réservée n'a été prise, car cela
@@ -383,7 +492,7 @@ dépendent ni de l'adresse ni des clés de l'instance.
 
 ---
 
-## 13. Mise à jour de Documenso
+## 14. Mise à jour de Documenso
 
 1. changer le tag dans `compose.yml` (`documenso/documenso:vX.Y.Z`) ;
 2. **vérifier que l'image publie un manifeste `linux/arm64`** ;
@@ -397,21 +506,24 @@ délibéré, daté et réversible.
 
 ---
 
-## 14. Limites
+## 15. Limites
 
 1. **Une seule machine.** Ni haute disponibilité, ni bascule. Une panne de
    l'instance est une indisponibilité.
-2. **Sauvegarde sur le même disque.** Voir § 10. Ce n'est pas un plan de
+2. **Sauvegarde sur le même disque.** Voir § 11. Ce n'est pas un plan de
    reprise.
 3. **Certificat de signature auto-signé.** POC technique. Ni QES, ni AES, ni
    certificat qualifié, ni équivalent juridique d'un prestataire de confiance.
 4. **Aucun courriel réel n'est envoyé.** Tout est capté par Mailpit. La
    délivrabilité n'est donc pas validée.
-5. **Adresse IPv4 éphémère.** Voir § 12.
+5. **Adresse IPv4 éphémère.** Voir § 13.
 6. **Pas de supervision.** Pas de Prometheus, pas d'alerte. Le diagnostic se
-   fait à la main avec les commandes du § 9.
+   fait à la main avec les commandes du § 10.
 7. **Détection des champs par IA non activée**, et elle ne doit pas l'être :
    elle exige une facturation Google Cloud active et envoie le contenu des
    documents à Vertex AI.
-8. **Données fictives uniquement.** Aucune donnée client réelle ne doit entrer
-   sur cette instance.
+8. **Données fictives uniquement** dans les modèles de démonstration. Aucune
+   donnée client réelle ne doit entrer sur cette instance.
+9. **L'espace partagé ne compte qu'un compte du cabinet** à ce jour. Le
+   mécanisme est vérifié de bout en bout, mais il n'a pas été éprouvé à
+   plusieurs dizaines de comptes.
