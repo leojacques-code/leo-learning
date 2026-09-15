@@ -19,10 +19,6 @@
 # /opt/documenso-poc/ et survit à n'importe quel `git fetch` ou `git checkout`.
 
 services:
-  # En local, perdre la boîte aux lettres au redémarrage est sans conséquence.
-  # Ici les courriels font partie de la démonstration : l'invitation de
-  # signature et la notification de complétion doivent encore être là le
-  # lendemain. On donne donc un volume à Mailpit.
   mailpit:
     environment:
       MP_DATABASE: /data/mailpit.db
@@ -32,27 +28,16 @@ services:
 
   documenso:
     environment:
-      # URL publique : c'est elle qui construit les liens de signature envoyés
-      # aux destinataires. Elle doit être le hostname HTTPS public.
       NEXT_PUBLIC_WEBAPP_URL: "https://${POC_HOSTNAME:?manquant, rendu par oracle/deploy.sh}"
-
-      # URL interne : l'auto-appel HTTP du dispatcher de jobs. Il doit rester
-      # sur la boucle locale du conteneur et NE PAS repasser par Caddy, sinon
-      # le Basic Auth de bootstrap casserait le scellement des PDF.
       NEXT_PRIVATE_INTERNAL_WEBAPP_URL: "http://localhost:3000"
-
-      # Interrupteur maître d'inscription. `false` seulement le temps de créer
-      # le compte POC, derrière le Basic Auth Caddy ; passé à `true` avant que
-      # l'application ne soit accessible sans authentification.
       NEXT_PUBLIC_DISABLE_SIGNUP: "${POC_DISABLE_SIGNUP:-true}"
+      # Quand les inscriptions sont temporairement ouvertes, limiter la création
+      # de comptes au domaine d'entreprise plutôt que d'ouvrir l'instance au public.
+      NEXT_PRIVATE_ALLOWED_SIGNUP_DOMAINS: "${POC_ALLOWED_SIGNUP_DOMAINS:-}"
 
     volumes:
-      # Même cible que dans compose.yml : Compose fusionne les montages par
-      # chemin de destination, celui-ci remplace donc ./certs/cert.p12.
       - /opt/documenso-poc/certs/cert.p12:/opt/documenso/cert.p12:ro
 
-  # Réception des webhooks Documenso, pour la démonstration du suivi de statut.
-  # Purement local : écoute sur le réseau Docker, jamais publié.
   webhook-sink:
     image: python:3.12-alpine
     container_name: documenso-poc-webhook-sink
@@ -72,7 +57,6 @@ services:
     depends_on:
       - documenso
       - mailpit
-    # Seuls ports ouverts sur Internet de toute la pile.
     ports:
       - '0.0.0.0:80:80'
       - '0.0.0.0:443:443'
