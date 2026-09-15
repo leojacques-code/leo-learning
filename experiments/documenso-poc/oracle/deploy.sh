@@ -106,19 +106,25 @@ grep -q '^NEXT_PRIVATE_SIGNING_PASSPHRASE=.\+' "$POC_STATE_DIR/.env" \
 AUTH_FILE="$POC_STATE_DIR/state/auth.env"
 
 # Un fichier présent mais incomplet est pire qu'absent : il serait considéré
-# comme déjà généré et le Basic Auth ne protégerait rien. On vérifie donc que
-# les trois hashes sont bien des hashes bcrypt et que les mots de passe en
-# clair correspondants sont présents.
+# comme déjà généré et le Basic Auth ne protégerait rien. Le contrôle lit donc
+# réellement le fichier dans un sous-shell, ce qui vérifie du même coup qu'il
+# est sourçable, puis examine les valeurs obtenues.
 auth_file_complete() {
   [[ -f "$AUTH_FILE" ]] || return 1
-  local key
-  for key in POC_MAIL_HASH POC_DEMO_HASH POC_APP_HASH; do
-    grep -q "^$key=\\\$2[aby]\\\$" "$AUTH_FILE" || return 1
-  done
-  for key in POC_MAIL_PASSWORD POC_DEMO_PASSWORD POC_APP_BOOTSTRAP_PASSWORD POC_AUTH_USER; do
-    grep -qE "^$key=.{4,}" "$AUTH_FILE" || return 1
-  done
-  return 0
+  (
+    set +u
+    # shellcheck disable=SC1090
+    . "$AUTH_FILE" 2>/dev/null || exit 1
+    [[ ${#POC_AUTH_USER} -ge 3 ]] || exit 1
+    [[ ${#POC_MAIL_PASSWORD} -ge 16 ]] || exit 1
+    [[ ${#POC_DEMO_PASSWORD} -ge 16 ]] || exit 1
+    [[ ${#POC_APP_BOOTSTRAP_PASSWORD} -ge 16 ]] || exit 1
+    # Un hash bcrypt commence par $2a$, $2b$ ou $2y$.
+    [[ ${POC_MAIL_HASH:0:3} == '$2'? ]] || exit 1
+    [[ ${POC_DEMO_HASH:0:3} == '$2'? ]] || exit 1
+    [[ ${POC_APP_HASH:0:3} == '$2'? ]] || exit 1
+    exit 0
+  )
 }
 
 # Le mot de passe passe par stdin, jamais en argument : il n'apparaît ainsi ni
@@ -140,8 +146,11 @@ hash_pw() {
 }
 
 if ! auth_file_complete; then
-  [[ -f "$AUTH_FILE" ]] && log "identifiants Basic Auth incomplets : régénération" \
-                        || log "génération des identifiants Basic Auth"
+  if [[ -f "$AUTH_FILE" ]]; then
+    log "identifiants Basic Auth incomplets ou illisibles : régénération"
+  else
+    log "génération des identifiants Basic Auth"
+  fi
   docker pull -q "$CADDY_IMAGE" >/dev/null
 
   # 32 caractères base64url : nettement au-delà des ~24 demandés, le hash
@@ -156,15 +165,18 @@ if ! auth_file_complete; then
   _demo_hash="$(hash_pw "$_demo_pw")" || die "hachage bcrypt impossible (démo)"
   _app_hash="$(hash_pw "$_app_pw")"   || die "hachage bcrypt impossible (application)"
 
+  # Quotes simples indispensables : un hash bcrypt contient des `$` que bash
+  # développerait à la lecture du fichier. Ni les hashes ni les mots de passe
+  # générés ne peuvent contenir de quote simple.
   umask 077
   {
-    printf 'POC_AUTH_USER=triactis\n'
-    printf 'POC_MAIL_PASSWORD=%s\n' "$_mail_pw"
-    printf 'POC_DEMO_PASSWORD=%s\n' "$_demo_pw"
-    printf 'POC_APP_BOOTSTRAP_PASSWORD=%s\n' "$_app_pw"
-    printf 'POC_MAIL_HASH=%s\n' "$_mail_hash"
-    printf 'POC_DEMO_HASH=%s\n' "$_demo_hash"
-    printf 'POC_APP_HASH=%s\n' "$_app_hash"
+    printf "POC_AUTH_USER='triactis'\n"
+    printf "POC_MAIL_PASSWORD='%s'\n" "$_mail_pw"
+    printf "POC_DEMO_PASSWORD='%s'\n" "$_demo_pw"
+    printf "POC_APP_BOOTSTRAP_PASSWORD='%s'\n" "$_app_pw"
+    printf "POC_MAIL_HASH='%s'\n" "$_mail_hash"
+    printf "POC_DEMO_HASH='%s'\n" "$_demo_hash"
+    printf "POC_APP_HASH='%s'\n" "$_app_hash"
   } > "$AUTH_FILE"
   chmod 600 "$AUTH_FILE"
   unset _mail_pw _demo_pw _app_pw _mail_hash _demo_hash _app_hash
