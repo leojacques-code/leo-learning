@@ -1,7 +1,10 @@
 # Gabarit Caddy du POC Documenso sur Oracle Cloud.
 #
-# oracle/deploy.sh substitue les marqueurs @@...@@ et écrit le résultat dans
+# oracle/deploy.sh substitue les marqueurs et écrit le résultat dans
 # /opt/documenso-poc/Caddyfile, monté en lecture seule dans le conteneur.
+# Un marqueur s'écrit : deux arobases, un nom en majuscules, deux arobases.
+# Ce commentaire n'en contient volontairement aucun, sans quoi il ferait
+# échouer le contrôle de substitution de oracle/render-caddyfile.py.
 #
 # POINT DE SÉCURITÉ, cf. RESULTATS_TEST_2026-09-12.md constat 3 :
 # les formulaires /signin, /signup et /forgot-password de Documenso sont servis
